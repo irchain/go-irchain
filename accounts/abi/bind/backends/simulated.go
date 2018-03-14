@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package backends
 
@@ -24,21 +24,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/bloombits"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/filters"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/happyuc-project/happyuc-go"
+	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/math"
+	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/state"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/eth/filters"
+	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/happyuc-project/happyuc-go/rpc"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -51,7 +51,7 @@ var errGasEstimationFailed = errors.New("gas required exceeds allowance or alway
 // the background. Its main purpose is to allow easily testing contract bindings.
 type SimulatedBackend struct {
 	database   ethdb.Database   // In memory database to store our testing data
-	blockchain *core.BlockChain // Ethereum blockchain to handle the consensus
+	blockchain *core.BlockChain // HappyUC blockchain to handle the consensus
 
 	mu           sync.Mutex
 	pendingBlock *types.Block   // Currently pending block that will be imported on request

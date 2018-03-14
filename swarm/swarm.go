@@ -1,18 +1,18 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2016 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package swarm
 
@@ -27,24 +27,24 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/contracts/chequebook"
-	"github.com/ethereum/go-ethereum/contracts/ens"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/swarm/api"
-	httpapi "github.com/ethereum/go-ethereum/swarm/api/http"
-	"github.com/ethereum/go-ethereum/swarm/fuse"
-	"github.com/ethereum/go-ethereum/swarm/network"
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/contracts/chequebook"
+	"github.com/happyuc-project/happyuc-go/contracts/ens"
+	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/happyuc-project/happyuc-go/ethclient"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/happyuc-project/happyuc-go/swarm/api"
+	httpapi "github.com/happyuc-project/happyuc-go/swarm/api/http"
+	"github.com/happyuc-project/happyuc-go/swarm/fuse"
+	"github.com/happyuc-project/happyuc-go/swarm/network"
+	"github.com/happyuc-project/happyuc-go/swarm/storage"
 )
 
 var (

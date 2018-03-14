@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -21,16 +21,16 @@ import (
 	"errors"
 	"math"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/params"
 )
 
-// cppEthereumGenesisSpec represents the genesis specification format used by the
-// C++ Ethereum implementation.
-type cppEthereumGenesisSpec struct {
+// cppHappyUCGenesisSpec represents the genesis specification format used by the
+// C++ HappyUC implementation.
+type cppHappyUCGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
 	Params     struct {
 		AccountStartNonce       hexutil.Uint64 `json:"accountStartNonce"`
@@ -62,38 +62,38 @@ type cppEthereumGenesisSpec struct {
 		GasLimit   hexutil.Uint64 `json:"gasLimit"`
 	} `json:"genesis"`
 
-	Accounts map[common.Address]*cppEthereumGenesisSpecAccount `json:"accounts"`
+	Accounts map[common.Address]*cppHappyUCGenesisSpecAccount `json:"accounts"`
 }
 
-// cppEthereumGenesisSpecAccount is the prefunded genesis account and/or precompiled
+// cppHappyUCGenesisSpecAccount is the prefunded genesis account and/or precompiled
 // contract definition.
-type cppEthereumGenesisSpecAccount struct {
+type cppHappyUCGenesisSpecAccount struct {
 	Balance     *hexutil.Big                   `json:"balance"`
 	Nonce       uint64                         `json:"nonce,omitempty"`
-	Precompiled *cppEthereumGenesisSpecBuiltin `json:"precompiled,omitempty"`
+	Precompiled *cppHappyUCGenesisSpecBuiltin `json:"precompiled,omitempty"`
 }
 
-// cppEthereumGenesisSpecBuiltin is the precompiled contract definition.
-type cppEthereumGenesisSpecBuiltin struct {
+// cppHappyUCGenesisSpecBuiltin is the precompiled contract definition.
+type cppHappyUCGenesisSpecBuiltin struct {
 	Name          string                               `json:"name,omitempty"`
 	StartingBlock hexutil.Uint64                       `json:"startingBlock,omitempty"`
-	Linear        *cppEthereumGenesisSpecLinearPricing `json:"linear,omitempty"`
+	Linear        *cppHappyUCGenesisSpecLinearPricing `json:"linear,omitempty"`
 }
 
-type cppEthereumGenesisSpecLinearPricing struct {
+type cppHappyUCGenesisSpecLinearPricing struct {
 	Base uint64 `json:"base"`
 	Word uint64 `json:"word"`
 }
 
-// newCppEthereumGenesisSpec converts a go-ethereum genesis block into a Parity specific
+// newCppHappyUCGenesisSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
-func newCppEthereumGenesisSpec(network string, genesis *core.Genesis) (*cppEthereumGenesisSpec, error) {
-	// Only ethash is currently supported between go-ethereum and cpp-ethereum
+func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyUCGenesisSpec, error) {
+	// Only ethash is currently supported between happyuc-go and happyuc-cpp
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
 	// Reconstruct the chain spec in Parity's format
-	spec := &cppEthereumGenesisSpec{
+	spec := &cppHappyUCGenesisSpec{
 		SealEngine: "Ethash",
 	}
 	spec.Params.AccountStartNonce = 0
@@ -126,36 +126,36 @@ func newCppEthereumGenesisSpec(network string, genesis *core.Genesis) (*cppEther
 	spec.Genesis.ExtraData = (hexutil.Bytes)(genesis.ExtraData)
 	spec.Genesis.GasLimit = (hexutil.Uint64)(genesis.GasLimit)
 
-	spec.Accounts = make(map[common.Address]*cppEthereumGenesisSpecAccount)
+	spec.Accounts = make(map[common.Address]*cppHappyUCGenesisSpecAccount)
 	for address, account := range genesis.Alloc {
-		spec.Accounts[address] = &cppEthereumGenesisSpecAccount{
+		spec.Accounts[address] = &cppHappyUCGenesisSpecAccount{
 			Balance: (*hexutil.Big)(account.Balance),
 			Nonce:   account.Nonce,
 		}
 	}
-	spec.Accounts[common.BytesToAddress([]byte{1})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-		Name: "ecrecover", Linear: &cppEthereumGenesisSpecLinearPricing{Base: 3000},
+	spec.Accounts[common.BytesToAddress([]byte{1})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+		Name: "ecrecover", Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 3000},
 	}
-	spec.Accounts[common.BytesToAddress([]byte{2})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-		Name: "sha256", Linear: &cppEthereumGenesisSpecLinearPricing{Base: 60, Word: 12},
+	spec.Accounts[common.BytesToAddress([]byte{2})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+		Name: "sha256", Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 60, Word: 12},
 	}
-	spec.Accounts[common.BytesToAddress([]byte{3})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-		Name: "ripemd160", Linear: &cppEthereumGenesisSpecLinearPricing{Base: 600, Word: 120},
+	spec.Accounts[common.BytesToAddress([]byte{3})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+		Name: "ripemd160", Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 600, Word: 120},
 	}
-	spec.Accounts[common.BytesToAddress([]byte{4})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-		Name: "identity", Linear: &cppEthereumGenesisSpecLinearPricing{Base: 15, Word: 3},
+	spec.Accounts[common.BytesToAddress([]byte{4})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+		Name: "identity", Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 15, Word: 3},
 	}
 	if genesis.Config.ByzantiumBlock != nil {
-		spec.Accounts[common.BytesToAddress([]byte{5})].Precompiled = &cppEthereumGenesisSpecBuiltin{
+		spec.Accounts[common.BytesToAddress([]byte{5})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
 			Name: "modexp", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()),
 		}
-		spec.Accounts[common.BytesToAddress([]byte{6})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-			Name: "alt_bn128_G1_add", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()), Linear: &cppEthereumGenesisSpecLinearPricing{Base: 500},
+		spec.Accounts[common.BytesToAddress([]byte{6})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+			Name: "alt_bn128_G1_add", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()), Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 500},
 		}
-		spec.Accounts[common.BytesToAddress([]byte{7})].Precompiled = &cppEthereumGenesisSpecBuiltin{
-			Name: "alt_bn128_G1_mul", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()), Linear: &cppEthereumGenesisSpecLinearPricing{Base: 40000},
+		spec.Accounts[common.BytesToAddress([]byte{7})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
+			Name: "alt_bn128_G1_mul", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()), Linear: &cppHappyUCGenesisSpecLinearPricing{Base: 40000},
 		}
-		spec.Accounts[common.BytesToAddress([]byte{8})].Precompiled = &cppEthereumGenesisSpecBuiltin{
+		spec.Accounts[common.BytesToAddress([]byte{8})].Precompiled = &cppHappyUCGenesisSpecBuiltin{
 			Name: "alt_bn128_pairing_product", StartingBlock: (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64()),
 		}
 	}
@@ -201,7 +201,7 @@ type parityChainSpec struct {
 
 	Genesis struct {
 		Seal struct {
-			Ethereum struct {
+			HappyUC struct {
 				Nonce   hexutil.Bytes `json:"nonce"`
 				MixHash hexutil.Bytes `json:"mixHash"`
 			} `json:"ethereum"`
@@ -256,10 +256,10 @@ type parityChainSpecAltBnPairingPricing struct {
 	Pair uint64 `json:"pair"`
 }
 
-// newParityChainSpec converts a go-ethereum genesis block into a Parity specific
+// newParityChainSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
 func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []string) (*parityChainSpec, error) {
-	// Only ethash is currently supported between go-ethereum and Parity
+	// Only ethash is currently supported between happyuc-go and Parity
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
@@ -294,10 +294,10 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Params.EIP214Transition = genesis.Config.ByzantiumBlock.Uint64()
 	spec.Params.EIP658Transition = genesis.Config.ByzantiumBlock.Uint64()
 
-	spec.Genesis.Seal.Ethereum.Nonce = (hexutil.Bytes)(make([]byte, 8))
-	binary.LittleEndian.PutUint64(spec.Genesis.Seal.Ethereum.Nonce[:], genesis.Nonce)
+	spec.Genesis.Seal.HappyUC.Nonce = (hexutil.Bytes)(make([]byte, 8))
+	binary.LittleEndian.PutUint64(spec.Genesis.Seal.HappyUC.Nonce[:], genesis.Nonce)
 
-	spec.Genesis.Seal.Ethereum.MixHash = (hexutil.Bytes)(genesis.Mixhash[:])
+	spec.Genesis.Seal.HappyUC.MixHash = (hexutil.Bytes)(genesis.Mixhash[:])
 	spec.Genesis.Difficulty = (*hexutil.Big)(genesis.Difficulty)
 	spec.Genesis.Author = genesis.Coinbase
 	spec.Genesis.Timestamp = (hexutil.Uint64)(genesis.Timestamp)
@@ -341,9 +341,9 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	return spec, nil
 }
 
-// pyEthereumGenesisSpec represents the genesis specification format used by the
-// Python Ethereum implementation.
-type pyEthereumGenesisSpec struct {
+// pyHappyUCGenesisSpec represents the genesis specification format used by the
+// Python HappyUC implementation.
+type pyHappyUCGenesisSpec struct {
 	Nonce      hexutil.Bytes     `json:"nonce"`
 	Timestamp  hexutil.Uint64    `json:"timestamp"`
 	ExtraData  hexutil.Bytes     `json:"extraData"`
@@ -355,14 +355,14 @@ type pyEthereumGenesisSpec struct {
 	ParentHash common.Hash       `json:"parentHash"`
 }
 
-// newPyEthereumGenesisSpec converts a go-ethereum genesis block into a Parity specific
+// newPyHappyUCGenesisSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
-func newPyEthereumGenesisSpec(network string, genesis *core.Genesis) (*pyEthereumGenesisSpec, error) {
-	// Only ethash is currently supported between go-ethereum and pyethereum
+func newPyHappyUCGenesisSpec(network string, genesis *core.Genesis) (*pyHappyUCGenesisSpec, error) {
+	// Only ethash is currently supported between happyuc-go and pyethereum
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
-	spec := &pyEthereumGenesisSpec{
+	spec := &pyHappyUCGenesisSpec{
 		Timestamp:  (hexutil.Uint64)(genesis.Timestamp),
 		ExtraData:  genesis.ExtraData,
 		GasLimit:   (hexutil.Uint64)(genesis.GasLimit),

@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2017 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 // This file contains the implementation for interacting with the Trezor hardware
 // wallets. The wire protocol spec can be found on the SatoshiLabs website:
@@ -27,12 +27,12 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/usbwallet/internal/trezor"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/happyuc-project/happyuc-go/accounts"
+	"github.com/happyuc-project/happyuc-go/accounts/usbwallet/internal/trezor"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -64,7 +64,7 @@ func newTrezorDriver(logger log.Logger) driver {
 }
 
 // Status implements accounts.Wallet, always whether the Trezor is opened, closed
-// or whether the Ethereum app was not started on it.
+// or whether the HappyUC app was not started on it.
 func (w *trezorDriver) Status() (string, error) {
 	if w.failure != nil {
 		return fmt.Sprintf("Failed: %v", w.failure), w.failure
@@ -145,7 +145,7 @@ func (w *trezorDriver) Heartbeat() error {
 }
 
 // Derive implements usbwallet.driver, sending a derivation request to the Trezor
-// and returning the Ethereum address located on that derivation path.
+// and returning the HappyUC address located on that derivation path.
 func (w *trezorDriver) Derive(path accounts.DerivationPath) (common.Address, error) {
 	return w.trezorDerive(path)
 }
@@ -160,10 +160,10 @@ func (w *trezorDriver) SignTx(path accounts.DerivationPath, tx *types.Transactio
 }
 
 // trezorDerive sends a derivation request to the Trezor device and returns the
-// Ethereum address located on that path.
+// HappyUC address located on that path.
 func (w *trezorDriver) trezorDerive(derivationPath []uint32) (common.Address, error) {
-	address := new(trezor.EthereumAddress)
-	if _, err := w.trezorExchange(&trezor.EthereumGetAddress{AddressN: derivationPath}, address); err != nil {
+	address := new(trezor.AddressHappyUC)
+	if _, err := w.trezorExchange(&trezor.GetAddressHappyUC{AddressN: derivationPath}, address); err != nil {
 		return common.Address{}, err
 	}
 	return common.BytesToAddress(address.GetAddress()), nil
@@ -176,7 +176,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 	data := tx.Data()
 	length := uint32(len(data))
 
-	request := &trezor.EthereumSignTx{
+	request := &trezor.SignTxHappyUC{
 		AddressN:   derivationPath,
 		Nonce:      new(big.Int).SetUint64(tx.Nonce()).Bytes(),
 		GasPrice:   tx.GasPrice().Bytes(),
@@ -197,7 +197,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 		request.ChainId = &id
 	}
 	// Send the initiation message and stream content until a signature is returned
-	response := new(trezor.EthereumTxRequest)
+	response := new(trezor.TxRequestHappyUC)
 	if _, err := w.trezorExchange(request, response); err != nil {
 		return common.Address{}, nil, err
 	}
@@ -205,11 +205,11 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 		chunk := data[:*response.DataLength]
 		data = data[*response.DataLength:]
 
-		if _, err := w.trezorExchange(&trezor.EthereumTxAck{DataChunk: chunk}, response); err != nil {
+		if _, err := w.trezorExchange(&trezor.TxAckHappyUC{DataChunk: chunk}, response); err != nil {
 			return common.Address{}, nil, err
 		}
 	}
-	// Extract the Ethereum signature and do a sanity validation
+	// Extract the HappyUC signature and do a sanity validation
 	if len(response.GetSignatureR()) == 0 || len(response.GetSignatureS()) == 0 || response.GetSignatureV() == 0 {
 		return common.Address{}, nil, errors.New("reply lacks signature")
 	}

@@ -1,20 +1,20 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
-// Package utils contains internal helper functions for go-ethereum commands.
+// Package utils contains internal helper functions for happyuc-go commands.
 package utils
 
 import (
@@ -28,34 +28,34 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/fdlimit"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/clique"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/dashboard"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/gasprice"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/ethstats"
-	"github.com/ethereum/go-ethereum/les"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
-	"github.com/ethereum/go-ethereum/p2p/nat"
-	"github.com/ethereum/go-ethereum/p2p/netutil"
-	"github.com/ethereum/go-ethereum/params"
-	whisper "github.com/ethereum/go-ethereum/whisper/whisperv5"
+	"github.com/happyuc-project/happyuc-go/accounts"
+	"github.com/happyuc-project/happyuc-go/accounts/keystore"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/fdlimit"
+	"github.com/happyuc-project/happyuc-go/consensus"
+	"github.com/happyuc-project/happyuc-go/consensus/clique"
+	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/state"
+	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/happyuc-project/happyuc-go/dashboard"
+	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/eth/gasprice"
+	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/ethstats"
+	"github.com/happyuc-project/happyuc-go/les"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/happyuc-project/happyuc-go/p2p/discv5"
+	"github.com/happyuc-project/happyuc-go/p2p/nat"
+	"github.com/happyuc-project/happyuc-go/p2p/netutil"
+	"github.com/happyuc-project/happyuc-go/params"
+	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv5"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -1123,7 +1123,7 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 	cfg.Assets = ctx.GlobalString(DashboardAssetsFlag.Name)
 }
 
-// RegisterEthService adds an Ethereum client to the stack.
+// RegisterEthService adds an HappyUC client to the stack.
 func RegisterEthService(stack *node.Node, cfg *eth.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
@@ -1141,7 +1141,7 @@ func RegisterEthService(stack *node.Node, cfg *eth.Config) {
 		})
 	}
 	if err != nil {
-		Fatalf("Failed to register the Ethereum service: %v", err)
+		Fatalf("Failed to register the HappyUC service: %v", err)
 	}
 }
 
@@ -1161,20 +1161,20 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterEthStatsService configures the Ethereum Stats daemon and adds it to
+// RegisterEthStatsService configures the HappyUC Stats daemon and adds it to
 // th egiven node.
 func RegisterEthStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both eth and les services
-		var ethServ *eth.Ethereum
+		var ethServ *eth.HappyUC
 		ctx.Service(&ethServ)
 
-		var lesServ *les.LightEthereum
+		var lesServ *les.LightHappyUC
 		ctx.Service(&lesServ)
 
 		return ethstats.New(url, ethServ, lesServ)
 	}); err != nil {
-		Fatalf("Failed to register the Ethereum Stats service: %v", err)
+		Fatalf("Failed to register the HappyUC Stats service: %v", err)
 	}
 }
 

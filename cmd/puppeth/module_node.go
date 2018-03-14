@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -26,11 +26,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/log"
 )
 
-// nodeDockerfile is the Dockerfile required to run an Ethereum node.
+// nodeDockerfile is the Dockerfile required to run an HappyUC node.
 var nodeDockerfile = `
 FROM ethereum/client-go:latest
 
@@ -48,7 +48,7 @@ ENTRYPOINT ["/bin/sh", "geth.sh"]
 `
 
 // nodeComposefile is the docker-compose.yml file required to deploy and maintain
-// an Ethereum node (bootnode or miner for now).
+// an HappyUC node (bootnode or miner for now).
 var nodeComposefile = `
 version: '2'
 services:
@@ -77,7 +77,7 @@ services:
     restart: always
 `
 
-// deployNode deploys a new Ethereum node container to a remote machine via SSH,
+// deployNode deploys a new HappyUC node container to a remote machine via SSH,
 // docker and docker-compose. If an instance with the specified network name
 // already exists there, it will be overwritten!
 func deployNode(client *sshClient, network string, bootnodes []string, config *nodeInfos, nocache bool) ([]byte, error) {

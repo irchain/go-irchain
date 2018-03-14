@@ -7,10 +7,10 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/happyuc-project/happyuc-go/common/math"
+	"github.com/happyuc-project/happyuc-go/params"
 )
 
 var _ = (*genesisSpecMarshaling)(nil)

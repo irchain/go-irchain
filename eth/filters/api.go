@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package filters
 
@@ -25,13 +25,13 @@ import (
 	"sync"
 	"time"
 
-	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/rpc"
+	ethereum "github.com/happyuc-project/happyuc-go"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/happyuc-project/happyuc-go/rpc"
 )
 
 var (
@@ -50,7 +50,7 @@ type filter struct {
 }
 
 // PublicFilterAPI offers support to create and manage filters. This will allow external clients to retrieve various
-// information related to the Ethereum protocol such als blocks, transactions and logs.
+// information related to the HappyUC protocol such als blocks, transactions and logs.
 type PublicFilterAPI struct {
 	backend   Backend
 	mux       *event.TypeMux
@@ -101,7 +101,7 @@ func (api *PublicFilterAPI) timeoutLoop() {
 // It is part of the filter package because this filter can be used throug the
 // `eth_getFilterChanges` polling method that is also used for log filters.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
 func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 	var (
 		pendingTxs   = make(chan common.Hash)
@@ -167,7 +167,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 // NewBlockFilter creates a filter that fetches blocks that are imported into the chain.
 // It is part of the filter package since polling goes with eth_getFilterChanges.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_newblockfilter
 func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 	var (
 		headers   = make(chan *types.Header)
@@ -289,7 +289,7 @@ type FilterCriteria struct {
 //
 // In case "fromBlock" > "toBlock" an error is returned.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_newfilter
 func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
 	logs := make(chan []*types.Log)
 	logsSub, err := api.events.SubscribeLogs(ethereum.FilterQuery(crit), logs)
@@ -324,7 +324,7 @@ func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
 
 // GetLogs returns logs matching the given argument that are stored within the state.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getlogs
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_getlogs
 func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([]*types.Log, error) {
 	// Convert the RPC block numbers into internal representations
 	if crit.FromBlock == nil {
@@ -345,7 +345,7 @@ func (api *PublicFilterAPI) GetLogs(ctx context.Context, crit FilterCriteria) ([
 
 // UninstallFilter removes the filter with the given filter id.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_uninstallfilter
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_uninstallfilter
 func (api *PublicFilterAPI) UninstallFilter(id rpc.ID) bool {
 	api.filtersMu.Lock()
 	f, found := api.filters[id]
@@ -363,7 +363,7 @@ func (api *PublicFilterAPI) UninstallFilter(id rpc.ID) bool {
 // GetFilterLogs returns the logs for the filter with the given id.
 // If the filter could not be found an empty array of logs is returned.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterlogs
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_getfilterlogs
 func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*types.Log, error) {
 	api.filtersMu.Lock()
 	f, found := api.filters[id]
@@ -397,7 +397,7 @@ func (api *PublicFilterAPI) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*ty
 // For pending transaction and block filters the result is []common.Hash.
 // (pending)Log filters return []Log.
 //
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterchanges
+// https://github.com/happyuc-project/wiki/wiki/JSON-RPC#eth_getfilterchanges
 func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) (interface{}, error) {
 	api.filtersMu.Lock()
 	defer api.filtersMu.Unlock()

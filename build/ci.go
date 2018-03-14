@@ -1,18 +1,18 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2016 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 // +build none
 
@@ -58,7 +58,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/internal/build"
+	"github.com/happyuc-project/happyuc-go/internal/build"
 )
 
 var (
@@ -85,23 +85,23 @@ var (
 	debExecutables = []debExecutable{
 		{
 			Name:        "abigen",
-			Description: "Source code generator to convert Ethereum contract definitions into easy to use, compile-time type-safe Go packages.",
+			Description: "Source code generator to convert HappyUC contract definitions into easy to use, compile-time type-safe Go packages.",
 		},
 		{
 			Name:        "bootnode",
-			Description: "Ethereum bootnode.",
+			Description: "HappyUC bootnode.",
 		},
 		{
 			Name:        "evm",
-			Description: "Developer utility version of the EVM (Ethereum Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode.",
+			Description: "Developer utility version of the EVM (HappyUC Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode.",
 		},
 		{
 			Name:        "geth",
-			Description: "Ethereum CLI client.",
+			Description: "HappyUC CLI client.",
 		},
 		{
 			Name:        "puppeth",
-			Description: "Ethereum private network manager.",
+			Description: "HappyUC private network manager.",
 		},
 		{
 			Name:        "rlpdump",
@@ -109,11 +109,11 @@ var (
 		},
 		{
 			Name:        "swarm",
-			Description: "Ethereum Swarm daemon and tools",
+			Description: "HappyUC Swarm daemon and tools",
 		},
 		{
 			Name:        "wnode",
-			Description: "Ethereum Whisper diagnostic tool",
+			Description: "HappyUC Whisper diagnostic tool",
 		},
 	}
 
@@ -188,7 +188,7 @@ func doInstall(cmdline []string) {
 
 		if minor < 8 {
 			log.Println("You have Go version", runtime.Version())
-			log.Println("go-ethereum requires at least Go version 1.8 and cannot")
+			log.Println("happyuc-go requires at least Go version 1.8 and cannot")
 			log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 			os.Exit(1)
 		}
@@ -533,7 +533,7 @@ func isUnstableBuild(env build.Environment) bool {
 type debMetadata struct {
 	Env build.Environment
 
-	// go-ethereum version being built. Note that this
+	// happyuc-go version being built. Note that this
 	// is not the debian package version. The package version
 	// is constructed by VersionString.
 	Version string
@@ -550,7 +550,7 @@ type debExecutable struct {
 func newDebMetadata(distro, author string, env build.Environment, t time.Time) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "Ethereum Builds <fjl@ethereum.org>"
+		author = "HappyUC Builds <fjl@ethereum.org>"
 	}
 	return debMetadata{
 		Env:         env,
@@ -738,7 +738,7 @@ func doAndroidArchive(cmdline []string) {
 	// Build the Android archive and Maven resources
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	build.MustRun(gomobileTool("init", "--ndk", os.Getenv("ANDROID_NDK")))
-	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/ethereum/go-ethereum/mobile"))
+	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/happyuc-project/happyuc-go/mobile"))
 
 	if *local {
 		// If we're building locally, copy bundle to build dir and skip Maven
@@ -858,7 +858,7 @@ func doXCodeFramework(cmdline []string) {
 	// Build the iOS XCode framework
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	build.MustRun(gomobileTool("init"))
-	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "-v", "github.com/ethereum/go-ethereum/mobile")
+	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "-v", "github.com/happyuc-project/happyuc-go/mobile")
 
 	if *local {
 		// If we're building locally, use the build folder and stop afterwards

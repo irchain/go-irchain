@@ -1,20 +1,20 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2014 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the Ethereum protocol.
+// Package eth implements the HappyUC protocol.
 package eth
 
 import (
@@ -25,29 +25,29 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/clique"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/bloombits"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/eth/filters"
-	"github.com/ethereum/go-ethereum/eth/gasprice"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/miner"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/happyuc-project/happyuc-go/accounts"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/happyuc-project/happyuc-go/consensus"
+	"github.com/happyuc-project/happyuc-go/consensus/clique"
+	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/eth/filters"
+	"github.com/happyuc-project/happyuc-go/eth/gasprice"
+	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/happyuc-project/happyuc-go/internal/ethapi"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/miner"
+	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/happyuc-project/happyuc-go/rpc"
 )
 
 type LesServer interface {
@@ -57,8 +57,8 @@ type LesServer interface {
 	SetBloomBitsIndexer(bbIndexer *core.ChainIndexer)
 }
 
-// Ethereum implements the Ethereum full node service.
-type Ethereum struct {
+// HappyUC implements the HappyUC full node service.
+type HappyUC struct {
 	config      *Config
 	chainConfig *params.ChainConfig
 
@@ -94,16 +94,16 @@ type Ethereum struct {
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and etherbase)
 }
 
-func (s *Ethereum) AddLesServer(ls LesServer) {
+func (s *HappyUC) AddLesServer(ls LesServer) {
 	s.lesServer = ls
 	ls.SetBloomBitsIndexer(s.bloomIndexer)
 }
 
-// New creates a new Ethereum object (including the
-// initialisation of the common Ethereum object)
-func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
+// New creates a new HappyUC object (including the
+// initialisation of the common HappyUC object)
+func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run eth.Ethereum in light sync mode, use les.LightEthereum")
+		return nil, errors.New("can't run eth.HappyUC in light sync mode, use les.LightHappyUC")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -119,7 +119,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	eth := &Ethereum{
+	eth := &HappyUC{
 		config:         config,
 		chainDb:        chainDb,
 		chainConfig:    chainConfig,
@@ -135,7 +135,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
 
-	log.Info("Initialising Ethereum protocol", "versions", ProtocolVersions, "network", config.NetworkId)
+	log.Info("Initialising HappyUC protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
 		bcVersion := core.GetBlockChainVersion(chainDb)
@@ -210,7 +210,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 	return db, nil
 }
 
-// CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
+// CreateConsensusEngine creates the required type of consensus engine instance for an HappyUC service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
@@ -243,7 +243,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chai
 
 // APIs returns the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *Ethereum) APIs() []rpc.API {
+func (s *HappyUC) APIs() []rpc.API {
 	apis := ethapi.GetAPIs(s.ApiBackend)
 
 	// Append any APIs exposed explicitly by the consensus engine
@@ -254,7 +254,7 @@ func (s *Ethereum) APIs() []rpc.API {
 		{
 			Namespace: "eth",
 			Version:   "1.0",
-			Service:   NewPublicEthereumAPI(s),
+			Service:   NewPublicHappyUCAPI(s),
 			Public:    true,
 		}, {
 			Namespace: "eth",
@@ -298,11 +298,11 @@ func (s *Ethereum) APIs() []rpc.API {
 	}...)
 }
 
-func (s *Ethereum) ResetWithGenesisBlock(gb *types.Block) {
+func (s *HappyUC) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Ethereum) Etherbase() (eb common.Address, err error) {
+func (s *HappyUC) Etherbase() (eb common.Address, err error) {
 	s.lock.RLock()
 	etherbase := s.etherbase
 	s.lock.RUnlock()
@@ -326,7 +326,7 @@ func (s *Ethereum) Etherbase() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *Ethereum) SetEtherbase(etherbase common.Address) {
+func (self *HappyUC) SetEtherbase(etherbase common.Address) {
 	self.lock.Lock()
 	self.etherbase = etherbase
 	self.lock.Unlock()
@@ -334,7 +334,7 @@ func (self *Ethereum) SetEtherbase(etherbase common.Address) {
 	self.miner.SetEtherbase(etherbase)
 }
 
-func (s *Ethereum) StartMining(local bool) error {
+func (s *HappyUC) StartMining(local bool) error {
 	eb, err := s.Etherbase()
 	if err != nil {
 		log.Error("Cannot start mining without etherbase", "err", err)
@@ -359,24 +359,24 @@ func (s *Ethereum) StartMining(local bool) error {
 	return nil
 }
 
-func (s *Ethereum) StopMining()         { s.miner.Stop() }
-func (s *Ethereum) IsMining() bool      { return s.miner.Mining() }
-func (s *Ethereum) Miner() *miner.Miner { return s.miner }
+func (s *HappyUC) StopMining()         { s.miner.Stop() }
+func (s *HappyUC) IsMining() bool      { return s.miner.Mining() }
+func (s *HappyUC) Miner() *miner.Miner { return s.miner }
 
-func (s *Ethereum) AccountManager() *accounts.Manager  { return s.accountManager }
-func (s *Ethereum) BlockChain() *core.BlockChain       { return s.blockchain }
-func (s *Ethereum) TxPool() *core.TxPool               { return s.txPool }
-func (s *Ethereum) EventMux() *event.TypeMux           { return s.eventMux }
-func (s *Ethereum) Engine() consensus.Engine           { return s.engine }
-func (s *Ethereum) ChainDb() ethdb.Database            { return s.chainDb }
-func (s *Ethereum) IsListening() bool                  { return true } // Always listening
-func (s *Ethereum) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *Ethereum) NetVersion() uint64                 { return s.networkId }
-func (s *Ethereum) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
+func (s *HappyUC) AccountManager() *accounts.Manager  { return s.accountManager }
+func (s *HappyUC) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *HappyUC) TxPool() *core.TxPool               { return s.txPool }
+func (s *HappyUC) EventMux() *event.TypeMux           { return s.eventMux }
+func (s *HappyUC) Engine() consensus.Engine           { return s.engine }
+func (s *HappyUC) ChainDb() ethdb.Database            { return s.chainDb }
+func (s *HappyUC) IsListening() bool                  { return true } // Always listening
+func (s *HappyUC) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
+func (s *HappyUC) NetVersion() uint64                 { return s.networkId }
+func (s *HappyUC) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *Ethereum) Protocols() []p2p.Protocol {
+func (s *HappyUC) Protocols() []p2p.Protocol {
 	if s.lesServer == nil {
 		return s.protocolManager.SubProtocols
 	}
@@ -384,8 +384,8 @@ func (s *Ethereum) Protocols() []p2p.Protocol {
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
-// Ethereum protocol implementation.
-func (s *Ethereum) Start(srvr *p2p.Server) error {
+// HappyUC protocol implementation.
+func (s *HappyUC) Start(srvr *p2p.Server) error {
 	// Start the bloom bits servicing goroutines
 	s.startBloomHandlers()
 
@@ -409,8 +409,8 @@ func (s *Ethereum) Start(srvr *p2p.Server) error {
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
-// Ethereum protocol.
-func (s *Ethereum) Stop() error {
+// HappyUC protocol.
+func (s *HappyUC) Stop() error {
 	if s.stopDbUpgrade != nil {
 		s.stopDbUpgrade()
 	}

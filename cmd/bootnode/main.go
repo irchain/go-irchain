@@ -1,20 +1,20 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
-// bootnode runs a bootstrap node for the Ethereum Discovery Protocol.
+// bootnode runs a bootstrap node for the HappyUC Discovery Protocol.
 package main
 
 import (
@@ -24,13 +24,13 @@ import (
 	"net"
 	"os"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
-	"github.com/ethereum/go-ethereum/p2p/nat"
-	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/happyuc-project/happyuc-go/cmd/utils"
+	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/happyuc-project/happyuc-go/p2p/discv5"
+	"github.com/happyuc-project/happyuc-go/p2p/nat"
+	"github.com/happyuc-project/happyuc-go/p2p/netutil"
 )
 
 func main() {

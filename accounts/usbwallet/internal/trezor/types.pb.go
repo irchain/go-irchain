@@ -42,9 +42,9 @@ It has these top-level messages:
 	GetPublicKey
 	PublicKey
 	GetAddress
-	EthereumGetAddress
+	GetAddressHappyUC
 	Address
-	EthereumAddress
+	AddressHappyUC
 	WipeDevice
 	LoadDevice
 	ResetDevice
@@ -69,12 +69,12 @@ It has these top-level messages:
 	SimpleSignTx
 	TxRequest
 	TxAck
-	EthereumSignTx
-	EthereumTxRequest
-	EthereumTxAck
-	EthereumSignMessage
-	EthereumVerifyMessage
-	EthereumMessageSignature
+	SignTxHappyUC
+	TxRequestHappyUC
+	TxAckHappyUC
+	SignMessageHappyUC
+	VerifyMessageHappyUC
+	MessageSignatureHappyUC
 	SignIdentity
 	SignedIdentity
 	GetECDHSessionKey

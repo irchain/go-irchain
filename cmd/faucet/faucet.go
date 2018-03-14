@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
 // faucet is a Ether faucet backed by a light client.
 package main
@@ -41,23 +41,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/ethstats"
-	"github.com/ethereum/go-ethereum/les"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/discv5"
-	"github.com/ethereum/go-ethereum/p2p/nat"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/happyuc-project/happyuc-go/accounts"
+	"github.com/happyuc-project/happyuc-go/accounts/keystore"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/ethclient"
+	"github.com/happyuc-project/happyuc-go/ethstats"
+	"github.com/happyuc-project/happyuc-go/les"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/happyuc-project/happyuc-go/p2p/discv5"
+	"github.com/happyuc-project/happyuc-go/p2p/nat"
+	"github.com/happyuc-project/happyuc-go/params"
 	"golang.org/x/net/websocket"
 )
 
@@ -66,7 +66,7 @@ var (
 	apiPortFlag = flag.Int("apiport", 8080, "Listener port for the HTTP API connection")
 	ethPortFlag = flag.Int("ethport", 30303, "Listener port for the devp2p connection")
 	bootFlag    = flag.String("bootnodes", "", "Comma separated bootnode enode URLs to seed with")
-	netFlag     = flag.Uint64("network", 0, "Network ID to use for the Ethereum protocol")
+	netFlag     = flag.Uint64("network", 0, "Network ID to use for the HappyUC protocol")
 	statsFlag   = flag.String("ethstats", "", "Ethstats network monitoring auth string")
 
 	netnameFlag = flag.String("faucet.name", "", "Network name to assign to the faucet")
@@ -84,7 +84,7 @@ var (
 	captchaSecret = flag.String("captcha.secret", "", "Recaptcha secret key to authenticate server side")
 
 	noauthFlag = flag.Bool("noauth", false, "Enables funding requests without authentication")
-	logFlag    = flag.Int("loglevel", 3, "Log level to use for Ethereum and the faucet")
+	logFlag    = flag.Int("loglevel", 3, "Log level to use for HappyUC and the faucet")
 )
 
 var (
@@ -187,16 +187,16 @@ func main() {
 // request represents an accepted funding request.
 type request struct {
 	Avatar  string             `json:"avatar"`  // Avatar URL to make the UI nicer
-	Account common.Address     `json:"account"` // Ethereum address being funded
+	Account common.Address     `json:"account"` // HappyUC address being funded
 	Time    time.Time          `json:"time"`    // Timestamp when the request was accepted
 	Tx      *types.Transaction `json:"tx"`      // Transaction funding the account
 }
 
-// faucet represents a crypto faucet backed by an Ethereum light client.
+// faucet represents a crypto faucet backed by an HappyUC light client.
 type faucet struct {
 	config *params.ChainConfig // Chain configurations for signing
-	stack  *node.Node          // Ethereum protocol stack
-	client *ethclient.Client   // Client connection to the Ethereum chain
+	stack  *node.Node          // HappyUC protocol stack
+	client *ethclient.Client   // Client connection to the HappyUC chain
 	index  []byte              // Index page to serve up on the web
 
 	keystore *keystore.KeyStore // Keystore containing the single signer
@@ -230,7 +230,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	if err != nil {
 		return nil, err
 	}
-	// Assemble the Ethereum light client protocol
+	// Assemble the HappyUC light client protocol
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		cfg := eth.DefaultConfig
 		cfg.SyncMode = downloader.LightSync
@@ -243,7 +243,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	// Assemble the ethstats monitoring and reporting service'
 	if stats != "" {
 		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			var serv *les.LightEthereum
+			var serv *les.LightHappyUC
 			ctx.Service(&serv)
 			return ethstats.New(stats, nil, serv)
 		}); err != nil {
@@ -278,7 +278,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*discv5.Node, network u
 	}, nil
 }
 
-// close terminates the Ethereum connection and tears down the faucet.
+// close terminates the HappyUC connection and tears down the faucet.
 func (f *faucet) close() error {
 	return f.stack.Stop()
 }
@@ -428,7 +428,7 @@ func (f *faucet) apiHandler(conn *websocket.Conn) {
 				continue
 			}
 		}
-		// Retrieve the Ethereum address to fund, the requesting user and a profile picture
+		// Retrieve the HappyUC address to fund, the requesting user and a profile picture
 		var (
 			username string
 			avatar   string
@@ -450,7 +450,7 @@ func (f *faucet) apiHandler(conn *websocket.Conn) {
 		case *noauthFlag:
 			username, avatar, address, err = authNoAuth(msg.URL)
 		default:
-			err = errors.New("Something funky happened, please open an issue at https://github.com/ethereum/go-ethereum/issues")
+			err = errors.New("Something funky happened, please open an issue at https://github.com/happyuc-project/happyuc-go/issues")
 		}
 		if err != nil {
 			if err = sendError(conn, err); err != nil {
@@ -639,7 +639,7 @@ func sendSuccess(conn *websocket.Conn, msg string) error {
 }
 
 // authGitHub tries to authenticate a faucet request using GitHub gists, returning
-// the username, avatar URL and Ethereum address to fund on success.
+// the username, avatar URL and HappyUC address to fund on success.
 func authGitHub(url string) (string, string, common.Address, error) {
 	// Retrieve the gist from the GitHub Gist APIs
 	parts := strings.Split(url, "/")
@@ -667,7 +667,7 @@ func authGitHub(url string) (string, string, common.Address, error) {
 	if gist.Owner.Login == "" {
 		return "", "", common.Address{}, errors.New("Anonymous Gists not allowed")
 	}
-	// Iterate over all the files and look for Ethereum addresses
+	// Iterate over all the files and look for HappyUC addresses
 	var address common.Address
 	for _, file := range gist.Files {
 		content := strings.TrimSpace(file.Content)
@@ -676,7 +676,7 @@ func authGitHub(url string) (string, string, common.Address, error) {
 		}
 	}
 	if address == (common.Address{}) {
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No HappyUC address found to fund")
 	}
 	// Validate the user's existence since the API is unhelpful here
 	if res, err = http.Head("https://github.com/" + gist.Owner.Login); err != nil {
@@ -692,7 +692,7 @@ func authGitHub(url string) (string, string, common.Address, error) {
 }
 
 // authTwitter tries to authenticate a faucet request using Twitter posts, returning
-// the username, avatar URL and Ethereum address to fund on success.
+// the username, avatar URL and HappyUC address to fund on success.
 func authTwitter(url string) (string, string, common.Address, error) {
 	// Ensure the user specified a meaningful URL, no fancy nonsense
 	parts := strings.Split(url, "/")
@@ -701,7 +701,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 	}
 	// Twitter's API isn't really friendly with direct links. Still, we don't
 	// want to do ask read permissions from users, so just load the public posts and
-	// scrape it for the Ethereum address and profile URL.
+	// scrape it for the HappyUC address and profile URL.
 	res, err := http.Get(url)
 	if err != nil {
 		return "", "", common.Address{}, err
@@ -721,7 +721,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 	}
 	address := common.HexToAddress(string(regexp.MustCompile("0x[0-9a-fA-F]{40}").Find(body)))
 	if address == (common.Address{}) {
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No HappyUC address found to fund")
 	}
 	var avatar string
 	if parts = regexp.MustCompile("src=\"([^\"]+twimg.com/profile_images[^\"]+)\"").FindStringSubmatch(string(body)); len(parts) == 2 {
@@ -731,7 +731,7 @@ func authTwitter(url string) (string, string, common.Address, error) {
 }
 
 // authGooglePlus tries to authenticate a faucet request using GooglePlus posts,
-// returning the username, avatar URL and Ethereum address to fund on success.
+// returning the username, avatar URL and HappyUC address to fund on success.
 func authGooglePlus(url string) (string, string, common.Address, error) {
 	// Ensure the user specified a meaningful URL, no fancy nonsense
 	parts := strings.Split(url, "/")
@@ -742,7 +742,7 @@ func authGooglePlus(url string) (string, string, common.Address, error) {
 
 	// Google's API isn't really friendly with direct links. Still, we don't
 	// want to do ask read permissions from users, so just load the public posts and
-	// scrape it for the Ethereum address and profile URL.
+	// scrape it for the HappyUC address and profile URL.
 	res, err := http.Get(url)
 	if err != nil {
 		return "", "", common.Address{}, err
@@ -755,7 +755,7 @@ func authGooglePlus(url string) (string, string, common.Address, error) {
 	}
 	address := common.HexToAddress(string(regexp.MustCompile("0x[0-9a-fA-F]{40}").Find(body)))
 	if address == (common.Address{}) {
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No HappyUC address found to fund")
 	}
 	var avatar string
 	if parts = regexp.MustCompile("src=\"([^\"]+googleusercontent.com[^\"]+photo.jpg)\"").FindStringSubmatch(string(body)); len(parts) == 2 {
@@ -765,7 +765,7 @@ func authGooglePlus(url string) (string, string, common.Address, error) {
 }
 
 // authFacebook tries to authenticate a faucet request using Facebook posts,
-// returning the username, avatar URL and Ethereum address to fund on success.
+// returning the username, avatar URL and HappyUC address to fund on success.
 func authFacebook(url string) (string, string, common.Address, error) {
 	// Ensure the user specified a meaningful URL, no fancy nonsense
 	parts := strings.Split(url, "/")
@@ -776,7 +776,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 
 	// Facebook's Graph API isn't really friendly with direct links. Still, we don't
 	// want to do ask read permissions from users, so just load the public posts and
-	// scrape it for the Ethereum address and profile URL.
+	// scrape it for the HappyUC address and profile URL.
 	res, err := http.Get(url)
 	if err != nil {
 		return "", "", common.Address{}, err
@@ -789,7 +789,7 @@ func authFacebook(url string) (string, string, common.Address, error) {
 	}
 	address := common.HexToAddress(string(regexp.MustCompile("0x[0-9a-fA-F]{40}").Find(body)))
 	if address == (common.Address{}) {
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No HappyUC address found to fund")
 	}
 	var avatar string
 	if parts = regexp.MustCompile("src=\"([^\"]+fbcdn.net[^\"]+)\"").FindStringSubmatch(string(body)); len(parts) == 2 {
@@ -798,13 +798,13 @@ func authFacebook(url string) (string, string, common.Address, error) {
 	return username + "@facebook", avatar, address, nil
 }
 
-// authNoAuth tries to interpret a faucet request as a plain Ethereum address,
+// authNoAuth tries to interpret a faucet request as a plain HappyUC address,
 // without actually performing any remote authentication. This mode is prone to
 // Byzantine attack, so only ever use for truly private networks.
 func authNoAuth(url string) (string, string, common.Address, error) {
 	address := common.HexToAddress(regexp.MustCompile("0x[0-9a-fA-F]{40}").FindString(url))
 	if address == (common.Address{}) {
-		return "", "", common.Address{}, errors.New("No Ethereum address found to fund")
+		return "", "", common.Address{}, errors.New("No HappyUC address found to fund")
 	}
 	return address.Hex() + "@noauth", "", address, nil
 }

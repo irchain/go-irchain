@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The happyuc-go Authors
+// This file is part of happyuc-go.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// happyuc-go is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// happyuc-go is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -28,13 +28,13 @@ import (
 
 	cli "gopkg.in/urfave/cli.v1"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/happyuc-project/happyuc-go/cmd/utils"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/happyuc-project/happyuc-go/node"
 	"github.com/naoina/toml"
 
-	bzzapi "github.com/ethereum/go-ethereum/swarm/api"
+	bzzapi "github.com/happyuc-project/happyuc-go/swarm/api"
 )
 
 var (
@@ -84,7 +84,7 @@ var tomlSettings = toml.Config{
 	MissingField: func(rt reflect.Type, field string) error {
 		link := ""
 		if unicode.IsUpper(rune(rt.Name()[0])) && rt.PkgPath() != "main" {
-			link = fmt.Sprintf(", check github.com/ethereum/go-ethereum/swarm/api/config.go for available fields")
+			link = fmt.Sprintf(", check github.com/happyuc-project/happyuc-go/swarm/api/config.go for available fields")
 		}
 		return fmt.Errorf("field '%s' is not defined in %s%s", field, rt.String(), link)
 	},

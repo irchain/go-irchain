@@ -2409,7 +2409,7 @@ var isJson = function (str) {
 };
 
 /**
- * Returns true if given string is a valid Ethereum block header bloom.
+ * Returns true if given string is a valid HappyUC block header bloom.
  *
  * @method isBloom
  * @param {String} hex encoded bloom filter
@@ -4496,7 +4496,7 @@ var Iban = function (iban) {
 };
 
 /**
- * This method should be used to create iban object from ethereum address
+ * This method should be used to create iban object from happyuc address
  *
  * @method fromAddress
  * @param {String} address
@@ -5862,7 +5862,7 @@ module.exports = Shh;
  * @author Alex Beregszaszi <alex@rtfs.hu>
  * @date 2016
  *
- * Reference: https://github.com/ethereum/go-ethereum/blob/swarm/internal/web3ext/web3ext.go#L33
+ * Reference: https://github.com/happyuc-project/happyuc-go/blob/swarm/internal/web3ext/web3ext.go#L33
  */
 
 "use strict";
