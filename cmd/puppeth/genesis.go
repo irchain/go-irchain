@@ -204,7 +204,7 @@ type parityChainSpec struct {
 			HappyUC struct {
 				Nonce   hexutil.Bytes `json:"nonce"`
 				MixHash hexutil.Bytes `json:"mixHash"`
-			} `json:"ethereum"`
+			} `json:"happyuc"`
 		} `json:"seal"`
 
 		Difficulty *hexutil.Big   `json:"difficulty"`
@@ -358,7 +358,7 @@ type pyHappyUCGenesisSpec struct {
 // newPyHappyUCGenesisSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
 func newPyHappyUCGenesisSpec(network string, genesis *core.Genesis) (*pyHappyUCGenesisSpec, error) {
-	// Only ethash is currently supported between happyuc-go and pyethereum
+	// Only ethash is currently supported between happyuc-go and happyuc-python
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}

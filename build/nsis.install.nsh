@@ -5,7 +5,7 @@ OutFile "${OUTPUTFILE}" # set through command line arguments
 # Links for "Add/Remove Programs"
 !define HELPURL "https://github.com/happyuc-project/happyuc-go/issues"
 !define UPDATEURL "https://github.com/happyuc-project/happyuc-go/releases"
-!define ABOUTURL "https://github.com/happyuc-project/happyuc-go#ethereum-go"
+!define ABOUTURL "https://github.com/happyuc-project/happyuc-go#happyuc-go"
 !define /date NOW "%Y%m%d"
 
 PageEx license

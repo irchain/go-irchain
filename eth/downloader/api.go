@@ -20,7 +20,7 @@ import (
 	"context"
 	"sync"
 
-	ethereum "github.com/happyuc-project/happyuc-go"
+	happyuc "github.com/happyuc-project/happyuc-go"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/rpc"
 )
@@ -122,7 +122,7 @@ func (api *PublicDownloaderAPI) Syncing(ctx context.Context) (*rpc.Subscription,
 // SyncingResult provides information about the current synchronisation status for this node.
 type SyncingResult struct {
 	Syncing bool                  `json:"syncing"`
-	Status  ethereum.SyncProgress `json:"status"`
+	Status  happyuc.SyncProgress `json:"status"`
 }
 
 // uninstallSyncSubscriptionRequest uninstalles a syncing subscription in the API event loop.

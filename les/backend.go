@@ -173,7 +173,7 @@ func (s *LightDummyAPI) Mining() bool {
 	return false
 }
 
-// APIs returns the collection of RPC services the ethereum package offers.
+// APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightHappyUC) APIs() []rpc.API {
 	return append(ethapi.GetAPIs(s.ApiBackend), []rpc.API{

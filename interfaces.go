@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethereum defines interfaces for interacting with HappyUC.
-package ethereum
+// Package happyuc defines interfaces for interacting with HappyUC.
+package happyuc
 
 import (
 	"context"

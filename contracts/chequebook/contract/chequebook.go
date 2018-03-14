@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strings"
 
-	ethereum "github.com/happyuc-project/happyuc-go"
+	happyuc "github.com/happyuc-project/happyuc-go"
 	"github.com/happyuc-project/happyuc-go/accounts/abi"
 	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
 	"github.com/happyuc-project/happyuc-go/common"
@@ -252,7 +252,7 @@ type ChequebookOverdraftIterator struct {
 	event    string              // Event name to use for unpacking event data
 
 	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	sub  happyuc.Subscription // Subscription for errors, completion and termination
 	done bool                  // Whether the subscription completed delivering logs
 	fail error                 // Occurred error to stop iteration
 }

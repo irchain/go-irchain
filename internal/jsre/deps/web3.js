@@ -2609,7 +2609,7 @@ var properties = function () {
             inputFormatter: utils.toDecimal
         }),
         new Property({
-            name: 'version.ethereum',
+            name: 'version.happyuc',
             getter: 'eth_protocolVersion',
             inputFormatter: utils.toDecimal
         }),
@@ -6317,7 +6317,7 @@ var errors = require('./errors');
 
 /**
  * It's responsible for passing messages to providers
- * It's also responsible for polling the ethereum node for incoming messages
+ * It's also responsible for polling the happyuc node for incoming messages
  * Default poll timeout is 1 second
  * Singleton
  */

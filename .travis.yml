@@ -133,7 +133,7 @@ matrix:
         - azure-android
         - maven-android
       git:
-        submodules: false # avoid cloning ethereum/tests
+        submodules: false # avoid cloning happyuc-project/tests
       before_install:
         - curl https://storage.googleapis.com/golang/go1.9.2.linux-amd64.tar.gz | tar -xz
         - export PATH=`pwd`/go/bin:$PATH
@@ -158,7 +158,7 @@ matrix:
         - azure-ios
         - cocoapods-ios
       git:
-        submodules: false # avoid cloning ethereum/tests
+        submodules: false # avoid cloning happyuc-project/tests
       script:
         - go run build/ci.go install
         - go run build/ci.go archive -type tar -signer OSX_SIGNING_KEY -upload gethstore/builds
@@ -186,7 +186,7 @@ matrix:
       env:
         - azure-purge
       git:
-        submodules: false # avoid cloning ethereum/tests
+        submodules: false # avoid cloning happyuc-project/tests
       script:
         - go run build/ci.go purge -store gethstore/builds -days 14
 

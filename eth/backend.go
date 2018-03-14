@@ -63,7 +63,7 @@ type HappyUC struct {
 	chainConfig *params.ChainConfig
 
 	// Channel for shutting down the service
-	shutdownChan  chan bool    // Channel for shutting down the ethereum
+	shutdownChan  chan bool    // Channel for shutting down the happyuc
 	stopDbUpgrade func() error // stop chain db sequential key upgrade
 
 	// Handlers
@@ -241,7 +241,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chai
 	}
 }
 
-// APIs returns the collection of RPC services the ethereum package offers.
+// APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *HappyUC) APIs() []rpc.API {
 	apis := ethapi.GetAPIs(s.ApiBackend)

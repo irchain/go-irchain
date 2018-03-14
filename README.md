@@ -261,7 +261,7 @@ need to configure a miner to process transactions and create new blocks for you.
 
 Mining on the public HappyUC network is a complex task as it's only feasible using GPUs, requiring
 an OpenCL or CUDA enabled `ethminer` instance. For information on such a setup, please consult the
-[EtherMining subreddit](https://www.reddit.com/r/EtherMining/) and the [Genoil miner](https://github.com/Genoil/cpp-ethereum)
+[EtherMining subreddit](https://www.reddit.com/r/EtherMining/) and the [Genoil miner](https://github.com/Genoil/happyuc-cpp)
 repository.
 
 In a private network setting however, a single CPU miner instance is more than enough for practical

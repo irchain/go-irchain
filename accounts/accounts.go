@@ -20,7 +20,7 @@ package accounts
 import (
 	"math/big"
 
-	ethereum "github.com/happyuc-project/happyuc-go"
+	happyuc "github.com/happyuc-project/happyuc-go"
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/event"
@@ -85,7 +85,7 @@ type Wallet interface {
 	//
 	// You can disable automatic account discovery by calling SelfDerive with a nil
 	// chain state reader.
-	SelfDerive(base DerivationPath, chain ethereum.ChainStateReader)
+	SelfDerive(base DerivationPath, chain happyuc.ChainStateReader)
 
 	// SignHash requests the wallet to sign the given hash.
 	//

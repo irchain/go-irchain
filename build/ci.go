@@ -471,7 +471,7 @@ func maybeSkipArchive(env build.Environment) {
 func doDebianSource(cmdline []string) {
 	var (
 		signer  = flag.String("signer", "", `Signing key name, also used as package author`)
-		upload  = flag.String("upload", "", `Where to upload the source package (usually "ppa:ethereum/ethereum")`)
+		upload  = flag.String("upload", "", `Where to upload the source package (usually "ppa:happyuc-project/happyuc")`)
 		workdir = flag.String("workdir", "", `Output directory for packages (uses temp dir if unset)`)
 		now     = time.Now()
 	)
@@ -550,7 +550,7 @@ type debExecutable struct {
 func newDebMetadata(distro, author string, env build.Environment, t time.Time) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "HappyUC Builds <fjl@ethereum.org>"
+		author = "HappyUC Builds <yiping@happyuc.org>"
 	}
 	return debMetadata{
 		Env:         env,
@@ -566,9 +566,9 @@ func newDebMetadata(distro, author string, env build.Environment, t time.Time) d
 // on all executable packages.
 func (meta debMetadata) Name() string {
 	if isUnstableBuild(meta.Env) {
-		return "ethereum-unstable"
+		return "happyuc-unstable"
 	}
-	return "ethereum"
+	return "happyuc"
 }
 
 // VersionString returns the debian version of the packages.
@@ -612,7 +612,7 @@ func (meta debMetadata) ExeConflicts(exe debExecutable) string {
 		// be preferred and the conflicting files should be handled via
 		// alternates. We might do this eventually but using a conflict is
 		// easier now.
-		return "ethereum, " + exe.Name
+		return "happyuc, " + exe.Name
 	}
 	return ""
 }
@@ -738,7 +738,7 @@ func doAndroidArchive(cmdline []string) {
 	// Build the Android archive and Maven resources
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	build.MustRun(gomobileTool("init", "--ndk", os.Getenv("ANDROID_NDK")))
-	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/happyuc-project/happyuc-go/mobile"))
+	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.happyuc", "-v", "github.com/happyuc-project/happyuc-go/mobile"))
 
 	if *local {
 		// If we're building locally, copy bundle to build dir and skip Maven

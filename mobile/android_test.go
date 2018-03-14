@@ -40,7 +40,7 @@ import android.test.MoreAsserts;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.ethereum.geth.*;
+import org.happyuc.geth.*;
 
 public class AndroidTest extends InstrumentationTestCase {
 	public AndroidTest() {}
@@ -96,7 +96,7 @@ public class AndroidTest extends InstrumentationTestCase {
 
 		try {
 			// Start up a new inprocess node
-			Node node = new Node(getInstrumentation().getContext().getFilesDir() + "/.ethereum", new NodeConfig());
+			Node node = new Node(getInstrumentation().getContext().getFilesDir() + "/.happyuc", new NodeConfig());
 			node.start();
 
 			// Retrieve some data via function calls (we don't really care about the results)
@@ -200,14 +200,14 @@ func TestAndroid(t *testing.T) {
 	defer os.Chdir(pwd)
 
 	// Create the skeleton of the Android project
-	for _, dir := range []string{"src/main", "src/androidTest/java/org/ethereum/gethtest", "libs"} {
+	for _, dir := range []string{"src/main", "src/androidTest/java/org/happyuc/gethtest", "libs"} {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 	// Generate the mobile bindings for Geth and add the tester class
-	gobind := exec.Command("gomobile", "bind", "-javapkg", "org.ethereum", "github.com/happyuc-project/happyuc-go/mobile")
+	gobind := exec.Command("gomobile", "bind", "-javapkg", "org.happyuc", "github.com/happyuc-project/happyuc-go/mobile")
 	if output, err := gobind.CombinedOutput(); err != nil {
 		t.Logf("%s", output)
 		t.Fatalf("failed to run gomobile bind: %v", err)
@@ -232,7 +232,7 @@ func TestAndroid(t *testing.T) {
 
 const androidManifest = `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.ethereum.gethtest"
+          package="org.happyuc.gethtest"
 	  android:versionCode="1"
 	  android:versionName="1.0">
 

@@ -56,7 +56,7 @@ var _dashboardHtml = []byte(`<!DOCTYPE html>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>Go HappyUC Dashboard</title>
-        <link rel="shortcut icon" type="image/ico" href="https://ethereum.org/favicon.ico" />
+        <link rel="shortcut icon" type="image/ico" href="https://www.happyuc.net/favicon.ico" />
         <style>
             ::-webkit-scrollbar {
                 width: 16px;
