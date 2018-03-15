@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"context"
@@ -28,9 +28,9 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/eth/gasprice"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/gasprice"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
@@ -38,27 +38,27 @@ import (
 
 // EthApiBackend implements ethapi.Backend for full nodes
 type EthApiBackend struct {
-	eth *HappyUC
+	huc *HappyUC
 	gpo *gasprice.Oracle
 }
 
 func (b *EthApiBackend) ChainConfig() *params.ChainConfig {
-	return b.eth.chainConfig
+	return b.huc.chainConfig
 }
 
 func (b *EthApiBackend) CurrentBlock() *types.Block {
-	return b.eth.blockchain.CurrentBlock()
+	return b.huc.blockchain.CurrentBlock()
 }
 
 func (b *EthApiBackend) SetHead(number uint64) {
-	b.eth.protocolManager.downloader.Cancel()
-	b.eth.blockchain.SetHead(number)
+	b.huc.protocolManager.downloader.Cancel()
+	b.huc.blockchain.SetHead(number)
 }
 
 func (b *EthApiBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error) {
 	// Pending block is only known by the miner
 	if blockNr == rpc.PendingBlockNumber {
-		block := b.eth.miner.PendingBlock()
+		block := b.huc.miner.PendingBlock()
 		return block.Header(), nil
 	}
 	// Otherwise resolve and return the block

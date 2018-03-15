@@ -21,7 +21,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/happyuc-project/happyuc-go/eth/tracers/internal/tracers"
+	"github.com/happyuc-project/happyuc-go/huc/tracers/internal/tracers"
 )
 
 // all contains all the built in JavaScript tracers by name.

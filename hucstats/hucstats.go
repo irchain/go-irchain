@@ -35,7 +35,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/consensus"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/les"
 	"github.com/happyuc-project/happyuc-go/log"

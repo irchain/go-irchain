@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/rlp"
 )

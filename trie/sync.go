@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

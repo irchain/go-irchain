@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/log"
 )
 

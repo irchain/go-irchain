@@ -22,7 +22,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/rlp"
 )
@@ -34,7 +34,7 @@ import (
 // If the trie does not contain a value for key, the returned proof contains all
 // nodes of the longest existing prefix of the key (at least the root node), ending
 // with the node that proves the absence of the key.
-func (t *Trie) Prove(key []byte, fromLevel uint, proofDb ethdb.Putter) error {
+func (t *Trie) Prove(key []byte, fromLevel uint, proofDb hucdb.Putter) error {
 	// Collect all nodes on the path to key.
 	key = keybytesToHex(key)
 	nodes := []node{}
@@ -95,7 +95,7 @@ func (t *Trie) Prove(key []byte, fromLevel uint, proofDb ethdb.Putter) error {
 // If the trie does not contain a value for key, the returned proof contains all
 // nodes of the longest existing prefix of the key (at least the root node), ending
 // with the node that proves the absence of the key.
-func (t *SecureTrie) Prove(key []byte, fromLevel uint, proofDb ethdb.Putter) error {
+func (t *SecureTrie) Prove(key []byte, fromLevel uint, proofDb hucdb.Putter) error {
 	return t.trie.Prove(key, fromLevel, proofDb)
 }
 

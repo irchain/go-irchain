@@ -24,7 +24,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/internal/ethapi"
+	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
 )
