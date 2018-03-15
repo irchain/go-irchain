@@ -110,7 +110,7 @@ func (s *TrieSync) AddSubTrie(root common.Hash, depth int, parent common.Hash, c
 		depth:    depth,
 		callback: callback,
 	}
-	// If this sub-trie has a designated parent, link them together
+	// If this sub-trie has a designated parent, link them toghucer
 	if parent != (common.Hash{}) {
 		ancestor := s.requests[parent]
 		if ancestor == nil {
@@ -143,7 +143,7 @@ func (s *TrieSync) AddRawEntry(hash common.Hash, depth int, parent common.Hash) 
 		raw:   true,
 		depth: depth,
 	}
-	// If this sub-trie has a designated parent, link them together
+	// If this sub-trie has a designated parent, link them toghucer
 	if parent != (common.Hash{}) {
 		ancestor := s.requests[parent]
 		if ancestor == nil {

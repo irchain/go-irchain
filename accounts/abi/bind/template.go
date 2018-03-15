@@ -427,8 +427,8 @@ const tmplSourceJava = `
 
 package {{.Package}};
 
-import org.happyuc.geth.*;
-import org.happyuc.geth.internal.*;
+import org.happyuc.ghuc.*;
+import org.happyuc.ghuc.internal.*;
 
 {{range $contract := .Contracts}}
 	public class {{.Type}} {
@@ -441,11 +441,11 @@ import org.happyuc.geth.internal.*;
 
 			// deploy deploys a new HappyUC contract, binding an instance of {{.Type}} to it.
 			public static {{.Type}} deploy(TransactOpts auth, HappyUCClient client{{range .Constructor.Inputs}}, {{bindtype .Type}} {{.Name}}{{end}}) throws Exception {
-				Interfaces args = Geth.newInterfaces({{(len .Constructor.Inputs)}});
+				Interfaces args = Ghuc.newInterfaces({{(len .Constructor.Inputs)}});
 				{{range $index, $element := .Constructor.Inputs}}
-				  args.set({{$index}}, Geth.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
+				  args.set({{$index}}, Ghuc.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
 				{{end}}
-				return new {{.Type}}(Geth.deployContract(auth, ABI, BYTECODE, client, args));
+				return new {{.Type}}(Ghuc.deployContract(auth, ABI, BYTECODE, client, args));
 			}
 
 			// Internal constructor used by contract deployment.
@@ -467,7 +467,7 @@ import org.happyuc.geth.internal.*;
 
 		// Creates a new instance of {{.Type}}, bound to a specific deployed contract.
 		public {{.Type}}(Address address, HappyUCClient client) throws Exception {
-			this(Geth.bindContract(address, ABI, client));
+			this(Ghuc.bindContract(address, ABI, client));
 		}
 
 		{{range .Calls}}
@@ -483,16 +483,16 @@ import org.happyuc.geth.internal.*;
 			//
 			// Solidity: {{.Original.String}}
 			public {{if gt (len .Normalized.Outputs) 1}}{{capitalise .Normalized.Name}}Results{{else}}{{range .Normalized.Outputs}}{{bindtype .Type}}{{end}}{{end}} {{.Normalized.Name}}(CallOpts opts{{range .Normalized.Inputs}}, {{bindtype .Type}} {{.Name}}{{end}}) throws Exception {
-				Interfaces args = Geth.newInterfaces({{(len .Normalized.Inputs)}});
-				{{range $index, $item := .Normalized.Inputs}}args.set({{$index}}, Geth.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
+				Interfaces args = Ghuc.newInterfaces({{(len .Normalized.Inputs)}});
+				{{range $index, $item := .Normalized.Inputs}}args.set({{$index}}, Ghuc.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
 				{{end}}
 
-				Interfaces results = Geth.newInterfaces({{(len .Normalized.Outputs)}});
-				{{range $index, $item := .Normalized.Outputs}}Interface result{{$index}} = Geth.newInterface(); result{{$index}}.setDefault{{namedtype (bindtype .Type) .Type}}(); results.set({{$index}}, result{{$index}});
+				Interfaces results = Ghuc.newInterfaces({{(len .Normalized.Outputs)}});
+				{{range $index, $item := .Normalized.Outputs}}Interface result{{$index}} = Ghuc.newInterface(); result{{$index}}.setDefault{{namedtype (bindtype .Type) .Type}}(); results.set({{$index}}, result{{$index}});
 				{{end}}
 
 				if (opts == null) {
-					opts = Geth.newCallOpts();
+					opts = Ghuc.newCallOpts();
 				}
 				this.Contract.call(opts, results, "{{.Original.Name}}", args);
 				{{if gt (len .Normalized.Outputs) 1}}
@@ -510,8 +510,8 @@ import org.happyuc.geth.internal.*;
 			//
 			// Solidity: {{.Original.String}}
 			public Transaction {{.Normalized.Name}}(TransactOpts opts{{range .Normalized.Inputs}}, {{bindtype .Type}} {{.Name}}{{end}}) throws Exception {
-				Interfaces args = Geth.newInterfaces({{(len .Normalized.Inputs)}});
-				{{range $index, $item := .Normalized.Inputs}}args.set({{$index}}, Geth.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
+				Interfaces args = Ghuc.newInterfaces({{(len .Normalized.Inputs)}});
+				{{range $index, $item := .Normalized.Inputs}}args.set({{$index}}, Ghuc.newInterface()); args.get({{$index}}).set{{namedtype (bindtype .Type) .Type}}({{.Name}});
 				{{end}}
 
 				return this.Contract.transact(opts, "{{.Original.Name}}"	, args);

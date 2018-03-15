@@ -16,7 +16,7 @@
 
 // Contains a wrapper for the HappyUC client.
 
-package geth
+package ghuc
 
 import (
 	"math/big"

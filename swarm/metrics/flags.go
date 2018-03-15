@@ -21,7 +21,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/cmd/utils"
 	"github.com/happyuc-project/happyuc-go/log"
-	gethmetrics "github.com/happyuc-project/happyuc-go/metrics"
+	ghucmetrics "github.com/happyuc-project/happyuc-go/metrics"
 	"github.com/happyuc-project/happyuc-go/metrics/influxdb"
 	"gopkg.in/urfave/cli.v1"
 )
@@ -70,7 +70,7 @@ var Flags = []cli.Flag{
 }
 
 func Setup(ctx *cli.Context) {
-	if gethmetrics.Enabled {
+	if ghucmetrics.Enabled {
 		log.Info("Enabling swarm metrics collection")
 		var (
 			enableExport = ctx.GlobalBool(metricsEnableInfluxDBExportFlag.Name)
@@ -83,7 +83,7 @@ func Setup(ctx *cli.Context) {
 
 		if enableExport {
 			log.Info("Enabling swarm metrics export to InfluxDB")
-			go influxdb.InfluxDBWithTags(gethmetrics.DefaultRegistry, 10*time.Second, endpoint, database, username, password, "swarm.", map[string]string{
+			go influxdb.InfluxDBWithTags(ghucmetrics.DefaultRegistry, 10*time.Second, endpoint, database, username, password, "swarm.", map[string]string{
 				"host": hosttag,
 			})
 		}

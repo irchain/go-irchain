@@ -16,7 +16,7 @@
 
 // +build !android,!ios
 
-package geth
+package ghuc
 
 // clientIdentifier is a hard coded identifier to report into the network.
-var clientIdentifier = "GethMobile"
+var clientIdentifier = "GhucMobile"

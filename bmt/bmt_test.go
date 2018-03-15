@@ -18,7 +18,6 @@ package bmt
 
 import (
 	"bytes"
-	crand "crypto/rand"
 	"fmt"
 	"hash"
 	"io"
@@ -27,6 +26,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	crand "crypto/rand"
 
 	"github.com/happyuc-project/happyuc-go/crypto/sha3"
 )

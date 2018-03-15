@@ -17,7 +17,7 @@
 // Contains all the wrappers from the node package to support client side node
 // management on mobile platforms.
 
-package geth
+package ghuc
 
 import (
 	"encoding/json"
@@ -28,7 +28,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/eth"
 	"github.com/happyuc-project/happyuc-go/eth/downloader"
 	"github.com/happyuc-project/happyuc-go/ethclient"
-	"github.com/happyuc-project/happyuc-go/ethstats"
+	"github.com/happyuc-project/happyuc-go/hucstats"
 	"github.com/happyuc-project/happyuc-go/les"
 	"github.com/happyuc-project/happyuc-go/node"
 	"github.com/happyuc-project/happyuc-go/p2p"
@@ -37,7 +37,7 @@ import (
 	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv5"
 )
 
-// NodeConfig represents the collection of configuration values to fine tune the Geth
+// NodeConfig represents the collection of configuration values to fine tune the Ghuc
 // node embedded into a mobile process. The available values are a subset of the
 // entire API provided by happyuc-go to reduce the maintenance surface and dev
 // complexity.
@@ -90,12 +90,12 @@ func NewNodeConfig() *NodeConfig {
 	return &config
 }
 
-// Node represents a Geth HappyUC node instance.
+// Node represents a Ghuc HappyUC node instance.
 type Node struct {
 	node *node.Node
 }
 
-// NewNode creates and configures a new Geth node.
+// NewNode creates and configures a new Ghuc node.
 func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	// If no or partial configurations were specified, use defaults
 	if config == nil {
@@ -160,7 +160,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 				var lesServ *les.LightHappyUC
 				ctx.Service(&lesServ)
 
-				return ethstats.New(config.HappyUCNetStats, nil, lesServ)
+				return hucstats.New(config.HappyUCNetStats, nil, lesServ)
 			}); err != nil {
 				return nil, fmt.Errorf("netstats init: %v", err)
 			}

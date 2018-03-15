@@ -16,7 +16,7 @@
 
 // Contains all the wrappers from the happyuc-go root package.
 
-package geth
+package ghuc
 
 import (
 	"errors"

@@ -6,7 +6,7 @@ For general questions please use the gitter channel or the HappyUC stack exchang
 
 #### System information
 
-Geth version: `geth version`
+Ghuc version: `ghuc version`
 OS & Version: Windows/Linux/OSX
 Commit hash : (if `develop`)
 

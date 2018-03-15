@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"errors"
@@ -293,7 +293,7 @@ func (p *peer) readStatus(network uint64, status *statusData, genesis common.Has
 // String implements fmt.Stringer.
 func (p *peer) String() string {
 	return fmt.Sprintf("Peer %s [%s]", p.id,
-		fmt.Sprintf("eth/%2d", p.version),
+		fmt.Sprintf("huc/%2d", p.version),
 	)
 }
 

@@ -1,6 +1,6 @@
 ## Go HappyUC Dashboard
 
-The dashboard is a data visualizer integrated into geth, intended to collect and visualize useful information of an HappyUC node. It consists of two parts:
+The dashboard is a data visualizer integrated into ghuc, intended to collect and visualize useful information of an HappyUC node. It consists of two parts:
 
 * The client visualizes the collected data.
 * The server collects the data, and updates the clients.
@@ -16,14 +16,14 @@ $ (cd dashboard/assets && npm install)
 $ (cd dashboard/assets && ./node_modules/.bin/flow-typed install)
 ```
 
-Normally the dashboard assets are bundled into Geth via `go-bindata` to avoid external dependencies. Rebuilding Geth after each UI modification however is not feasible from a developer perspective. Instead, we can run `webpack` in watch mode to automatically rebundle the UI, and ask `geth` to use external assets to not rely on compiled resources:
+Normally the dashboard assets are bundled into Ghuc via `go-bindata` to avoid external dependencies. Rebuilding Ghuc after each UI modification however is not feasible from a developer perspective. Instead, we can run `webpack` in watch mode to automatically rebundle the UI, and ask `ghuc` to use external assets to not rely on compiled resources:
 
 ```
 $ (cd dashboard/assets && ./node_modules/.bin/webpack --watch)
-$ geth --dashboard --dashboard.assets=dashboard/assets --vmodule=dashboard=5
+$ ghuc --dashboard --dashboard.assets=dashboard/assets --vmodule=dashboard=5
 ```
 
-To bundle up the final UI into Geth, run `go generate`:
+To bundle up the final UI into Ghuc, run `go generate`:
 
 ```
 $ go generate ./dashboard
@@ -35,7 +35,7 @@ Since JavaScript doesn't provide type safety, [Flow][Flow] is used to check type
 
 To take advantage of static type checking, your IDE needs to be prepared for it. In case of [Atom][Atom] a configuration guide can be found [here][Atom config]: Install the [Nuclide][Nuclide] package for Flow support, making sure it installs all of its support packages by enabling `Install Recommended Packages on Startup`, and set the path of the `flow-bin` which were installed previously by `npm`.
 
-For more IDE support install the `linter-eslint` package too, which finds the `.eslintrc` file, and provides real-time linting. Atom warns, that these two packages are incompatible, but they seem to work well together. For third-party library errors and auto-completion [flow-typed][flow-typed] is used.
+For more IDE support install the `linter-eslint` package too, which finds the `.eslintrc` file, and provides real-time linting. Atom warns, that these two packages are incompatible, but they seem to work well toghucer. For third-party library errors and auto-completion [flow-typed][flow-typed] is used.
 
 ### Have fun
 

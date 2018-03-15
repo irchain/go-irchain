@@ -10,10 +10,10 @@ fi
 # Create fake Go workspace if it doesn't exist yet.
 workspace="$PWD/build/_workspace"
 root="$PWD"
-ethdir="$workspace/src/github.com/happyuc-project"
-if [ ! -L "$ethdir/happyuc-go" ]; then
-    mkdir -p "$ethdir"
-    cd "$ethdir"
+hucdir="$workspace/src/github.com/happyuc-project"
+if [ ! -L "$hucdir/happyuc-go" ]; then
+    mkdir -p "$hucdir"
+    cd "$hucdir"
     ln -s ../../../../../. happyuc-go
     cd "$root"
 fi
@@ -23,8 +23,8 @@ GOPATH="$workspace"
 export GOPATH
 
 # Run the command inside the workspace.
-cd "$ethdir/happyuc-go"
-PWD="$ethdir/happyuc-go"
+cd "$hucdir/happyuc-go"
+PWD="$hucdir/happyuc-go"
 
 # Launch the arguments with the configured environment.
 exec "$@"
