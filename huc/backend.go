@@ -15,7 +15,7 @@
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package eth implements the HappyUC protocol.
-package eth
+package huc
 
 import (
 	"errors"
@@ -35,12 +35,12 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/eth/filters"
-	"github.com/happyuc-project/happyuc-go/eth/gasprice"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/filters"
+	"github.com/happyuc-project/happyuc-go/huc/gasprice"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/internal/ethapi"
+	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/miner"
 	"github.com/happyuc-project/happyuc-go/node"
@@ -73,7 +73,7 @@ type HappyUC struct {
 	lesServer       LesServer
 
 	// DB interfaces
-	chainDb ethdb.Database // Block chain database
+	chainDb hucdb.Database // Block chain database
 
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
@@ -130,7 +130,7 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 		stopDbUpgrade:  stopDbUpgrade,
 		networkId:      config.NetworkId,
 		gasPrice:       config.GasPrice,
-		coinbase:      config.Coinbase,
+		coinbase:       config.Coinbase,
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
@@ -199,12 +199,12 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateDB creates the chain database.
-func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Database, error) {
+func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hucdb.Database, error) {
 	db, err := ctx.OpenDatabase(name, config.DatabaseCache, config.DatabaseHandles)
 	if err != nil {
 		return nil, err
 	}
-	if db, ok := db.(*ethdb.LDBDatabase); ok {
+	if db, ok := db.(*hucdb.LDBDatabase); ok {
 		db.Meter("eth/db/chaindata/")
 	}
 	return db, nil
@@ -368,7 +368,7 @@ func (s *HappyUC) BlockChain() *core.BlockChain       { return s.blockchain }
 func (s *HappyUC) TxPool() *core.TxPool               { return s.txPool }
 func (s *HappyUC) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *HappyUC) Engine() consensus.Engine           { return s.engine }
-func (s *HappyUC) ChainDb() ethdb.Database            { return s.chainDb }
+func (s *HappyUC) ChainDb() hucdb.Database            { return s.chainDb }
 func (s *HappyUC) IsListening() bool                  { return true } // Always listening
 func (s *HappyUC) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *HappyUC) NetVersion() uint64                 { return s.networkId }

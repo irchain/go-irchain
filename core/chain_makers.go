@@ -26,7 +26,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
 )
 
@@ -243,10 +243,10 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 // newCanonical creates a chain database, and injects a deterministic canonical
 // chain. Depending on the full flag, if creates either a full block chain or a
 // header only chain.
-func newCanonical(engine consensus.Engine, n int, full bool) (ethdb.Database, *BlockChain, error) {
+func newCanonical(engine consensus.Engine, n int, full bool) (hucdb.Database, *BlockChain, error) {
 	// Initialize a fresh chain with only a genesis block
 	gspec := new(Genesis)
-	db, _ := ethdb.NewMemDatabase()
+	db, _ := hucdb.NewMemDatabase()
 	genesis := gspec.MustCommit(db)
 
 	blockchain, _ := NewBlockChain(db, nil, params.AllEthashProtocolChanges, engine, vm.Config{})
@@ -267,7 +267,7 @@ func newCanonical(engine consensus.Engine, n int, full bool) (ethdb.Database, *B
 }
 
 // makeHeaderChain creates a deterministic chain of headers rooted at parent.
-func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Header {
+func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db hucdb.Database, seed int) []*types.Header {
 	blocks := makeBlockChain(types.NewBlockWithHeader(parent), n, engine, db, seed)
 	headers := make([]*types.Header, len(blocks))
 	for i, block := range blocks {
@@ -277,7 +277,7 @@ func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db et
 }
 
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
-func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Block {
+func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db hucdb.Database, seed int) []*types.Block {
 	blocks, _ := GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *BlockGen) {
 		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
 	})

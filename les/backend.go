@@ -29,13 +29,13 @@ import (
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/eth"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/eth/filters"
-	"github.com/happyuc-project/happyuc-go/eth/gasprice"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/filters"
+	"github.com/happyuc-project/happyuc-go/huc/gasprice"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/internal/ethapi"
+	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/light"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/node"
@@ -62,7 +62,7 @@ type LightHappyUC struct {
 	reqDist         *requestDistributor
 	retriever       *retrieveManager
 	// DB interfaces
-	chainDb ethdb.Database // Block chain database
+	chainDb hucdb.Database // Block chain database
 
 	bloomRequests                              chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer, chtIndexer, bloomTrieIndexer *core.ChainIndexer

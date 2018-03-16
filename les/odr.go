@@ -20,20 +20,20 @@ import (
 	"context"
 
 	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/light"
 	"github.com/happyuc-project/happyuc-go/log"
 )
 
 // LesOdr implements light.OdrBackend
 type LesOdr struct {
-	db                                         ethdb.Database
+	db                                         hucdb.Database
 	chtIndexer, bloomTrieIndexer, bloomIndexer *core.ChainIndexer
 	retriever                                  *retrieveManager
 	stop                                       chan struct{}
 }
 
-func NewLesOdr(db ethdb.Database, chtIndexer, bloomTrieIndexer, bloomIndexer *core.ChainIndexer, retriever *retrieveManager) *LesOdr {
+func NewLesOdr(db hucdb.Database, chtIndexer, bloomTrieIndexer, bloomIndexer *core.ChainIndexer, retriever *retrieveManager) *LesOdr {
 	return &LesOdr{
 		db:               db,
 		chtIndexer:       chtIndexer,
@@ -50,7 +50,7 @@ func (odr *LesOdr) Stop() {
 }
 
 // Database returns the backing database
-func (odr *LesOdr) Database() ethdb.Database {
+func (odr *LesOdr) Database() hucdb.Database {
 	return odr.db
 }
 

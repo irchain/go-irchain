@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"time"
@@ -24,7 +24,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
 )
 
@@ -93,7 +93,7 @@ const (
 type BloomIndexer struct {
 	size uint64 // section size to generate bloombits for
 
-	db  ethdb.Database       // database instance to write index data and metadata into
+	db  hucdb.Database       // database instance to write index data and metadata into
 	gen *bloombits.Generator // generator to rotate the bloom bits crating the bloom index
 
 	section uint64      // Section is the section number being processed currently
@@ -102,12 +102,12 @@ type BloomIndexer struct {
 
 // NewBloomIndexer returns a chain indexer that generates bloom bits data for the
 // canonical chain for fast logs filtering.
-func NewBloomIndexer(db ethdb.Database, size uint64) *core.ChainIndexer {
+func NewBloomIndexer(db hucdb.Database, size uint64) *core.ChainIndexer {
 	backend := &BloomIndexer{
 		db:   db,
 		size: size,
 	}
-	table := ethdb.NewTable(db, string(core.BloomBitsIndexPrefix))
+	table := hucdb.NewTable(db, string(core.BloomBitsIndexPrefix))
 
 	return core.NewChainIndexer(db, table, backend, size, bloomConfirms, bloomThrottling, "bloombits")
 }

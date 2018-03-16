@@ -30,8 +30,8 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/params"
@@ -366,7 +366,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 			t.Errorf("data hash mismatch: have %x, want %x", hash, want)
 		}
 	}
-	statedb, _ := ethdb.NewMemDatabase()
+	statedb, _ := hucdb.NewMemDatabase()
 	for i := 0; i < len(data); i++ {
 		statedb.Put(hashes[i].Bytes(), data[i])
 	}
@@ -468,7 +468,7 @@ func testDAOChallenge(t *testing.T, localForked, remoteForked bool, timeout bool
 	var (
 		evmux         = new(event.TypeMux)
 		pow           = ethash.NewFaker()
-		db, _         = ethdb.NewMemDatabase()
+		db, _         = hucdb.NewMemDatabase()
 		config        = &params.ChainConfig{DAOForkBlock: big.NewInt(1), DAOForkSupport: localForked}
 		gspec         = &core.Genesis{Config: config}
 		genesis       = gspec.MustCommit(db)

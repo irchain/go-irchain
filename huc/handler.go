@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"encoding/json"
@@ -31,9 +31,9 @@ import (
 	"github.com/happyuc-project/happyuc-go/consensus/misc"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/eth/fetcher"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/fetcher"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/p2p"

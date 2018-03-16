@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package eth
+package huc
 
 import (
 	"bytes"
@@ -32,8 +32,8 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/eth/tracers"
-	"github.com/happyuc-project/happyuc-go/internal/ethapi"
+	"github.com/happyuc-project/happyuc-go/huc/tracers"
+	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/rlp"
 	"github.com/happyuc-project/happyuc-go/rpc"

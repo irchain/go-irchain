@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/p2p/discover"
 )

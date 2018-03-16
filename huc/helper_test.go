@@ -17,7 +17,7 @@
 // This file contains some shares testing functionality, common to  multiple
 // different files and modules being tested.
 
-package eth
+package huc
 
 import (
 	"crypto/ecdsa"
@@ -33,8 +33,8 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/p2p/discover"
@@ -53,7 +53,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func
 	var (
 		evmux  = new(event.TypeMux)
 		engine = ethash.NewFaker()
-		db, _  = ethdb.NewMemDatabase()
+		db, _  = hucdb.NewMemDatabase()
 		gspec  = &core.Genesis{
 			Config: params.TestChainConfig,
 			Alloc:  core.GenesisAlloc{testBank: {Balance: big.NewInt(1000000)}},
