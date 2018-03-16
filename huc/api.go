@@ -55,9 +55,9 @@ func (api *PublicHappyUCAPI) Coinbase() (common.Address, error) {
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for Coinbase)
-func (api *PublicHappyUCAPI) Coinbase() (common.Address, error) {
-	return api.Coinbase()
-}
+//func (api *PublicHappyUCAPI) Coinbase2() (common.Address, error) {
+//	return api.Coinbase()
+//}
 
 // Hashrate returns the POW hashrate
 func (api *PublicHappyUCAPI) Hashrate() hexutil.Uint64 {
