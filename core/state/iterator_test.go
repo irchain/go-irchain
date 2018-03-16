@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.
@@ -51,7 +51,7 @@ func TestNodeIteratorCoverage(t *testing.T) {
 			t.Errorf("state entry not reported %x", hash)
 		}
 	}
-	for _, key := range db.TrieDB().DiskDB().(*ethdb.MemDatabase).Keys() {
+	for _, key := range db.TrieDB().DiskDB().(*hucdb.MemDatabase).Keys() {
 		if bytes.HasPrefix(key, []byte("secure-key-")) {
 			continue
 		}

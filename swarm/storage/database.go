@@ -16,7 +16,7 @@
 
 package storage
 
-// this is a clone of an earlier state of the happyuc ethdb/database
+// this is a clone of an earlier state of the happyuc hucdb/database
 // no need for queueing/caching
 
 import (

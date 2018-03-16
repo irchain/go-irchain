@@ -118,7 +118,7 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 		}
 	}
 	// Verify that contra-forkers accept pro-fork extra-datas after forking finishes
-	db, _ = ethdb.NewMemDatabase()
+	db, _ = hucdb.NewMemDatabase()
 	gspec.MustCommit(db)
 	bc, _ := NewBlockChain(db, nil, &conConf, ethash.NewFaker(), vm.Config{})
 	defer bc.Stop()
@@ -138,7 +138,7 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 		t.Fatalf("contra-fork chain didn't accept pro-fork block post-fork: %v", err)
 	}
 	// Verify that pro-forkers accept contra-fork extra-datas after forking finishes
-	db, _ = ethdb.NewMemDatabase()
+	db, _ = hucdb.NewMemDatabase()
 	gspec.MustCommit(db)
 	bc, _ = NewBlockChain(db, nil, &proConf, ethash.NewFaker(), vm.Config{})
 	defer bc.Stop()

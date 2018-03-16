@@ -72,12 +72,12 @@ func (tm *TestManager) EventMux() *event.TypeMux {
 // 	return nil
 // }
 
-func (tm *TestManager) Db() ethdb.Database {
+func (tm *TestManager) Db() hucdb.Database {
 	return tm.db
 }
 
 func NewTestManager() *TestManager {
-	db, err := ethdb.NewMemDatabase()
+	db, err := hucdb.NewMemDatabase()
 	if err != nil {
 		fmt.Println("Could not create mem-db, failing")
 		return nil

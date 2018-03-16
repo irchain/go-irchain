@@ -176,6 +176,6 @@ func (m cachedTrie) Commit(onleaf trie.LeafCallback) (common.Hash, error) {
 	return root, err
 }
 
-func (m cachedTrie) Prove(key []byte, fromLevel uint, proofDb ethdb.Putter) error {
+func (m cachedTrie) Prove(key []byte, fromLevel uint, proofDb hucdb.Putter) error {
 	return m.SecureTrie.Prove(key, fromLevel, proofDb)
 }

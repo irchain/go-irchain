@@ -115,7 +115,7 @@ func (db *NodeSet) Store(target hucdb.Putter) {
 	}
 }
 
-// NodeList stores an ordered list of trie nodes. It implements ethdb.Putter.
+// NodeList stores an ordered list of trie nodes. It implements hucdb.Putter.
 type NodeList []rlp.RawValue
 
 // Store writes the contents of the list to the given database
