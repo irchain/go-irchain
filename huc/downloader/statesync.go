@@ -318,7 +318,7 @@ func (s *stateSync) loop() error {
 }
 
 func (s *stateSync) commit(force bool) error {
-	if !force && s.bytesUncommitted < ethdb.IdealBatchSize {
+	if !force && s.bytesUncommitted < hucdb.IdealBatchSize {
 		return nil
 	}
 	start := time.Now()

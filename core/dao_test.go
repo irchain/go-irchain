@@ -22,7 +22,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/consensus/ethash"
 	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
 )
 
@@ -32,13 +32,13 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 	forkBlock := big.NewInt(32)
 
 	// Generate a common prefix for both pro-forkers and non-forkers
-	db, _ := ethdb.NewMemDatabase()
+	db, _ := hucdb.NewMemDatabase()
 	gspec := new(Genesis)
 	genesis := gspec.MustCommit(db)
 	prefix, _ := GenerateChain(params.TestChainConfig, genesis, ethash.NewFaker(), db, int(forkBlock.Int64()-1), func(i int, gen *BlockGen) {})
 
 	// Create the concurrent, conflicting two nodes
-	proDb, _ := ethdb.NewMemDatabase()
+	proDb, _ := hucdb.NewMemDatabase()
 	gspec.MustCommit(proDb)
 
 	proConf := *params.TestChainConfig
@@ -48,7 +48,7 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 	proBc, _ := NewBlockChain(proDb, nil, &proConf, ethash.NewFaker(), vm.Config{})
 	defer proBc.Stop()
 
-	conDb, _ := ethdb.NewMemDatabase()
+	conDb, _ := hucdb.NewMemDatabase()
 	gspec.MustCommit(conDb)
 
 	conConf := *params.TestChainConfig
@@ -67,7 +67,7 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 	// Try to expand both pro-fork and non-fork chains iteratively with other camp's blocks
 	for i := int64(0); i < params.DAOForkExtraRange.Int64(); i++ {
 		// Create a pro-fork block, and try to feed into the no-fork chain
-		db, _ = ethdb.NewMemDatabase()
+		db, _ = hucdb.NewMemDatabase()
 		gspec.MustCommit(db)
 		bc, _ := NewBlockChain(db, nil, &conConf, ethash.NewFaker(), vm.Config{})
 		defer bc.Stop()
@@ -92,7 +92,7 @@ func TestDAOForkRangeExtradata(t *testing.T) {
 			t.Fatalf("contra-fork chain didn't accepted no-fork block: %v", err)
 		}
 		// Create a no-fork block, and try to feed into the pro-fork chain
-		db, _ = ethdb.NewMemDatabase()
+		db, _ = hucdb.NewMemDatabase()
 		gspec.MustCommit(db)
 		bc, _ = NewBlockChain(db, nil, &proConf, ethash.NewFaker(), vm.Config{})
 		defer bc.Stop()

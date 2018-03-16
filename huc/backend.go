@@ -211,7 +211,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hucdb.Data
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an HappyUC service
-func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
+func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db hucdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)

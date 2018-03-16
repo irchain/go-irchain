@@ -30,7 +30,7 @@ import (
 )
 
 type Backend interface {
-	ChainDb() ethdb.Database
+	ChainDb() hucdb.Database
 	EventMux() *event.TypeMux
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
 	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
@@ -49,7 +49,7 @@ type Backend interface {
 type Filter struct {
 	backend Backend
 
-	db         ethdb.Database
+	db         hucdb.Database
 	begin, end int64
 	addresses  []common.Address
 	topics     [][]common.Hash
