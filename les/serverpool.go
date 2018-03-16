@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/happyuc-project/happyuc-go/common/mclock"
-	"github.com/happyuc-project/happyuc-go/ethdb"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/p2p/discover"

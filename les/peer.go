@@ -28,7 +28,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/les/flowcontrol"
 	"github.com/happyuc-project/happyuc-go/light"
 	"github.com/happyuc-project/happyuc-go/p2p"

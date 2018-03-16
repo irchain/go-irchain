@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/light"
 )
 
