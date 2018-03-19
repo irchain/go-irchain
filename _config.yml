@@ -1,0 +1,8 @@
+title: Ethereum
+description: Official golang implementation of the Ethereum protocol
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-slate
+
+gems:
+  - jekyll-mentions
