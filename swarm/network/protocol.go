@@ -449,7 +449,7 @@ func (self *bzz) peerAddr(base *peerAddr) *peerAddr {
 	return base
 }
 
-// returns self advertised node connection info (listening address w enodes)
+// returns self advertised node connection info (listening address w hnodes)
 // IP will get repaired on the other end if missing
 // or resolved via ID by discovery at dialout
 func (self *bzz) selfAddr() *peerAddr {

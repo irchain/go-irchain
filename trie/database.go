@@ -209,7 +209,7 @@ func (db *Database) Dereference(child common.Hash, parent common.Hash) {
 	db.gctime += time.Since(start)
 
 	log.Debug("Dereferenced trie from memory database", "nodes", nodes-len(db.nodes), "size", storage-db.nodesSize, "time", time.Since(start),
-		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livenodes", len(db.nodes), "livesize", db.nodesSize)
+		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livhnodes", len(db.nodes), "livesize", db.nodesSize)
 }
 
 // dereference is the private locked version of Dereference.
@@ -294,7 +294,7 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 		logger = log.Debug
 	}
 	logger("Persisted trie from memory database", "nodes", nodes-len(db.nodes), "size", storage-db.nodesSize, "time", time.Since(start),
-		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livenodes", len(db.nodes), "livesize", db.nodesSize)
+		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livhnodes", len(db.nodes), "livesize", db.nodesSize)
 
 	// Reset the garbage collection statistics
 	db.gcnodes, db.gcsize, db.gctime = 0, 0, 0

@@ -153,7 +153,7 @@ type nodeInfos struct {
 	ethashdir  string
 	hucstats   string
 	port       int
-	enode      string
+	hnode      string
 	peersTotal int
 	peersLight int
 	coinbase   string
@@ -258,7 +258,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 		gasTarget:  gasTarget,
 		gasPrice:   gasPrice,
 	}
-	stats.enode = fmt.Sprintf("enode://%s@%s:%d", id, client.address, stats.port)
+	stats.hnode = fmt.Sprintf("hnode://%s@%s:%d", id, client.address, stats.port)
 
 	return stats, nil
 }

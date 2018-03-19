@@ -37,7 +37,7 @@ import (
 )
 
 type LesServer struct {
-	config          *eth.Config
+	config          *huc.Config
 	protocolManager *ProtocolManager
 	fcManager       *flowcontrol.ClientManager // nil if our node is client only
 	fcCostStats     *requestCostStats
@@ -49,16 +49,16 @@ type LesServer struct {
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 }
 
-func NewLesServer(eth *eth.HappyUC, config *eth.Config) (*LesServer, error) {
+func NewLesServer(huc *huc.HappyUC, config *huc.Config) (*LesServer, error) {
 	quitSync := make(chan struct{})
-	pm, err := NewProtocolManager(eth.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, eth.EventMux(), eth.Engine(), newPeerSet(), eth.BlockChain(), eth.TxPool(), eth.ChainDb(), nil, nil, quitSync, new(sync.WaitGroup))
+	pm, err := NewProtocolManager(huc.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, huc.EventMux(), huc.Engine(), newPeerSet(), huc.BlockChain(), huc.TxPool(), huc.ChainDb(), nil, nil, quitSync, new(sync.WaitGroup))
 	if err != nil {
 		return nil, err
 	}
 
 	lesTopics := make([]discv5.Topic, len(AdvertiseProtocolVersions))
 	for i, pv := range AdvertiseProtocolVersions {
-		lesTopics[i] = lesTopic(eth.BlockChain().Genesis().Hash(), pv)
+		lesTopics[i] = lesTopic(huc.BlockChain().Genesis().Hash(), pv)
 	}
 
 	srv := &LesServer{
@@ -66,8 +66,8 @@ func NewLesServer(eth *eth.HappyUC, config *eth.Config) (*LesServer, error) {
 		protocolManager:  pm,
 		quitSync:         quitSync,
 		lesTopics:        lesTopics,
-		chtIndexer:       light.NewChtIndexer(eth.ChainDb(), false),
-		bloomTrieIndexer: light.NewBloomTrieIndexer(eth.ChainDb(), false),
+		chtIndexer:       light.NewChtIndexer(huc.ChainDb(), false),
+		bloomTrieIndexer: light.NewBloomTrieIndexer(huc.ChainDb(), false),
 	}
 	logger := log.New()
 
@@ -90,7 +90,7 @@ func NewLesServer(eth *eth.HappyUC, config *eth.Config) (*LesServer, error) {
 		logger.Info("Loaded bloom trie", "section", bloomTrieLastSection, "head", bloomTrieSectionHead, "root", bloomTrieRoot)
 	}
 
-	srv.chtIndexer.Start(eth.BlockChain())
+	srv.chtIndexer.Start(huc.BlockChain())
 	pm.server = srv
 
 	srv.defParams = &flowcontrol.ServerParams{
@@ -98,7 +98,7 @@ func NewLesServer(eth *eth.HappyUC, config *eth.Config) (*LesServer, error) {
 		MinRecharge: 50000,
 	}
 	srv.fcManager = flowcontrol.NewClientManager(uint64(config.LightServ), 10, 1000000000)
-	srv.fcCostStats = newCostStats(eth.ChainDb())
+	srv.fcCostStats = newCostStats(huc.ChainDb())
 	return srv, nil
 }
 

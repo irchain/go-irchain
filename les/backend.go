@@ -42,11 +42,12 @@ import (
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/p2p/discv5"
 	"github.com/happyuc-project/happyuc-go/params"
-	rpc "github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/happyuc-project/happyuc-go/rpc"
+	_ "github.com/happyuc-project/happyuc-go/swarm/api"
 )
 
 type LightHappyUC struct {
-	config *eth.Config
+	config *huc.Config
 
 	odr         *LesOdr
 	relay       *LesTxRelay
@@ -74,13 +75,13 @@ type LightHappyUC struct {
 	accountManager *accounts.Manager
 
 	networkId     uint64
-	netRPCService *ethapi.PublicNetAPI
+	netRPCService *hucapi.PublicNetAPI
 
 	wg sync.WaitGroup
 }
 
-func New(ctx *node.ServiceContext, config *eth.Config) (*LightHappyUC, error) {
-	chainDb, err := eth.CreateDB(ctx, config, "lightchaindata")
+func New(ctx *node.ServiceContext, config *huc.Config) (*LightHappyUC, error) {
+	chainDb, err := huc.CreateDB(ctx, config, "lightchaindata")
 	if err != nil {
 		return nil, err
 	}
@@ -101,11 +102,11 @@ func New(ctx *node.ServiceContext, config *eth.Config) (*LightHappyUC, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           eth.CreateConsensusEngine(ctx, &config.Ethash, chainConfig, chainDb),
+		engine:           huc.CreateConsensusEngine(ctx, &config.Ethash, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
-		bloomIndexer:     eth.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
+		bloomIndexer:     huc.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
 		chtIndexer:       light.NewChtIndexer(chainDb, true),
 		bloomTrieIndexer: light.NewBloomTrieIndexer(chainDb, true),
 	}
@@ -158,11 +159,6 @@ func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("not supported")
 }
 
-// Coinbase is the address that mining rewards will be send to (alias for Coinbase)
-func (s *LightDummyAPI) Coinbase() (common.Address, error) {
-	return common.Address{}, fmt.Errorf("not supported")
-}
-
 // Hashrate returns the POW hashrate
 func (s *LightDummyAPI) Hashrate() hexutil.Uint {
 	return 0
@@ -176,7 +172,7 @@ func (s *LightDummyAPI) Mining() bool {
 // APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightHappyUC) APIs() []rpc.API {
-	return append(ethapi.GetAPIs(s.ApiBackend), []rpc.API{
+	return append(hucapi.GetAPIs(s.ApiBackend), []rpc.API{
 		{
 			Namespace: "eth",
 			Version:   "1.0",
@@ -223,7 +219,7 @@ func (s *LightHappyUC) Protocols() []p2p.Protocol {
 func (s *LightHappyUC) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers()
 	log.Warn("Light client mode is an experimental feature")
-	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.networkId)
+	s.netRPCService = hucapi.NewPublicNetAPI(srvr, s.networkId)
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]
 	s.serverPool.start(srvr, lesTopic(s.blockchain.Genesis().Hash(), protocolVersion))

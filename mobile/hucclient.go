@@ -22,17 +22,17 @@ import (
 	"math/big"
 
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/ethclient"
+	"github.com/happyuc-project/happyuc-go/hucclient"
 )
 
 // HappyUCClient provides access to the HappyUC APIs.
 type HappyUCClient struct {
-	client *ethclient.Client
+	client *hucclient.Client
 }
 
 // NewHappyUCClient connects a client to the given URL.
 func NewHappyUCClient(rawurl string) (client *HappyUCClient, _ error) {
-	rawClient, err := ethclient.Dial(rawurl)
+	rawClient, err := hucclient.Dial(rawurl)
 	return &HappyUCClient{rawClient}, err
 }
 
