@@ -435,8 +435,10 @@ func (srv *Server) Start() (err error) {
 				go nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "happyuc discovery")
 			}
 			// TODO: react to external IP changes over time.
-			if ext, err := srv.NAT.ExternalIP(); err == nil {
-				realaddr = &net.UDPAddr{IP: ext, Port: realaddr.Port}
+			if _, err := srv.NAT.ExternalIP(); err == nil {
+				// TODO switch to real ip addr
+				ip := net.ParseIP("127.0.0.1")
+				realaddr = &net.UDPAddr{IP: ip, Port: realaddr.Port}
 			}
 		}
 	}
@@ -909,7 +911,7 @@ func (srv *Server) runPeer(p *Peer) {
 type NodeInfo struct {
 	ID    string `json:"id"`    // Unique node identifier (also the encryption key)
 	Name  string `json:"name"`  // Name of the node, including client type, version, OS, custom data
-	Enode string `json:"enode"` // Enode URL for adding this peer from remote peers
+	Enode string `json:"hnode"` // Enode URL for adding this peer from remote peers
 	IP    string `json:"ip"`    // IP address of the node
 	Ports struct {
 		Discovery int `json:"discovery"` // UDP listening port for discovery protocol

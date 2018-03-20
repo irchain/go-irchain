@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 
 	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/eth"
-	"github.com/happyuc-project/happyuc-go/eth/downloader"
-	"github.com/happyuc-project/happyuc-go/ethclient"
+	"github.com/happyuc-project/happyuc-go/huc"
+	"github.com/happyuc-project/happyuc-go/huc/downloader"
+	"github.com/happyuc-project/happyuc-go/hucclient"
 	"github.com/happyuc-project/happyuc-go/hucstats"
 	"github.com/happyuc-project/happyuc-go/les"
 	"github.com/happyuc-project/happyuc-go/node"
@@ -144,7 +144,7 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 	// Register the HappyUC protocol if requested
 	if config.HappyUCEnabled {
-		ethConf := eth.DefaultConfig
+		ethConf := huc.DefaultConfig
 		ethConf.Genesis = genesis
 		ethConf.SyncMode = downloader.LightSync
 		ethConf.NetworkId = uint64(config.HappyUCNetworkID)
@@ -194,7 +194,7 @@ func (n *Node) GetHappyUCClient() (client *HappyUCClient, _ error) {
 	if err != nil {
 		return nil, err
 	}
-	return &HappyUCClient{ethclient.NewClient(rpc)}, nil
+	return &HappyUCClient{hucclient.NewClient(rpc)}, nil
 }
 
 // GetNodeInfo gathers and returns a collection of metadata known about the host.

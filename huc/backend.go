@@ -30,7 +30,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
 	"github.com/happyuc-project/happyuc-go/consensus"
 	"github.com/happyuc-project/happyuc-go/consensus/clique"
-	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/consensus/hucash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
@@ -89,7 +89,7 @@ type HappyUC struct {
 	coinbase common.Address
 
 	networkId     uint64
-	netRPCService *ethapi.PublicNetAPI
+	netRPCService *hucapi.PublicNetAPI
 
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and coinbase)
 }
@@ -211,24 +211,24 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hucdb.Data
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an HappyUC service
-func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db hucdb.Database) consensus.Engine {
+func CreateConsensusEngine(ctx *node.ServiceContext, config *hucash.Config, chainConfig *params.ChainConfig, db hucdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
 	}
 	// Otherwise assume proof-of-work
 	switch {
-	case config.PowMode == ethash.ModeFake:
+	case config.PowMode == hucash.ModeFake:
 		log.Warn("Ethash used in fake mode")
-		return ethash.NewFaker()
-	case config.PowMode == ethash.ModeTest:
+		return hucash.NewFaker()
+	case config.PowMode == hucash.ModeTest:
 		log.Warn("Ethash used in test mode")
-		return ethash.NewTester()
-	case config.PowMode == ethash.ModeShared:
+		return hucash.NewTester()
+	case config.PowMode == hucash.ModeShared:
 		log.Warn("Ethash used in shared mode")
-		return ethash.NewShared()
+		return hucash.NewShared()
 	default:
-		engine := ethash.New(ethash.Config{
+		engine := hucash.New(hucash.Config{
 			CacheDir:       ctx.ResolvePath(config.CacheDir),
 			CachesInMem:    config.CachesInMem,
 			CachesOnDisk:   config.CachesOnDisk,
@@ -244,7 +244,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chai
 // APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *HappyUC) APIs() []rpc.API {
-	apis := ethapi.GetAPIs(s.ApiBackend)
+	apis := hucapi.GetAPIs(s.ApiBackend)
 
 	// Append any APIs exposed explicitly by the consensus engine
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
@@ -390,7 +390,7 @@ func (s *HappyUC) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers()
 
 	// Start the RPC service
-	s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.NetVersion())
+	s.netRPCService = hucapi.NewPublicNetAPI(srvr, s.NetVersion())
 
 	// Figure out a max peers count based on the server limits
 	maxPeers := srvr.MaxPeers

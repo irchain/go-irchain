@@ -101,7 +101,7 @@ var (
 	argPub     = flag.String("pub", "", "public key for asymmetric encryption")
 	argDBPath  = flag.String("dbpath", "", "path to the server's DB directory")
 	argIDFile  = flag.String("idfile", "", "file name with node id (private key)")
-	argEnode   = flag.String("boot", "", "bootstrap node you want to connect to (e.g. enode://e454......08d50@52.176.211.200:16428)")
+	argEnode   = flag.String("boot", "", "bootstrap node you want to connect to (e.g. hnode://e454......08d50@52.176.211.200:16428)")
 	argTopic   = flag.String("topic", "", "topic in hexadecimal format (e.g. 70a4beef)")
 	argSaveDir = flag.String("savedir", "", "directory where all incoming messages will be saved as files")
 )
@@ -124,10 +124,10 @@ func processArgs() {
 		}
 	}
 
-	const enodePrefix = "enode://"
+	const hnodePrefix = "hnode://"
 	if len(*argEnode) > 0 {
-		if (*argEnode)[:len(enodePrefix)] != enodePrefix {
-			*argEnode = enodePrefix + *argEnode
+		if (*argEnode)[:len(hnodePrefix)] != hnodePrefix {
+			*argEnode = hnodePrefix + *argEnode
 		}
 	}
 
@@ -201,7 +201,7 @@ func initialize() {
 		*bootstrapMode = true
 	} else {
 		if len(*argEnode) == 0 {
-			argEnode = scanLineA("Please enter the peer's enode: ")
+			argEnode = scanLineA("Please enter the peer's hnode: ")
 		}
 		peer := discover.MustParseNode(*argEnode)
 		peers = append(peers, peer)
@@ -752,7 +752,7 @@ func requestExpiredMessagesLoop() {
 func extractIDFromEnode(s string) []byte {
 	n, err := discover.ParseNode(s)
 	if err != nil {
-		utils.Fatalf("Failed to parse enode: %s", err)
+		utils.Fatalf("Failed to parse hnode: %s", err)
 	}
 	return n.ID[:]
 }

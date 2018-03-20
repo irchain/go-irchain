@@ -131,7 +131,7 @@ func (self *Hive) Addr() kademlia.Address {
 
 // Start receives network info only at startup
 // listedAddr is a function to retrieve listening address to advertise to peers
-// connectPeer is a function to connect to a peer based on its NodeID or enode URL
+// connectPeer is a function to connect to a peer based on its NodeID or hnode URL
 // there are called on the p2p.Server which runs on the node
 func (self *Hive) Start(id discover.NodeID, listenAddr func() string, connectPeer func(string) error) (err error) {
 	self.toggle = make(chan bool)
@@ -158,7 +158,7 @@ func (self *Hive) Start(id discover.NodeID, listenAddr func() string, connectPee
 
 			if node != nil && len(node.Url) > 0 {
 				log.Trace(fmt.Sprintf("call known bee %v", node.Url))
-				// enode or any lower level connection address is unnecessary in future
+				// hnode or any lower level connection address is unnecessary in future
 				// discovery table is used to look it up.
 				connectPeer(node.Url)
 			}

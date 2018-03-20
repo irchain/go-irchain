@@ -136,7 +136,7 @@ type ExecNode struct {
 	key     *ecdsa.PrivateKey
 }
 
-// Addr returns the node's enode URL
+// Addr returns the node's hnode URL
 func (n *ExecNode) Addr() []byte {
 	if n.Info == nil {
 		return nil

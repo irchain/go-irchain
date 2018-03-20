@@ -21,7 +21,7 @@ package ghuc
 import (
 	"errors"
 
-	happyuc "github.com/happyuc-project/happyuc-go"
+	"github.com/happyuc-project/happyuc-go"
 	"github.com/happyuc-project/happyuc-go/common"
 )
 

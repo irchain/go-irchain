@@ -597,7 +597,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 	indexfile := new(bytes.Buffer)
 	bootCpp := make([]string, len(conf.bootnodes))
 	for i, boot := range conf.bootnodes {
-		bootCpp[i] = "required:" + strings.TrimPrefix(boot, "enode://")
+		bootCpp[i] = "required:" + strings.TrimPrefix(boot, "hnode://")
 	}
 	bootHarmony := make([]string, len(conf.bootnodes))
 	for i, boot := range conf.bootnodes {

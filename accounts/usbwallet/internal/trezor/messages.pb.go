@@ -2216,13 +2216,6 @@ func (m *VerifyMessageHappyUC) GetSignature() []byte {
 	return nil
 }
 
-func (m *VerifyMessage) GetMessage() []byte {
-	if m != nil {
-		return m.Message
-	}
-	return nil
-}
-
 // *
 // Response: Signed message
 // @prev SignMessageHappyUC

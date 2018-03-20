@@ -15,7 +15,7 @@
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package ethapi implements the general HappyUC API functions.
-package ethapi
+package hucapi
 
 import (
 	"context"

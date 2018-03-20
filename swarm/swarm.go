@@ -32,7 +32,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/contracts/chequebook"
 	"github.com/happyuc-project/happyuc-go/contracts/ens"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/ethclient"
+	"github.com/happyuc-project/happyuc-go/hucclient"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/metrics"
 	"github.com/happyuc-project/happyuc-go/node"
@@ -207,7 +207,7 @@ func newEnsClient(endpoint string, addr common.Address, config *api.Config) (*en
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to ENS API %s: %s", endpoint, err)
 	}
-	ensClient := ethclient.NewClient(client)
+	ensClient := hucclient.NewClient(client)
 
 	ensRoot := config.EnsRoot
 	if addr != (common.Address{}) {
@@ -241,7 +241,7 @@ func detectEnsAddr(client *rpc.Client) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	block, err := ethclient.NewClient(client).BlockByNumber(ctx, big.NewInt(0))
+	block, err := hucclient.NewClient(client).BlockByNumber(ctx, big.NewInt(0))
 	if err != nil {
 		return common.Address{}, err
 	}

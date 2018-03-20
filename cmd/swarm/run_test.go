@@ -238,7 +238,7 @@ func newTestNode(t *testing.T, dir string) *testNode {
 	if err := node.Client.Call(&nodeInfo, "admin_nodeInfo"); err != nil {
 		t.Fatal(err)
 	}
-	node.Enode = fmt.Sprintf("enode://%s@127.0.0.1:%s", nodeInfo.ID, p2pPort)
+	node.Enode = fmt.Sprintf("hnode://%s@127.0.0.1:%s", nodeInfo.ID, p2pPort)
 
 	return node
 }

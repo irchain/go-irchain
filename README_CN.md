@@ -236,10 +236,10 @@ $ bootnode --genkey=boot.key
 $ bootnode --nodekey=boot.key
 ```
 
-With the bootnode online, it will display an [`enode` URL](https://github.com/happyuc-project/wiki/wiki/enode-url-format)
+With the bootnode online, it will display an [`hnode` URL](https://github.com/happyuc-project/wiki/wiki/hnode-url-format)
 that other nodes can use to connect to it and exchange peer information. Make sure to replace the
 displayed IP address information (most probably `[::]`) with your externally accessible IP to get the
-actual `enode` URL.
+actual `hnode` URL.
 
 *Note: You could also use a full fledged Ghuc node as a bootnode, but it's the less recommended way.*
 
@@ -251,7 +251,7 @@ via the `--bootnodes` flag. It will probably also be desirable to keep the data 
 private network separated, so do also specify a custom `--datadir` flag.
 
 ```
-$ ghuc --datadir=path/to/custom/data/folder --bootnodes=<bootnode-enode-url-from-above>
+$ ghuc --datadir=path/to/custom/data/folder --bootnodes=<bootnode-hnode-url-from-above>
 ```
 
 *Note: Since your network will be completely cut off from the main and test networks, you'll also

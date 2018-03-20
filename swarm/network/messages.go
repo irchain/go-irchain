@@ -179,7 +179,7 @@ type peerAddr struct {
 	Addr kademlia.Address
 }
 
-// peerAddr pretty prints as enode
+// peerAddr pretty prints as hnode
 func (self *peerAddr) String() string {
 	var nodeid discover.NodeID
 	copy(nodeid[:], self.ID)

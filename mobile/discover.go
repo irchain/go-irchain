@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-// Contains all the wrappers from the accounts package to support client side enode
+// Contains all the wrappers from the accounts package to support client side hnode
 // management on mobile platforms.
 
 package ghuc
@@ -38,7 +38,7 @@ type Enode struct {
 //
 // For incomplete nodes, the designator must look like one of these
 //
-//    enode://<hex node id>
+//    hnode://<hex node id>
 //    <hex node id>
 //
 // For complete nodes, the node ID is encoded in the username portion
@@ -52,8 +52,8 @@ type Enode struct {
 // a node with IP address 10.3.58.6, TCP listening port 30303
 // and UDP discovery port 30301.
 //
-//    enode://<hex node id>@10.3.58.6:30303?discport=30301
-func NewEnode(rawurl string) (enode *Enode, _ error) {
+//    hnode://<hex node id>@10.3.58.6:30303?discport=30301
+func NewEnode(rawurl string) (hnode *Enode, _ error) {
 	node, err := discv5.ParseNode(rawurl)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func NewEnode(rawurl string) (enode *Enode, _ error) {
 // Enodes represents a slice of accounts.
 type Enodes struct{ nodes []*discv5.Node }
 
-// NewEnodes creates a slice of uninitialized enodes.
+// NewEnodes creates a slice of uninitialized hnodes.
 func NewEnodes(size int) *Enodes {
 	return &Enodes{
 		nodes: make([]*discv5.Node, size),
@@ -76,29 +76,29 @@ func NewEnodesEmpty() *Enodes {
 	return NewEnodes(0)
 }
 
-// Size returns the number of enodes in the slice.
+// Size returns the number of hnodes in the slice.
 func (e *Enodes) Size() int {
 	return len(e.nodes)
 }
 
-// Get returns the enode at the given index from the slice.
-func (e *Enodes) Get(index int) (enode *Enode, _ error) {
+// Get returns the hnode at the given index from the slice.
+func (e *Enodes) Get(index int) (hnode *Enode, _ error) {
 	if index < 0 || index >= len(e.nodes) {
 		return nil, errors.New("index out of bounds")
 	}
 	return &Enode{e.nodes[index]}, nil
 }
 
-// Set sets the enode at the given index in the slice.
-func (e *Enodes) Set(index int, enode *Enode) error {
+// Set sets the hnode at the given index in the slice.
+func (e *Enodes) Set(index int, hnode *Enode) error {
 	if index < 0 || index >= len(e.nodes) {
 		return errors.New("index out of bounds")
 	}
-	e.nodes[index] = enode.node
+	e.nodes[index] = hnode.node
 	return nil
 }
 
-// Append adds a new enode element to the end of the slice.
-func (e *Enodes) Append(enode *Enode) {
-	e.nodes = append(e.nodes, enode.node)
+// Append adds a new hnode element to the end of the slice.
+func (e *Enodes) Append(hnode *Enode) {
+	e.nodes = append(e.nodes, hnode.node)
 }

@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/ethash"
+	"github.com/happyuc-project/happyuc-go/consensus/hucash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/eth"
 	"github.com/happyuc-project/happyuc-go/internal/jsre"
@@ -98,8 +98,8 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 	ethConf := &eth.Config{
 		Genesis:   core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
-		Ethash: ethash.Config{
-			PowMode: ethash.ModeTest,
+		Ethash: hucash.Config{
+			PowMode: hucash.ModeTest,
 		},
 	}
 	if confOverride != nil {
