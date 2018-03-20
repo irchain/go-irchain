@@ -188,7 +188,7 @@ type peerDrop struct {
 type connFlag int
 
 const (
-	dynDialedConn connFlag = 1 << iota
+	dynDialedConn    connFlag = 1 << iota
 	staticDialedConn
 	inboundConn
 	trustedConn
@@ -197,7 +197,7 @@ const (
 // conn wraps a network connection with information gathered
 // during the two handshakes.
 type conn struct {
-	fd net.Conn
+	fd    net.Conn
 	transport
 	flags connFlag
 	cont  chan error      // The run loop uses cont to signal errors to SetupConn.
@@ -435,9 +435,9 @@ func (srv *Server) Start() (err error) {
 				go nat.Map(srv.NAT, srv.quit, "udp", realaddr.Port, realaddr.Port, "happyuc discovery")
 			}
 			// TODO: react to external IP changes over time.
-			if _, err := srv.NAT.ExternalIP(); err == nil {
+			if ip, err := srv.NAT.ExternalIP(); err == nil {
 				// TODO switch to real ip addr
-				ip := net.ParseIP("127.0.0.1")
+				// ip = net.ParseIP("127.0.0.1")
 				realaddr = &net.UDPAddr{IP: ip, Port: realaddr.Port}
 			}
 		}
@@ -705,7 +705,7 @@ func (srv *Server) protoHandshakeChecks(peers map[discover.NodeID]*Peer, inbound
 
 func (srv *Server) encHandshakeChecks(peers map[discover.NodeID]*Peer, inboundCount int, c *conn) error {
 	switch {
-	case !c.is(trustedConn|staticDialedConn) && len(peers) >= srv.MaxPeers:
+	case !c.is(trustedConn | staticDialedConn) && len(peers) >= srv.MaxPeers:
 		return DiscTooManyPeers
 	case !c.is(trustedConn) && c.is(inboundConn) && inboundCount >= srv.maxInboundConns():
 		return DiscTooManyPeers

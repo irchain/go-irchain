@@ -75,7 +75,7 @@ type hucstatsConfig struct {
 }
 
 type ghucConfig struct {
-	Eth       huc.Config
+	Huc       huc.Config
 	Shh       whisper.Config
 	Node      node.Config
 	Hucstats  hucstatsConfig
@@ -110,7 +110,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, ghucConfig) {
 	// Load defaults.
 	cfg := ghucConfig{
-		Eth:       huc.DefaultConfig,
+		Huc:       huc.DefaultConfig,
 		Shh:       whisper.DefaultConfig,
 		Node:      defaultNodeConfig(),
 		Dashboard: dashboard.DefaultConfig,
@@ -129,7 +129,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, ghucConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetEthConfig(ctx, stack, &cfg.Eth)
+	utils.SetHucConfig(ctx, stack, &cfg.Huc)
 	if ctx.GlobalIsSet(utils.HucStatsURLFlag.Name) {
 		cfg.Hucstats.URL = ctx.GlobalString(utils.HucStatsURLFlag.Name)
 	}
@@ -153,7 +153,7 @@ func enableWhisper(ctx *cli.Context) bool {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
-	utils.RegisterEthService(stack, &cfg.Eth)
+	utils.RegisterHucService(stack, &cfg.Huc)
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
@@ -183,8 +183,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.Eth.Genesis != nil {
-		cfg.Eth.Genesis = nil
+	if cfg.Huc.Genesis != nil {
+		cfg.Huc.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

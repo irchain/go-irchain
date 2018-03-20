@@ -233,7 +233,7 @@ func (ac *accountCache) close() {
 func (ac *accountCache) scanAccounts() error {
 	// Scan the entire folder metadata for file changes
 	creates, deletes, updates, err := ac.fileC.scan(ac.keydir)
-	if err != nil {
+	if err != nil {Interface
 		log.Debug("Failed to reload keystore contents", "err", err)
 		return err
 	}
@@ -244,8 +244,8 @@ func (ac *accountCache) scanAccounts() error {
 	var (
 		buf = new(bufio.Reader)
 		key struct {
-			Address string `json:"address"`
-		}
+				Address string `json:"address"`
+			}
 	)
 	readAccount := func(path string) *accounts.Account {
 		fd, err := os.Open(path)

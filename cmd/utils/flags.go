@@ -1011,8 +1011,8 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetEthConfig applies eth-related command line flags to the config.
-func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
+// SetHucConfig applies eth-related command line flags to the config.
+func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, DeveloperFlag, TestnetFlag, RinkebyFlag)
 	checkExclusive(ctx, FastSyncFlag, LightModeFlag, SyncModeFlag)
@@ -1123,8 +1123,8 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 	cfg.Assets = ctx.GlobalString(DashboardAssetsFlag.Name)
 }
 
-// RegisterEthService adds an HappyUC client to the stack.
-func RegisterEthService(stack *node.Node, cfg *huc.Config) {
+// RegisterHucService adds an HappyUC client to the stack.
+func RegisterHucService(stack *node.Node, cfg *huc.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
