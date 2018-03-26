@@ -34,7 +34,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/fdlimit"
 	"github.com/happyuc-project/happyuc-go/consensus"
 	"github.com/happyuc-project/happyuc-go/consensus/clique"
-	"github.com/happyuc-project/happyuc-go/consensus/hucash"
+	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/vm"
@@ -216,32 +216,32 @@ var (
 	}
 	// Ethash settings
 	EthashCacheDirFlag = DirectoryFlag{
-		Name:  "hucash.cachedir",
-		Usage: "Directory to store the hucash verification caches (default = inside the datadir)",
+		Name:  "huchash.cachedir",
+		Usage: "Directory to store the huchash verification caches (default = inside the datadir)",
 	}
 	EthashCachesInMemoryFlag = cli.IntFlag{
-		Name:  "hucash.cachesinmem",
-		Usage: "Number of recent hucash caches to keep in memory (16MB each)",
+		Name:  "huchash.cachesinmem",
+		Usage: "Number of recent huchash caches to keep in memory (16MB each)",
 		Value: huc.DefaultConfig.Ethash.CachesInMem,
 	}
 	EthashCachesOnDiskFlag = cli.IntFlag{
-		Name:  "hucash.cachesondisk",
-		Usage: "Number of recent hucash caches to keep on disk (16MB each)",
+		Name:  "huchash.cachesondisk",
+		Usage: "Number of recent huchash caches to keep on disk (16MB each)",
 		Value: huc.DefaultConfig.Ethash.CachesOnDisk,
 	}
 	EthashDatasetDirFlag = DirectoryFlag{
-		Name:  "hucash.dagdir",
-		Usage: "Directory to store the hucash mining DAGs (default = inside home folder)",
+		Name:  "huchash.dagdir",
+		Usage: "Directory to store the huchash mining DAGs (default = inside home folder)",
 		Value: DirectoryString{huc.DefaultConfig.Ethash.DatasetDir},
 	}
 	EthashDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "hucash.dagsinmem",
-		Usage: "Number of recent hucash mining DAGs to keep in memory (1+GB each)",
+		Name:  "huchash.dagsinmem",
+		Usage: "Number of recent huchash mining DAGs to keep in memory (1+GB each)",
 		Value: huc.DefaultConfig.Ethash.DatasetsInMem,
 	}
 	EthashDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "hucash.dagsondisk",
-		Usage: "Number of recent hucash mining DAGs to keep on disk (1+GB each)",
+		Name:  "huchash.dagsondisk",
+		Usage: "Number of recent huchash mining DAGs to keep on disk (1+GB each)",
 		Value: huc.DefaultConfig.Ethash.DatasetsOnDisk,
 	}
 	// Transaction pool settings
@@ -1227,9 +1227,9 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	if config.Clique != nil {
 		engine = clique.New(config.Clique, chainDb)
 	} else {
-		engine = hucash.NewFaker()
+		engine = huchash.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = hucash.New(hucash.Config{
+			engine = huchash.New(huchash.Config{
 				CacheDir:       stack.ResolvePath(huc.DefaultConfig.Ethash.CacheDir),
 				CachesInMem:    huc.DefaultConfig.Ethash.CachesInMem,
 				CachesOnDisk:   huc.DefaultConfig.Ethash.CachesOnDisk,

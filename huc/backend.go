@@ -30,7 +30,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
 	"github.com/happyuc-project/happyuc-go/consensus"
 	"github.com/happyuc-project/happyuc-go/consensus/clique"
-	"github.com/happyuc-project/happyuc-go/consensus/hucash"
+	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
@@ -211,24 +211,24 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hucdb.Data
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an HappyUC service
-func CreateConsensusEngine(ctx *node.ServiceContext, config *hucash.Config, chainConfig *params.ChainConfig, db hucdb.Database) consensus.Engine {
+func CreateConsensusEngine(ctx *node.ServiceContext, config *huchash.Config, chainConfig *params.ChainConfig, db hucdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
 	}
 	// Otherwise assume proof-of-work
 	switch {
-	case config.PowMode == hucash.ModeFake:
+	case config.PowMode == huchash.ModeFake:
 		log.Warn("Ethash used in fake mode")
-		return hucash.NewFaker()
-	case config.PowMode == hucash.ModeTest:
+		return huchash.NewFaker()
+	case config.PowMode == huchash.ModeTest:
 		log.Warn("Ethash used in test mode")
-		return hucash.NewTester()
-	case config.PowMode == hucash.ModeShared:
+		return huchash.NewTester()
+	case config.PowMode == huchash.ModeShared:
 		log.Warn("Ethash used in shared mode")
-		return hucash.NewShared()
+		return huchash.NewShared()
 	default:
-		engine := hucash.New(hucash.Config{
+		engine := huchash.New(huchash.Config{
 			CacheDir:       ctx.ResolvePath(config.CacheDir),
 			CachesInMem:    config.CachesInMem,
 			CachesOnDisk:   config.CachesOnDisk,

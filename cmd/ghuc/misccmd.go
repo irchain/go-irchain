@@ -24,7 +24,7 @@ import (
 	"strings"
 
 	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/consensus/hucash"
+	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/params"
 	"gopkg.in/urfave/cli.v1"
@@ -86,7 +86,7 @@ func makecache(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	hucash.MakeCache(block, args[1])
+	huchash.MakeCache(block, args[1])
 
 	return nil
 }
@@ -101,7 +101,7 @@ func makedag(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	hucash.MakeDataset(block, args[1])
+	huchash.MakeDataset(block, args[1])
 
 	return nil
 }

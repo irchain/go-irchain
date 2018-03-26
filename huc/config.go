@@ -26,7 +26,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/consensus/hucash"
+	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/huc/gasprice"
@@ -36,7 +36,7 @@ import (
 // DefaultConfig contains default settings for use on the HappyUC main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: hucash.Config{
+	Ethash: huchash.Config{
 		CacheDir:       "ethash",
 		CachesInMem:    2,
 		CachesOnDisk:   3,
@@ -101,7 +101,7 @@ type Config struct {
 	GasPrice     *big.Int
 
 	// Ethash options
-	Ethash hucash.Config
+	Ethash huchash.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig
