@@ -214,32 +214,32 @@ var (
 		Usage: "Developer flag to serve the dashboard from the local file system",
 		Value: dashboard.DefaultConfig.Assets,
 	}
-	// Ethash settings
-	EthashCacheDirFlag = DirectoryFlag{
+	// Huchash settings
+	HuchashCacheDirFlag = DirectoryFlag{
 		Name:  "huchash.cachedir",
 		Usage: "Directory to store the huchash verification caches (default = inside the datadir)",
 	}
-	EthashCachesInMemoryFlag = cli.IntFlag{
+	HuchashCachesInMemoryFlag = cli.IntFlag{
 		Name:  "huchash.cachesinmem",
 		Usage: "Number of recent huchash caches to keep in memory (16MB each)",
 		Value: huc.DefaultConfig.Huchash.CachesInMem,
 	}
-	EthashCachesOnDiskFlag = cli.IntFlag{
+	HuchashCachesOnDiskFlag = cli.IntFlag{
 		Name:  "huchash.cachesondisk",
 		Usage: "Number of recent huchash caches to keep on disk (16MB each)",
 		Value: huc.DefaultConfig.Huchash.CachesOnDisk,
 	}
-	EthashDatasetDirFlag = DirectoryFlag{
+	HuchashDatasetDirFlag = DirectoryFlag{
 		Name:  "huchash.dagdir",
 		Usage: "Directory to store the huchash mining DAGs (default = inside home folder)",
 		Value: DirectoryString{huc.DefaultConfig.Huchash.DatasetDir},
 	}
-	EthashDatasetsInMemoryFlag = cli.IntFlag{
+	HuchashDatasetsInMemoryFlag = cli.IntFlag{
 		Name:  "huchash.dagsinmem",
 		Usage: "Number of recent huchash mining DAGs to keep in memory (1+GB each)",
 		Value: huc.DefaultConfig.Huchash.DatasetsInMem,
 	}
-	EthashDatasetsOnDiskFlag = cli.IntFlag{
+	HuchashDatasetsOnDiskFlag = cli.IntFlag{
 		Name:  "huchash.dagsondisk",
 		Usage: "Number of recent huchash mining DAGs to keep on disk (1+GB each)",
 		Value: huc.DefaultConfig.Huchash.DatasetsOnDisk,
@@ -942,24 +942,24 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *huc.Config) {
-	if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
-		cfg.Huchash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
+func setHuchash(ctx *cli.Context, cfg *huc.Config) {
+	if ctx.GlobalIsSet(HuchashCacheDirFlag.Name) {
+		cfg.Huchash.CacheDir = ctx.GlobalString(HuchashCacheDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetDirFlag.Name) {
-		cfg.Huchash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
+	if ctx.GlobalIsSet(HuchashDatasetDirFlag.Name) {
+		cfg.Huchash.DatasetDir = ctx.GlobalString(HuchashDatasetDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashCachesInMemoryFlag.Name) {
-		cfg.Huchash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
+	if ctx.GlobalIsSet(HuchashCachesInMemoryFlag.Name) {
+		cfg.Huchash.CachesInMem = ctx.GlobalInt(HuchashCachesInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashCachesOnDiskFlag.Name) {
-		cfg.Huchash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
+	if ctx.GlobalIsSet(HuchashCachesOnDiskFlag.Name) {
+		cfg.Huchash.CachesOnDisk = ctx.GlobalInt(HuchashCachesOnDiskFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetsInMemoryFlag.Name) {
-		cfg.Huchash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
+	if ctx.GlobalIsSet(HuchashDatasetsInMemoryFlag.Name) {
+		cfg.Huchash.DatasetsInMem = ctx.GlobalInt(HuchashDatasetsInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(EthashDatasetsOnDiskFlag.Name) {
-		cfg.Huchash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
+	if ctx.GlobalIsSet(HuchashDatasetsOnDiskFlag.Name) {
+		cfg.Huchash.DatasetsOnDisk = ctx.GlobalInt(HuchashDatasetsOnDiskFlag.Name)
 	}
 }
 
@@ -1023,7 +1023,7 @@ func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
 	setCoinbase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
-	setEthash(ctx, cfg)
+	setHuchash(ctx, cfg)
 
 	switch {
 	case ctx.GlobalIsSet(SyncModeFlag.Name):

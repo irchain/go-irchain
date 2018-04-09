@@ -88,13 +88,13 @@ type cppHappyUCGenesisSpecLinearPricing struct {
 // newCppHappyUCGenesisSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
 func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyUCGenesisSpec, error) {
-	// Only ethash is currently supported between happyuc-go and happyuc-cpp
-	if genesis.Config.Ethash == nil {
+	// Only huchash is currently supported between happyuc-go and happyuc-cpp
+	if genesis.Config.Huchash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
 	// Reconstruct the chain spec in Parity's format
 	spec := &cppHappyUCGenesisSpec{
-		SealEngine: "Ethash",
+		SealEngine: "Huchash",
 	}
 	spec.Params.AccountStartNonce = 0
 	spec.Params.HomesteadForkBlock = (hexutil.Uint64)(genesis.Config.HomesteadBlock.Uint64())
@@ -166,7 +166,7 @@ func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyU
 type parityChainSpec struct {
 	Name   string `json:"name"`
 	Engine struct {
-		Ethash struct {
+		Huchash struct {
 			Params struct {
 				MinimumDifficulty      *hexutil.Big `json:"minimumDifficulty"`
 				DifficultyBoundDivisor *hexutil.Big `json:"difficultyBoundDivisor"`
@@ -181,7 +181,7 @@ type parityChainSpec struct {
 				EIP100bTransition      uint64       `json:"eip100bTransition"`
 				EIP649Transition       uint64       `json:"eip649Transition"`
 			} `json:"params"`
-		} `json:"Ethash"`
+		} `json:"Huchash"`
 	} `json:"engine"`
 
 	Params struct {
@@ -259,8 +259,8 @@ type parityChainSpecAltBnPairingPricing struct {
 // newParityChainSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
 func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []string) (*parityChainSpec, error) {
-	// Only ethash is currently supported between happyuc-go and Parity
-	if genesis.Config.Ethash == nil {
+	// Only huchash is currently supported between happyuc-go and Parity
+	if genesis.Config.Huchash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
 	// Reconstruct the chain spec in Parity's format
@@ -268,18 +268,18 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 		Name:  network,
 		Nodes: bootnodes,
 	}
-	spec.Engine.Ethash.Params.MinimumDifficulty = (*hexutil.Big)(params.MinimumDifficulty)
-	spec.Engine.Ethash.Params.DifficultyBoundDivisor = (*hexutil.Big)(params.DifficultyBoundDivisor)
-	spec.Engine.Ethash.Params.DurationLimit = (*hexutil.Big)(params.DurationLimit)
-	spec.Engine.Ethash.Params.BlockReward = (*hexutil.Big)(huchash.FrontierBlockReward)
-	spec.Engine.Ethash.Params.HomesteadTransition = genesis.Config.HomesteadBlock.Uint64()
-	spec.Engine.Ethash.Params.EIP150Transition = genesis.Config.EIP150Block.Uint64()
-	spec.Engine.Ethash.Params.EIP160Transition = genesis.Config.EIP155Block.Uint64()
-	spec.Engine.Ethash.Params.EIP161abcTransition = genesis.Config.EIP158Block.Uint64()
-	spec.Engine.Ethash.Params.EIP161dTransition = genesis.Config.EIP158Block.Uint64()
-	spec.Engine.Ethash.Params.EIP649Reward = (*hexutil.Big)(huchash.ByzantiumBlockReward)
-	spec.Engine.Ethash.Params.EIP100bTransition = genesis.Config.ByzantiumBlock.Uint64()
-	spec.Engine.Ethash.Params.EIP649Transition = genesis.Config.ByzantiumBlock.Uint64()
+	spec.Engine.Huchash.Params.MinimumDifficulty = (*hexutil.Big)(params.MinimumDifficulty)
+	spec.Engine.Huchash.Params.DifficultyBoundDivisor = (*hexutil.Big)(params.DifficultyBoundDivisor)
+	spec.Engine.Huchash.Params.DurationLimit = (*hexutil.Big)(params.DurationLimit)
+	spec.Engine.Huchash.Params.BlockReward = (*hexutil.Big)(huchash.FrontierBlockReward)
+	spec.Engine.Huchash.Params.HomesteadTransition = genesis.Config.HomesteadBlock.Uint64()
+	spec.Engine.Huchash.Params.EIP150Transition = genesis.Config.EIP150Block.Uint64()
+	spec.Engine.Huchash.Params.EIP160Transition = genesis.Config.EIP155Block.Uint64()
+	spec.Engine.Huchash.Params.EIP161abcTransition = genesis.Config.EIP158Block.Uint64()
+	spec.Engine.Huchash.Params.EIP161dTransition = genesis.Config.EIP158Block.Uint64()
+	spec.Engine.Huchash.Params.EIP649Reward = (*hexutil.Big)(huchash.ByzantiumBlockReward)
+	spec.Engine.Huchash.Params.EIP100bTransition = genesis.Config.ByzantiumBlock.Uint64()
+	spec.Engine.Huchash.Params.EIP649Transition = genesis.Config.ByzantiumBlock.Uint64()
 
 	spec.Params.MaximumExtraDataSize = (hexutil.Uint64)(params.MaximumExtraDataSize)
 	spec.Params.MinGasLimit = (hexutil.Uint64)(params.MinGasLimit)
@@ -358,8 +358,8 @@ type pyHappyUCGenesisSpec struct {
 // newPyHappyUCGenesisSpec converts a happyuc-go genesis block into a Parity specific
 // chain specification format.
 func newPyHappyUCGenesisSpec(network string, genesis *core.Genesis) (*pyHappyUCGenesisSpec, error) {
-	// Only ethash is currently supported between happyuc-go and happyuc-python
-	if genesis.Config.Ethash == nil {
+	// Only huchash is currently supported between happyuc-go and happyuc-python
+	if genesis.Config.Huchash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
 	spec := &pyHappyUCGenesisSpec{

@@ -92,12 +92,12 @@ var AppHelpFlagGroups = []flagGroup{
 	{
 		Name: "HUCASH",
 		Flags: []cli.Flag{
-			utils.EthashCacheDirFlag,
-			utils.EthashCachesInMemoryFlag,
-			utils.EthashCachesOnDiskFlag,
-			utils.EthashDatasetDirFlag,
-			utils.EthashDatasetsInMemoryFlag,
-			utils.EthashDatasetsOnDiskFlag,
+			utils.HuchashCacheDirFlag,
+			utils.HuchashCachesInMemoryFlag,
+			utils.HuchashCachesOnDiskFlag,
+			utils.HuchashDatasetDirFlag,
+			utils.HuchashDatasetsInMemoryFlag,
+			utils.HuchashDatasetsOnDiskFlag,
 		},
 	},
 	//{

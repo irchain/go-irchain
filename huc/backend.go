@@ -219,13 +219,13 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *huchash.Config, cha
 	// Otherwise assume proof-of-work
 	switch {
 	case config.PowMode == huchash.ModeFake:
-		log.Warn("Ethash used in fake mode")
+		log.Warn("Huchash used in fake mode")
 		return huchash.NewFaker()
 	case config.PowMode == huchash.ModeTest:
-		log.Warn("Ethash used in test mode")
+		log.Warn("Huchash used in test mode")
 		return huchash.NewTester()
 	case config.PowMode == huchash.ModeShared:
-		log.Warn("Ethash used in shared mode")
+		log.Warn("Huchash used in shared mode")
 		return huchash.NewShared()
 	default:
 		engine := huchash.New(huchash.Config{

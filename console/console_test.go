@@ -98,7 +98,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 	ethConf := &huc.Config{
 		Genesis:   core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
-		Ethash: huchash.Config{
+		Huchash: huchash.Config{
 			PowMode: huchash.ModeTest,
 		},
 	}

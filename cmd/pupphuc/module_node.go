@@ -59,8 +59,8 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/.happyuc{{if .Ethashdir}}
-      - {{.Ethashdir}}:/root/.ethash{{end}}
+      - {{.Datadir}}:/root/.happyuc{{if .Huchashdir}}
+      - {{.Huchashdir}}:/root/.huchash{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
@@ -113,7 +113,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
 		"Type":       kind,
 		"Datadir":    config.datadir,
-		"Ethashdir":  config.ethashdir,
+		"Huchashdir": config.huchashdir,
 		"Network":    network,
 		"Port":       config.port,
 		"TotalPeers": config.peersTotal,
@@ -150,7 +150,7 @@ type nodeInfos struct {
 	genesis    []byte
 	network    int64
 	datadir    string
-	ethashdir  string
+	huchashdir string
 	hucstats   string
 	port       int
 	hnode      string
@@ -179,8 +179,8 @@ func (info *nodeInfos) Report() map[string]string {
 		report["Gas price (minimum accepted)"] = fmt.Sprintf("%0.3f GWei", info.gasPrice)
 
 		if info.coinbase != "" {
-			// Ethash proof-of-work miner
-			report["Ethash directory"] = info.ethashdir
+			// Huchash proof-of-work miner
+			report["Huchash directory"] = info.huchashdir
 			report["Miner account"] = info.coinbase
 		}
 		if info.keyJSON != "" {
@@ -247,7 +247,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	stats := &nodeInfos{
 		genesis:    genesis,
 		datadir:    infos.volumes["/root/.happyuc"],
-		ethashdir:  infos.volumes["/root/.ethash"],
+		huchashdir:  infos.volumes["/root/.huchash"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,

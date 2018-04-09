@@ -27,18 +27,18 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/types"
 )
 
-// Tests that ethash works correctly in test mode.
+// Tests that huchash works correctly in test mode.
 func TestTestMode(t *testing.T) {
 	head := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
 
-	ethash := NewTester()
-	block, err := ethash.Seal(nil, types.NewBlockWithHeader(head), nil)
+	huchash := NewTester()
+	block, err := huchash.Seal(nil, types.NewBlockWithHeader(head), nil)
 	if err != nil {
 		t.Fatalf("failed to seal block: %v", err)
 	}
 	head.Nonce = types.EncodeNonce(block.Nonce())
 	head.MixDigest = block.MixDigest()
-	if err := ethash.VerifySeal(nil, head); err != nil {
+	if err := huchash.VerifySeal(nil, head); err != nil {
 		t.Fatalf("unexpected verification error: %v", err)
 	}
 }
@@ -46,7 +46,7 @@ func TestTestMode(t *testing.T) {
 // This test checks that cache lru logic doesn't crash under load.
 // It reproduces https://github.com/happyuc-project/happyuc-go/issues/14943
 func TestCacheFileEvict(t *testing.T) {
-	tmpdir, err := ioutil.TempDir("", "ethash-test")
+	tmpdir, err := ioutil.TempDir("", "huchash-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +63,7 @@ func TestCacheFileEvict(t *testing.T) {
 	wg.Wait()
 }
 
-func verifyTest(wg *sync.WaitGroup, e *Ethash, workerIndex, epochs int) {
+func verifyTest(wg *sync.WaitGroup, e *Huchash, workerIndex, epochs int) {
 	defer wg.Done()
 
 	const wiggle = 4 * epochLength

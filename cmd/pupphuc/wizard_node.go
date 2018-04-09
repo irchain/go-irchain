@@ -67,14 +67,14 @@ func (w *wizard) deployNode(boot bool) {
 		fmt.Printf("Where should data be stored on the remote machine? (default = %s)\n", infos.datadir)
 		infos.datadir = w.readDefaultString(infos.datadir)
 	}
-	if w.conf.Genesis.Config.Ethash != nil && !boot {
+	if w.conf.Genesis.Config.Huchash != nil && !boot {
 		fmt.Println()
-		if infos.ethashdir == "" {
-			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine?\n")
-			infos.ethashdir = w.readString()
+		if infos.huchashdir == "" {
+			fmt.Printf("Where should the huchash mining DAGs be stored on the remote machine?\n")
+			infos.huchashdir = w.readString()
 		} else {
-			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine? (default = %s)\n", infos.ethashdir)
-			infos.ethashdir = w.readDefaultString(infos.ethashdir)
+			fmt.Printf("Where should the huchash mining DAGs be stored on the remote machine? (default = %s)\n", infos.huchashdir)
+			infos.huchashdir = w.readDefaultString(infos.huchashdir)
 		}
 	}
 	// Figure out which port to listen on
@@ -103,8 +103,8 @@ func (w *wizard) deployNode(boot bool) {
 	}
 	// If the node is a miner/signer, load up needed credentials
 	if !boot {
-		if w.conf.Genesis.Config.Ethash != nil {
-			// Ethash based miners only need an coinbase to mine against
+		if w.conf.Genesis.Config.Huchash != nil {
+			// Huchash based miners only need an coinbase to mine against
 			fmt.Println()
 			if infos.coinbase == "" {
 				fmt.Printf("What address should the miner user?\n")

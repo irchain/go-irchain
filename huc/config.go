@@ -100,7 +100,7 @@ type Config struct {
 	ExtraData    []byte         `toml:",omitempty"`
 	GasPrice     *big.Int
 
-	// Ethash options
+	// Huchash options
 	Huchash huchash.Config
 
 	// Transaction pool options

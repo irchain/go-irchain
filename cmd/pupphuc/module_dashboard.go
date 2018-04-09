@@ -86,7 +86,7 @@ var dashboardContent = `
 										<ul id="connect_list" class="nav child_menu">
 											<li><a onclick="$('#connect_menu').removeClass('active'); $('#connect_list').toggle(); load('#ghuc')">Go HappyUC: Ghuc</a></li>
 											<li><a onclick="$('#connect_menu').removeClass('active'); $('#connect_list').toggle(); load('#mist')">Go HappyUC: Wallet & Mist</a></li>
-											<li><a onclick="$('#connect_menu').removeClass('active'); $('#connect_list').toggle(); load('#mobile')">Go HappyUC: Android & iOS</a></li>{{if .Ethash}}
+											<li><a onclick="$('#connect_menu').removeClass('active'); $('#connect_list').toggle(); load('#mobile')">Go HappyUC: Android & iOS</a></li>{{if .Huchash}}
 											<li><a onclick="$('#connect_menu').removeClass('active'); $('#connect_list').toggle(); load('#other')">Other HappyUC Clients</a></li>{{end}}
 										</ul>
 									</li>
@@ -177,7 +177,7 @@ var dashboardContent = `
 										<br/>
 										<p>To run an embedded node, download <a href="/{{.GhucGenesis}}"><code>{{.GhucGenesis}}</code></a> and start Ghuc with:
 											<pre>ghuc --datadir=$HOME/.{{.Network}} init {{.GhucGenesis}}</pre>
-											<pre>ghuc --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Hucstats}} --hucstats='{{.Hucstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
+											<pre>ghuc --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --huchash.cachesinmem=1 --syncmode=light{{if .Hucstats}} --hucstats='{{.Hucstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
 										</p>
 										<br/>
 										<p>You can download Ghuc from <a href="https://happyuc.org/downloads/" target="about:blank">https://happyuc.org/downloads/</a>.</p>
@@ -312,7 +312,7 @@ try! node?.start();
 								</div>
 							</div>
 						</div>
-					</div>{{if .Ethash}}
+					</div>{{if .Huchash}}
 					<div id="other" hidden style="padding: 16px;">
 						<div class="page-title">
 							<div class="title_left">
@@ -619,7 +619,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Bootnodes":        conf.bootnodes,
 		"BootnodesFlat":    strings.Join(conf.bootnodes, ","),
 		"Hucstats":         statsLogin,
-		"Ethash":           conf.Genesis.Config.Ethash != nil,
+		"Huchash":          conf.Genesis.Config.Huchash != nil,
 		"CppGenesis":       network + "-cpp.json",
 		"CppBootnodes":     strings.Join(bootCpp, " "),
 		"HarmonyGenesis":   network + "-harmony.json",
@@ -639,7 +639,7 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 	genesis, _ := conf.Genesis.MarshalJSON()
 	files[filepath.Join(workdir, network+".json")] = genesis
 
-	if conf.Genesis.Config.Ethash != nil {
+	if conf.Genesis.Config.Huchash != nil {
 		cppSpec, err := newCppHappyUCGenesisSpec(network, conf.Genesis)
 		if err != nil {
 			return nil, err

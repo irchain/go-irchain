@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethash implements the ethash proof-of-work consensus engine.
+// Package huchash implements the huchash proof-of-work consensus engine.
 package huchash
 
 import (
@@ -46,8 +46,8 @@ var (
 	// maxUint256 is a big integer representing 2^256-1
 	maxUint256 = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
 
-	// sharedEthash is a full instance that can be shared between multiple users.
-	sharedEthash = New(Config{"", 3, 0, "", 1, 0, ModeNormal})
+	// sharedHuchash is a full instance that can be shared between multiple users.
+	sharedHuchash = New(Config{"", 3, 0, "", 1, 0, ModeNormal})
 
 	// algorithmRevision is the data structure version used for file naming.
 	algorithmRevision = 23
@@ -163,7 +163,7 @@ func newlru(what string, maxItems int, new func(epoch uint64) interface{}) *lru 
 		maxItems = 1
 	}
 	cache, _ := simplelru.NewLRU(maxItems, func(key, value interface{}) {
-		log.Trace("Evicted ethash "+what, "epoch", key)
+		log.Trace("Evicted huchash "+what, "epoch", key)
 	})
 	return &lru{what: what, new: new, cache: cache}
 }
@@ -181,14 +181,14 @@ func (lru *lru) get(epoch uint64) (item, future interface{}) {
 		if lru.future > 0 && lru.future == epoch {
 			item = lru.futureItem
 		} else {
-			log.Trace("Requiring new ethash "+lru.what, "epoch", epoch)
+			log.Trace("Requiring new huchash "+lru.what, "epoch", epoch)
 			item = lru.new(epoch)
 		}
 		lru.cache.Add(epoch, item)
 	}
 	// Update the 'future item' if epoch is larger than previously seen.
 	if epoch < maxEpoch-1 && lru.future < epoch+1 {
-		log.Trace("Requiring new future ethash "+lru.what, "epoch", epoch+1)
+		log.Trace("Requiring new future huchash "+lru.what, "epoch", epoch+1)
 		future = lru.new(epoch + 1)
 		lru.future = epoch + 1
 		lru.futureItem = future
@@ -196,7 +196,7 @@ func (lru *lru) get(epoch uint64) (item, future interface{}) {
 	return item, future
 }
 
-// cache wraps an ethash cache with some metadata to allow easier concurrent use.
+// cache wraps an huchash cache with some metadata to allow easier concurrent use.
 type cache struct {
 	epoch uint64    // Epoch for which this cache is relevant
 	dump  *os.File  // File descriptor of the memory mapped cache
@@ -205,7 +205,7 @@ type cache struct {
 	once  sync.Once // Ensures the cache is generated only once
 }
 
-// newCache creates a new ethash verification cache and returns it as a plain Go
+// newCache creates a new huchash verification cache and returns it as a plain Go
 // interface to be usable in an LRU cache.
 func newCache(epoch uint64) interface{} {
 	return &cache{epoch: epoch}
@@ -241,15 +241,15 @@ func (c *cache) generate(dir string, limit int, test bool) {
 		var err error
 		c.dump, c.mmap, c.cache, err = memoryMap(path)
 		if err == nil {
-			logger.Debug("Loaded old ethash cache from disk")
+			logger.Debug("Loaded old huchash cache from disk")
 			return
 		}
-		logger.Debug("Failed to load old ethash cache", "err", err)
+		logger.Debug("Failed to load old huchash cache", "err", err)
 
 		// No previous cache available, create a new cache file to fill
 		c.dump, c.mmap, c.cache, err = memoryMapAndGenerate(path, size, func(buffer []uint32) { generateCache(buffer, c.epoch, seed) })
 		if err != nil {
-			logger.Error("Failed to generate mapped ethash cache", "err", err)
+			logger.Error("Failed to generate mapped huchash cache", "err", err)
 
 			c.cache = make([]uint32, size/4)
 			generateCache(c.cache, c.epoch, seed)
@@ -272,7 +272,7 @@ func (c *cache) finalizer() {
 	}
 }
 
-// dataset wraps an ethash dataset with some metadata to allow easier concurrent use.
+// dataset wraps an huchash dataset with some metadata to allow easier concurrent use.
 type dataset struct {
 	epoch   uint64    // Epoch for which this cache is relevant
 	dump    *os.File  // File descriptor of the memory mapped cache
@@ -281,7 +281,7 @@ type dataset struct {
 	once    sync.Once // Ensures the cache is generated only once
 }
 
-// newDataset creates a new ethash mining dataset and returns it as a plain Go
+// newDataset creates a new huchash mining dataset and returns it as a plain Go
 // interface to be usable in an LRU cache.
 func newDataset(epoch uint64) interface{} {
 	return &dataset{epoch: epoch}
@@ -321,10 +321,10 @@ func (d *dataset) generate(dir string, limit int, test bool) {
 		var err error
 		d.dump, d.mmap, d.dataset, err = memoryMap(path)
 		if err == nil {
-			logger.Debug("Loaded old ethash dataset from disk")
+			logger.Debug("Loaded old huchash dataset from disk")
 			return
 		}
-		logger.Debug("Failed to load old ethash dataset", "err", err)
+		logger.Debug("Failed to load old huchash dataset", "err", err)
 
 		// No previous dataset available, create a new dataset file to fill
 		cache := make([]uint32, csize/4)
@@ -332,7 +332,7 @@ func (d *dataset) generate(dir string, limit int, test bool) {
 
 		d.dump, d.mmap, d.dataset, err = memoryMapAndGenerate(path, dsize, func(buffer []uint32) { generateDataset(buffer, d.epoch, cache) })
 		if err != nil {
-			logger.Error("Failed to generate mapped ethash dataset", "err", err)
+			logger.Error("Failed to generate mapped huchash dataset", "err", err)
 
 			d.dataset = make([]uint32, dsize/2)
 			generateDataset(d.dataset, d.epoch, cache)
@@ -355,19 +355,19 @@ func (d *dataset) finalizer() {
 	}
 }
 
-// MakeCache generates a new ethash cache and optionally stores it to disk.
+// MakeCache generates a new huchash cache and optionally stores it to disk.
 func MakeCache(block uint64, dir string) {
 	c := cache{epoch: block / epochLength}
 	c.generate(dir, math.MaxInt32, false)
 }
 
-// MakeDataset generates a new ethash dataset and optionally stores it to disk.
+// MakeDataset generates a new huchash dataset and optionally stores it to disk.
 func MakeDataset(block uint64, dir string) {
 	d := dataset{epoch: block / epochLength}
 	d.generate(dir, math.MaxInt32, false)
 }
 
-// Mode defines the type and amount of PoW verification an ethash engine makes.
+// Mode defines the type and amount of PoW verification an huchash engine makes.
 type Mode uint
 
 const (
@@ -378,7 +378,7 @@ const (
 	ModeFullFake
 )
 
-// Config are the configuration parameters of the ethash.
+// Config are the configuration parameters of the huchash.
 type Config struct {
 	CacheDir       string
 	CachesInMem    int
@@ -389,9 +389,9 @@ type Config struct {
 	PowMode        Mode
 }
 
-// Ethash is a consensus engine based on proot-of-work implementing the ethash
+// Huchash is a consensus engine based on proot-of-work implementing the huchash
 // algorithm.
-type Ethash struct {
+type Huchash struct {
 	config Config
 
 	caches   *lru // In memory caches to avoid regenerating too often
@@ -404,26 +404,26 @@ type Ethash struct {
 	hashrate metrics.Meter // Meter tracking the average hashrate
 
 	// The fields below are hooks for testing
-	shared    *Ethash       // Shared PoW verifier to avoid cache regeneration
+	shared    *Huchash       // Shared PoW verifier to avoid cache regeneration
 	fakeFail  uint64        // Block number which fails PoW check even in fake mode
 	fakeDelay time.Duration // Time delay to sleep for before returning from verify
 
 	lock sync.Mutex // Ensures thread safety for the in-memory caches and mining fields
 }
 
-// New creates a full sized ethash PoW scheme.
-func New(config Config) *Ethash {
+// New creates a full sized huchash PoW scheme.
+func New(config Config) *Huchash {
 	if config.CachesInMem <= 0 {
-		log.Warn("One ethash cache must always be in memory", "requested", config.CachesInMem)
+		log.Warn("One huchash cache must always be in memory", "requested", config.CachesInMem)
 		config.CachesInMem = 1
 	}
 	if config.CacheDir != "" && config.CachesOnDisk > 0 {
-		log.Info("Disk storage enabled for ethash caches", "dir", config.CacheDir, "count", config.CachesOnDisk)
+		log.Info("Disk storage enabled for huchash caches", "dir", config.CacheDir, "count", config.CachesOnDisk)
 	}
 	if config.DatasetDir != "" && config.DatasetsOnDisk > 0 {
-		log.Info("Disk storage enabled for ethash DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
+		log.Info("Disk storage enabled for huchash DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
 	}
-	return &Ethash{
+	return &Huchash{
 		config:   config,
 		caches:   newlru("cache", config.CachesInMem, newCache),
 		datasets: newlru("dataset", config.DatasetsInMem, newDataset),
@@ -432,28 +432,28 @@ func New(config Config) *Ethash {
 	}
 }
 
-// NewTester creates a small sized ethash PoW scheme useful only for testing
+// NewTester creates a small sized huchash PoW scheme useful only for testing
 // purposes.
-func NewTester() *Ethash {
+func NewTester() *Huchash {
 	return New(Config{CachesInMem: 1, PowMode: ModeTest})
 }
 
-// NewFaker creates a ethash consensus engine with a fake PoW scheme that accepts
+// NewFaker creates a huchash consensus engine with a fake PoW scheme that accepts
 // all blocks' seal as valid, though they still have to conform to the HappyUC
 // consensus rules.
-func NewFaker() *Ethash {
-	return &Ethash{
+func NewFaker() *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
 	}
 }
 
-// NewFakeFailer creates a ethash consensus engine with a fake PoW scheme that
+// NewFakeFailer creates a huchash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid apart from the single one specified, though they
 // still have to conform to the HappyUC consensus rules.
-func NewFakeFailer(fail uint64) *Ethash {
-	return &Ethash{
+func NewFakeFailer(fail uint64) *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
@@ -461,11 +461,11 @@ func NewFakeFailer(fail uint64) *Ethash {
 	}
 }
 
-// NewFakeDelayer creates a ethash consensus engine with a fake PoW scheme that
+// NewFakeDelayer creates a huchash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid, but delays verifications by some time, though
 // they still have to conform to the HappyUC consensus rules.
-func NewFakeDelayer(delay time.Duration) *Ethash {
-	return &Ethash{
+func NewFakeDelayer(delay time.Duration) *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
@@ -473,37 +473,37 @@ func NewFakeDelayer(delay time.Duration) *Ethash {
 	}
 }
 
-// NewFullFaker creates an ethash consensus engine with a full fake scheme that
+// NewFullFaker creates an huchash consensus engine with a full fake scheme that
 // accepts all blocks as valid, without checking any consensus rules whatsoever.
-func NewFullFaker() *Ethash {
-	return &Ethash{
+func NewFullFaker() *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFullFake,
 		},
 	}
 }
 
-// NewShared creates a full sized ethash PoW shared between all requesters running
+// NewShared creates a full sized huchash PoW shared between all requesters running
 // in the same process.
-func NewShared() *Ethash {
-	return &Ethash{shared: sharedEthash}
+func NewShared() *Huchash {
+	return &Huchash{shared: sharedHuchash}
 }
 
 // cache tries to retrieve a verification cache for the specified block number
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) cache(block uint64) *cache {
+func (huchash *Huchash) cache(block uint64) *cache {
 	epoch := block / epochLength
-	currentI, futureI := ethash.caches.get(epoch)
+	currentI, futureI := huchash.caches.get(epoch)
 	current := currentI.(*cache)
 
 	// Wait for generation finish.
-	current.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+	current.generate(huchash.config.CacheDir, huchash.config.CachesOnDisk, huchash.config.PowMode == ModeTest)
 
 	// If we need a new future cache, now's a good time to regenerate it.
 	if futureI != nil {
 		future := futureI.(*cache)
-		go future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+		go future.generate(huchash.config.CacheDir, huchash.config.CachesOnDisk, huchash.config.PowMode == ModeTest)
 	}
 	return current
 }
@@ -511,18 +511,18 @@ func (ethash *Ethash) cache(block uint64) *cache {
 // dataset tries to retrieve a mining dataset for the specified block number
 // by first checking against a list of in-memory datasets, then against DAGs
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) dataset(block uint64) *dataset {
+func (huchash *Huchash) dataset(block uint64) *dataset {
 	epoch := block / epochLength
-	currentI, futureI := ethash.datasets.get(epoch)
+	currentI, futureI := huchash.datasets.get(epoch)
 	current := currentI.(*dataset)
 
 	// Wait for generation finish.
-	current.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+	current.generate(huchash.config.DatasetDir, huchash.config.DatasetsOnDisk, huchash.config.PowMode == ModeTest)
 
 	// If we need a new future dataset, now's a good time to regenerate it.
 	if futureI != nil {
 		future := futureI.(*dataset)
-		go future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.PowMode == ModeTest)
+		go future.generate(huchash.config.DatasetDir, huchash.config.DatasetsOnDisk, huchash.config.PowMode == ModeTest)
 	}
 
 	return current
@@ -530,11 +530,11 @@ func (ethash *Ethash) dataset(block uint64) *dataset {
 
 // Threads returns the number of mining threads currently enabled. This doesn't
 // necessarily mean that mining is running!
-func (ethash *Ethash) Threads() int {
-	ethash.lock.Lock()
-	defer ethash.lock.Unlock()
+func (huchash *Huchash) Threads() int {
+	huchash.lock.Lock()
+	defer huchash.lock.Unlock()
 
-	return ethash.threads
+	return huchash.threads
 }
 
 // SetThreads updates the number of mining threads currently enabled. Calling
@@ -542,32 +542,32 @@ func (ethash *Ethash) Threads() int {
 // specified, the miner will use all cores of the machine. Setting a thread
 // count below zero is allowed and will cause the miner to idle, without any
 // work being done.
-func (ethash *Ethash) SetThreads(threads int) {
-	ethash.lock.Lock()
-	defer ethash.lock.Unlock()
+func (huchash *Huchash) SetThreads(threads int) {
+	huchash.lock.Lock()
+	defer huchash.lock.Unlock()
 
 	// If we're running a shared PoW, set the thread count on that instead
-	if ethash.shared != nil {
-		ethash.shared.SetThreads(threads)
+	if huchash.shared != nil {
+		huchash.shared.SetThreads(threads)
 		return
 	}
 	// Update the threads and ping any running seal to pull in any changes
-	ethash.threads = threads
+	huchash.threads = threads
 	select {
-	case ethash.update <- struct{}{}:
+	case huchash.update <- struct{}{}:
 	default:
 	}
 }
 
 // Hashrate implements PoW, returning the measured rate of the search invocations
 // per second over the last minute.
-func (ethash *Ethash) Hashrate() float64 {
-	return ethash.hashrate.Rate1()
+func (huchash *Huchash) Hashrate() float64 {
+	return huchash.hashrate.Rate1()
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs. Currently
 // that is empty.
-func (ethash *Ethash) APIs(chain consensus.ChainReader) []rpc.API {
+func (huchash *Huchash) APIs(chain consensus.ChainReader) []rpc.API {
 	return nil
 }
 
