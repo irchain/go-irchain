@@ -164,7 +164,7 @@ func NewSwarm(ctx *node.ServiceContext, backend chequebook.Backend, config *api.
 
 	self.api = api.NewApi(self.dpa, self.dns)
 	// Manifests for Smart Hosting
-	log.Debug(fmt.Sprintf("-> Web3 virtual server API"))
+	log.Debug(fmt.Sprintf("-> webu virtual server API"))
 
 	self.sfs = fuse.NewSwarmFS(self.api)
 	log.Debug("-> Initializing Fuse file system")

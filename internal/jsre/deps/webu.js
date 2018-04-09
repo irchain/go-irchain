@@ -631,20 +631,20 @@ require = (function e(t, n, r) {
     }, {"./formatters": 9, "./type": 14}],
     7: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file coder.js
@@ -723,32 +723,38 @@ require = (function e(t, n, r) {
                 return solidityType.encode(params[index], types[index]);
             });
 
-            var dynamicOffset = solidityTypes.reduce(function (acc, solidityType, index) {
-                var staticPartLength = solidityType.staticPartLength(types[index]);
-                var roundedStaticPartLength = Math.floor((staticPartLength + 31) / 32) * 32;
+            var dynamicOffset = solidityTypes.reduce(
+                function (acc, solidityType, index) {
+                    var staticPartLength = solidityType.staticPartLength(types[index]);
+                    var roundedStaticPartLength = Math.floor((staticPartLength + 31) /
+                        32) * 32;
 
-                return acc + (isDynamic(solidityTypes[index], types[index]) ?
-                    32 :
-                    roundedStaticPartLength);
-            }, 0);
+                    return acc + (isDynamic(solidityTypes[index], types[index]) ?
+                        32 :
+                        roundedStaticPartLength);
+                }, 0);
 
-            var result = this.encodeMultiWithOffset(types, solidityTypes, encodeds, dynamicOffset);
+            var result = this.encodeMultiWithOffset(types, solidityTypes, encodeds,
+                dynamicOffset);
 
             return result;
         };
 
-        SolidityCoder.prototype.encodeMultiWithOffset = function (types, solidityTypes, encodeds, dynamicOffset) {
-            var result = "";
+        SolidityCoder.prototype.encodeMultiWithOffset = function (
+            types, solidityTypes, encodeds, dynamicOffset) {
+            var result = '';
             var self = this;
 
             types.forEach(function (type, i) {
                 if (isDynamic(solidityTypes[i], types[i])) {
                     result += f.formatInputInt(dynamicOffset).encode();
-                    var e = self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                    var e = self.encodeWithOffset(types[i], solidityTypes[i],
+                        encodeds[i], dynamicOffset);
                     dynamicOffset += e.length / 2;
                 } else {
                     // don't add length to dynamicOffset. it's already counted
-                    result += self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                    result += self.encodeWithOffset(types[i], solidityTypes[i],
+                        encodeds[i], dynamicOffset);
                 }
 
                 // TODO: figure out nested arrays
@@ -756,7 +762,8 @@ require = (function e(t, n, r) {
 
             types.forEach(function (type, i) {
                 if (isDynamic(solidityTypes[i], types[i])) {
-                    var e = self.encodeWithOffset(types[i], solidityTypes[i], encodeds[i], dynamicOffset);
+                    var e = self.encodeWithOffset(types[i], solidityTypes[i],
+                        encodeds[i], dynamicOffset);
                     dynamicOffset += e.length / 2;
                     result += e;
                 }
@@ -764,64 +771,57 @@ require = (function e(t, n, r) {
             return result;
         };
 
-// TODO: refactor whole encoding!
-        SolidityCoder.prototype.encodeWithOffset = function (type, solidityType, encoded, offset) {
+        SolidityCoder.prototype.encodeWithOffset = function (
+            type, solidityType, encoded, offset) {
+            /* jshint maxcomplexity: 17 */
+            /* jshint maxdepth: 5 */
+
             var self = this;
-            if (solidityType.isDynamicArray(type)) {
-                return (function () {
-                    // offset was already set
-                    var nestedName = solidityType.nestedName(type);
-                    var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
-                    var result = encoded[0];
+            var encodingMode = {dynamic: 1, static: 2, other: 3};
 
-                    (function () {
-                        var previousLength = 2; // in int
-                        if (solidityType.isDynamicArray(nestedName)) {
-                            for (var i = 1; i < encoded.length; i++) {
-                                previousLength += +(encoded[i - 1])[0] || 0;
-                                result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
-                            }
+            var mode = (solidityType.isDynamicArray(type) ?
+                encodingMode.dynamic :
+                (solidityType.isStaticArray(type) ?
+                    encodingMode.static :
+                    encodingMode.other));
+
+            if (mode !== encodingMode.other) {
+                var nestedName = solidityType.nestedName(type);
+                var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
+                var result = (mode === encodingMode.dynamic ? encoded[0] : '');
+
+                if (solidityType.isDynamicArray(nestedName)) {
+                    var previousLength = (mode === encodingMode.dynamic ? 2 : 0);
+
+                    for (var i = 0; i < encoded.length; i++) {
+                        // calculate length of previous item
+                        if (mode === encodingMode.dynamic) {
+                            previousLength += +(encoded[i - 1])[0] || 0;
                         }
-                    })();
-
-                    // first element is length, skip it
-                    (function () {
-                        for (var i = 0; i < encoded.length - 1; i++) {
-                            var additionalOffset = result / 2;
-                            result += self.encodeWithOffset(nestedName, solidityType, encoded[i + 1], offset + additionalOffset);
+                        else if (mode === encodingMode.static) {
+                            previousLength += +(encoded[i - 1] || [])[0] || 0;
                         }
-                    })();
-
-                    return result;
-                })();
-
-            } else if (solidityType.isStaticArray(type)) {
-                return (function () {
-                    var nestedName = solidityType.nestedName(type);
-                    var nestedStaticPartLength = solidityType.staticPartLength(nestedName);
-                    var result = "";
-
-
-                    if (solidityType.isDynamicArray(nestedName)) {
-                        (function () {
-                            var previousLength = 0; // in int
-                            for (var i = 0; i < encoded.length; i++) {
-                                // calculate length of previous item
-                                previousLength += +(encoded[i - 1] || [])[0] || 0;
-                                result += f.formatInputInt(offset + i * nestedStaticPartLength + previousLength * 32).encode();
-                            }
-                        })();
+                        result += f.formatInputInt(offset + i * nestedStaticPartLength +
+                            previousLength * 32).encode();
                     }
+                }
 
-                    (function () {
-                        for (var i = 0; i < encoded.length; i++) {
-                            var additionalOffset = result / 2;
-                            result += self.encodeWithOffset(nestedName, solidityType, encoded[i], offset + additionalOffset);
-                        }
-                    })();
+                var len = (mode === encodingMode.dynamic ?
+                    encoded.length - 1 :
+                    encoded.length);
+                for (var c = 0; c < len; c++) {
+                    var additionalOffset = result / 2;
+                    if (mode === encodingMode.dynamic) {
+                        result += self.encodeWithOffset(nestedName, solidityType,
+                            encoded[c + 1], offset + additionalOffset);
+                    }
+                    else if (mode === encodingMode.static) {
+                        result += self.encodeWithOffset(nestedName, solidityType,
+                            encoded[c], offset + additionalOffset);
+                    }
+                }
 
-                    return result;
-                })();
+                return result;
             }
 
             return encoded;
@@ -889,7 +889,7 @@ require = (function e(t, n, r) {
             new SolidityTypeBytes(),
             new SolidityTypeString(),
             new SolidityTypeReal(),
-            new SolidityTypeUReal()
+            new SolidityTypeUReal(),
         ]);
 
         module.exports = coder;
@@ -931,20 +931,20 @@ require = (function e(t, n, r) {
     }, {"./formatters": 9, "./type": 14}],
     9: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file formatters.js
@@ -957,7 +957,6 @@ require = (function e(t, n, r) {
         var c = require('../utils/config');
         var SolidityParam = require('./param');
 
-
         /**
          * Formats input value to byte representation of int
          * If value is negative, return it's two's complement
@@ -968,7 +967,7 @@ require = (function e(t, n, r) {
          * @returns {SolidityParam}
          */
         var formatInputInt = function (value) {
-            BigNumber.config(c.HUC_BIGNUMBER_ROUNDING_MODE);
+            BigNumber.config(c.ETH_BIGNUMBER_ROUNDING_MODE);
             var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
             return new SolidityParam(result);
         };
@@ -1038,7 +1037,8 @@ require = (function e(t, n, r) {
          * @returns {SolidityParam}
          */
         var formatInputReal = function (value) {
-            return formatInputInt(new BigNumber(value).times(new BigNumber(2).pow(128)));
+            return formatInputInt(
+                new BigNumber(value).times(new BigNumber(2).pow(128)));
         };
 
         /**
@@ -1049,7 +1049,8 @@ require = (function e(t, n, r) {
          * @returns {Boolean} true if it is negative, otherwise false
          */
         var signedIsNegative = function (value) {
-            return (new BigNumber(value.substr(0, 1), 16).toString(2).substr(0, 1)) === '1';
+            return (new BigNumber(value.substr(0, 1), 16).toString(2).substr(0, 1)) ===
+                '1';
         };
 
         /**
@@ -1060,12 +1061,14 @@ require = (function e(t, n, r) {
          * @returns {BigNumber} right-aligned output bytes formatted to big number
          */
         var formatOutputInt = function (param) {
-            var value = param.staticPart() || "0";
+            var value = param.staticPart() || '0';
 
             // check if it's negative number
             // it it is, return two's complement
             if (signedIsNegative(value)) {
-                return new BigNumber(value, 16).minus(new BigNumber('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', 16)).minus(1);
+                return new BigNumber(value, 16).minus(new BigNumber(
+                    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+                    16)).minus(1);
             }
             return new BigNumber(value, 16);
         };
@@ -1078,7 +1081,7 @@ require = (function e(t, n, r) {
          * @returns {BigNumeber} right-aligned output bytes formatted to uint
          */
         var formatOutputUInt = function (param) {
-            var value = param.staticPart() || "0";
+            var value = param.staticPart() || '0';
             return new BigNumber(value, 16);
         };
 
@@ -1112,7 +1115,10 @@ require = (function e(t, n, r) {
          * @returns {Boolean} right-aligned input bytes formatted to bool
          */
         var formatOutputBool = function (param) {
-            return param.staticPart() === '0000000000000000000000000000000000000000000000000000000000000001' ? true : false;
+            return param.staticPart() ===
+            '0000000000000000000000000000000000000000000000000000000000000001' ?
+                true :
+                false;
         };
 
         /**
@@ -1137,7 +1143,8 @@ require = (function e(t, n, r) {
          * @returns {String} hex string
          */
         var formatOutputDynamicBytes = function (param) {
-            var length = (new BigNumber(param.dynamicPart().slice(0, 64), 16)).toNumber() * 2;
+            var length = (new BigNumber(param.dynamicPart().slice(0, 64),
+                16)).toNumber() * 2;
             return '0x' + param.dynamicPart().substr(64, length);
         };
 
@@ -1149,7 +1156,8 @@ require = (function e(t, n, r) {
          * @returns {String} ascii string
          */
         var formatOutputString = function (param) {
-            var length = (new BigNumber(param.dynamicPart().slice(0, 64), 16)).toNumber() * 2;
+            var length = (new BigNumber(param.dynamicPart().slice(0, 64),
+                16)).toNumber() * 2;
             return utils.toUtf8(param.dynamicPart().substr(64, length));
         };
 
@@ -1162,7 +1170,7 @@ require = (function e(t, n, r) {
          */
         var formatOutputAddress = function (param) {
             var value = param.staticPart();
-            return "0x" + value.slice(value.length - 40, value.length);
+            return '0x' + value.slice(value.length - 40, value.length);
         };
 
         module.exports = {
@@ -1180,7 +1188,7 @@ require = (function e(t, n, r) {
             formatOutputBytes: formatOutputBytes,
             formatOutputDynamicBytes: formatOutputDynamicBytes,
             formatOutputString: formatOutputString,
-            formatOutputAddress: formatOutputAddress
+            formatOutputAddress: formatOutputAddress,
         };
 
     }, {"../utils/config": 18, "../utils/utils": 20, "./param": 11, "bignumber.js": "bignumber.js"}],
@@ -1221,20 +1229,20 @@ require = (function e(t, n, r) {
     }, {"./formatters": 9, "./type": 14}],
     11: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file param.js
@@ -1275,7 +1283,7 @@ require = (function e(t, n, r) {
         };
 
         /**
-         * This method should be used to combine solidity params toghucer
+         * This method should be used to combine solidity params together
          * eg. when appending an array
          *
          * @method combine
@@ -1304,7 +1312,9 @@ require = (function e(t, n, r) {
          * @returns {String} bytes representation of offset
          */
         SolidityParam.prototype.offsetAsBytes = function () {
-            return !this.isDynamic() ? '' : utils.padLeft(utils.toTwosComplement(this.offset).toString(16), 64);
+            return !this.isDynamic() ?
+                '' :
+                utils.padLeft(utils.toTwosComplement(this.offset).toString(16), 64);
         };
 
         /**
@@ -1367,7 +1377,6 @@ require = (function e(t, n, r) {
                 return result + param.staticPart();
             }, ''));
         };
-
 
         module.exports = SolidityParam;
 
@@ -1451,7 +1460,7 @@ require = (function e(t, n, r) {
          * @return {Bool} true if type match this SolidityType, otherwise false
          */
         SolidityType.prototype.isType = function (name) {
-            throw "this method should be overrwritten for type " + name;
+            throw 'this method should be overrwritten for type ' + name;
         };
 
         /**
@@ -1463,15 +1472,13 @@ require = (function e(t, n, r) {
          */
         SolidityType.prototype.staticPartLength = function (name) {
             // If name isn't an array then treat it like a single element array.
-            return (this.nestedTypes(name) || ['[1]'])
-                .map(function (type) {
-                    // the length of the nested array
-                    return parseInt(type.slice(1, -1), 10) || 1;
-                })
-                .reduce(function (previous, current) {
-                    return previous * current;
-                    // all basic types are 32 bytes long
-                }, 32);
+            return (this.nestedTypes(name) || ['[1]']).map(function (type) {
+                // the length of the nested array
+                return parseInt(type.slice(1, -1), 10) || 1;
+            }).reduce(function (previous, current) {
+                return previous * current;
+                // all basic types are 32 bytes long
+            }, 32);
         };
 
         /**
@@ -1486,7 +1493,8 @@ require = (function e(t, n, r) {
          */
         SolidityType.prototype.isDynamicArray = function (name) {
             var nestedTypes = this.nestedTypes(name);
-            return !!nestedTypes && !nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
+            return !!nestedTypes &&
+                !nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
         };
 
         /**
@@ -1501,7 +1509,8 @@ require = (function e(t, n, r) {
          */
         SolidityType.prototype.isStaticArray = function (name) {
             var nestedTypes = this.nestedTypes(name);
-            return !!nestedTypes && !!nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
+            return !!nestedTypes &&
+                !!nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g);
         };
 
         /**
@@ -1521,7 +1530,8 @@ require = (function e(t, n, r) {
         SolidityType.prototype.staticArrayLength = function (name) {
             var nestedTypes = this.nestedTypes(name);
             if (nestedTypes) {
-                return parseInt(nestedTypes[nestedTypes.length - 1].match(/[0-9]{1,}/g) || 1);
+                return parseInt(nestedTypes[nestedTypes.length - 1].match(
+                    /[0-9]{1,}/g) || 1);
             }
             return 1;
         };
@@ -1546,7 +1556,8 @@ require = (function e(t, n, r) {
                 return name;
             }
 
-            return name.substr(0, name.length - nestedTypes[nestedTypes.length - 1].length);
+            return name.substr(0, name.length -
+                nestedTypes[nestedTypes.length - 1].length);
         };
 
         /**
@@ -1643,10 +1654,12 @@ require = (function e(t, n, r) {
 
                     var nestedName = self.nestedName(name);
                     var nestedStaticPartLength = self.staticPartLength(nestedName);  // in bytes
-                    var roundedNestedStaticPartLength = Math.floor((nestedStaticPartLength + 31) / 32) * 32;
+                    var roundedNestedStaticPartLength = Math.floor((nestedStaticPartLength +
+                        31) / 32) * 32;
                     var result = [];
 
-                    for (var i = 0; i < length * roundedNestedStaticPartLength; i += roundedNestedStaticPartLength) {
+                    for (var i = 0; i < length *
+                    roundedNestedStaticPartLength; i += roundedNestedStaticPartLength) {
                         result.push(self.decode(bytes, arrayStart + i, nestedName));
                     }
 
@@ -1661,10 +1674,12 @@ require = (function e(t, n, r) {
 
                     var nestedName = self.nestedName(name);
                     var nestedStaticPartLength = self.staticPartLength(nestedName); // in bytes
-                    var roundedNestedStaticPartLength = Math.floor((nestedStaticPartLength + 31) / 32) * 32;
+                    var roundedNestedStaticPartLength = Math.floor((nestedStaticPartLength +
+                        31) / 32) * 32;
                     var result = [];
 
-                    for (var i = 0; i < length * roundedNestedStaticPartLength; i += roundedNestedStaticPartLength) {
+                    for (var i = 0; i < length *
+                    roundedNestedStaticPartLength; i += roundedNestedStaticPartLength) {
                         result.push(self.decode(bytes, arrayStart + i, nestedName));
                     }
 
@@ -1676,7 +1691,8 @@ require = (function e(t, n, r) {
                     var dynamicOffset = parseInt('0x' + bytes.substr(offset * 2, 64));      // in bytes
                     var length = parseInt('0x' + bytes.substr(dynamicOffset * 2, 64));      // in bytes
                     var roundedLength = Math.floor((length + 31) / 32);                     // in int
-                    var param = new SolidityParam(bytes.substr(dynamicOffset * 2, (1 + roundedLength) * 64), 0);
+                    var param = new SolidityParam(
+                        bytes.substr(dynamicOffset * 2, (1 + roundedLength) * 64), 0);
                     return self._outputFormatter(param, name);
                 })();
             }
@@ -1773,20 +1789,20 @@ require = (function e(t, n, r) {
     }, {}],
     18: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file config.js
          * @authors:
@@ -1808,67 +1824,67 @@ require = (function e(t, n, r) {
          */
 
 
-/// required to define HUC_BIGNUMBER_ROUNDING_MODE
+/// required to define ETH_BIGNUMBER_ROUNDING_MODE
         var BigNumber = require('bignumber.js');
 
-        var HUC_UNITS = [
+        var ETH_UNITS = [
             'wei',
             'kwei',
             'Mwei',
             'Gwei',
             'szabo',
             'finney',
-            'femtoether',
-            'picoether',
-            'nanoether',
-            'microether',
-            'milliether',
+            'femtohucer',
+            'picohucer',
+            'nanohucer',
+            'microhucer',
+            'millihucer',
             'nano',
             'micro',
             'milli',
-            'ether',
+            'hucer',
             'grand',
-            'Mether',
+            'Mhucer',
             'Ghucer',
-            'Tether',
-            'Pether',
-            'Eether',
-            'Zether',
-            'Yether',
-            'Nether',
-            'Dether',
-            'Vether',
-            'Uether'
+            'Thucer',
+            'Phucer',
+            'Ehucer',
+            'Zhucer',
+            'Yhucer',
+            'Nhucer',
+            'Dhucer',
+            'Vhucer',
+            'Uhucer',
         ];
 
         module.exports = {
-            HUC_PADDING: 32,
-            HUC_SIGNATURE_LENGTH: 4,
-            HUC_UNITS: HUC_UNITS,
-            HUC_BIGNUMBER_ROUNDING_MODE: {ROUNDING_MODE: BigNumber.ROUND_DOWN},
-            HUC_POLLING_TIMEOUT: 1000 / 2,
+            ETH_PADDING: 32,
+            ETH_SIGNATURE_LENGTH: 4,
+            ETH_UNITS: ETH_UNITS,
+            ETH_BIGNUMBER_ROUNDING_MODE: {ROUNDING_MODE: BigNumber.ROUND_DOWN},
+            ETH_POLLING_TIMEOUT: 1000 / 2,
             defaultBlock: 'latest',
-            defaultAccount: undefined
+            defaultAccount: undefined,
         };
 
 
     }, {"bignumber.js": "bignumber.js"}],
     19: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file sha3.js
@@ -1888,7 +1904,7 @@ require = (function e(t, n, r) {
             }
 
             return sha3(value, {
-                outputLength: 256
+                outputLength: 256,
             }).toString();
         };
 
@@ -1896,20 +1912,20 @@ require = (function e(t, n, r) {
     }, {"crypto-js": 59, "crypto-js/sha3": 80}],
     20: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file utils.js
@@ -1936,33 +1952,33 @@ require = (function e(t, n, r) {
         var utf8 = require('utf8');
 
         var unitMap = {
-            'noether': '0',
+            'nohucer': '0',
             'wei': '1',
             'kwei': '1000',
             'Kwei': '1000',
             'babbage': '1000',
-            'femtoether': '1000',
+            'femtohucer': '1000',
             'mwei': '1000000',
             'Mwei': '1000000',
             'lovelace': '1000000',
-            'picoether': '1000000',
+            'picohucer': '1000000',
             'gwei': '1000000000',
             'Gwei': '1000000000',
             'shannon': '1000000000',
-            'nanoether': '1000000000',
+            'nanohucer': '1000000000',
             'nano': '1000000000',
             'szabo': '1000000000000',
-            'microether': '1000000000000',
+            'microhucer': '1000000000000',
             'micro': '1000000000000',
             'finney': '1000000000000000',
-            'milliether': '1000000000000000',
+            'millihucer': '1000000000000000',
             'milli': '1000000000000000',
-            'ether': '1000000000000000000',
-            'kether': '1000000000000000000000',
+            'hucer': '1000000000000000000',
+            'khucer': '1000000000000000000000',
             'grand': '1000000000000000000000',
-            'mether': '1000000000000000000000000',
+            'mhucer': '1000000000000000000000000',
             'ghucer': '1000000000000000000000000000',
-            'tether': '1000000000000000000000000000000'
+            'thucer': '1000000000000000000000000000000',
         };
 
         /**
@@ -1975,7 +1991,8 @@ require = (function e(t, n, r) {
          * @returns {String} right aligned string
          */
         var padLeft = function (string, chars, sign) {
-            return new Array(chars - string.length + 1).join(sign ? sign : "0") + string;
+            return new Array(chars - string.length + 1).join(sign ? sign : '0') +
+                string;
         };
 
         /**
@@ -1988,7 +2005,8 @@ require = (function e(t, n, r) {
          * @returns {String} right aligned string
          */
         var padRight = function (string, chars, sign) {
-            return string + (new Array(chars - string.length + 1).join(sign ? sign : "0"));
+            return string +
+                (new Array(chars - string.length + 1).join(sign ? sign : '0'));
         };
 
         /**
@@ -2000,7 +2018,7 @@ require = (function e(t, n, r) {
          */
         var toUtf8 = function (hex) {
 // Find termination
-            var str = "";
+            var str = '';
             var i = 0, l = hex.length;
             if (hex.substring(0, 2) === '0x') {
                 i = 2;
@@ -2024,7 +2042,7 @@ require = (function e(t, n, r) {
          */
         var toAscii = function (hex) {
 // Find termination
-            var str = "";
+            var str = '';
             var i = 0, l = hex.length;
             if (hex.substring(0, 2) === '0x') {
                 i = 2;
@@ -2042,21 +2060,27 @@ require = (function e(t, n, r) {
          *
          * @method fromUtf8
          * @param {String} string
-         * @param {Number} optional padding
+         * @param {Boolean} allowZero to convert code point zero to 00 instead of end of string
          * @returns {String} hex representation of input string
          */
-        var fromUtf8 = function (str) {
+        var fromUtf8 = function (str, allowZero) {
             str = utf8.encode(str);
-            var hex = "";
+            var hex = '';
             for (var i = 0; i < str.length; i++) {
                 var code = str.charCodeAt(i);
-                if (code === 0)
-                    break;
-                var n = code.toString(16);
-                hex += n.length < 2 ? '0' + n : n;
+                if (code === 0) {
+                    if (allowZero) {
+                        hex += '00';
+                    } else {
+                        break;
+                    }
+                } else {
+                    var n = code.toString(16);
+                    hex += n.length < 2 ? '0' + n : n;
+                }
             }
 
-            return "0x" + hex;
+            return '0x' + hex;
         };
 
         /**
@@ -2068,14 +2092,14 @@ require = (function e(t, n, r) {
          * @returns {String} hex representation of input string
          */
         var fromAscii = function (str) {
-            var hex = "";
+            var hex = '';
             for (var i = 0; i < str.length; i++) {
                 var code = str.charCodeAt(i);
                 var n = code.toString(16);
                 hex += n.length < 2 ? '0' + n : n;
             }
 
-            return "0x" + hex;
+            return '0x' + hex;
         };
 
         /**
@@ -2104,15 +2128,26 @@ require = (function e(t, n, r) {
          * @returns {String} display name for function/event eg. multiply(uint256) -> multiply
          */
         var extractDisplayName = function (name) {
-            var length = name.indexOf('(');
-            return length !== -1 ? name.substr(0, length) : name;
+            var stBracket = name.indexOf('(');
+            var endBracket = name.indexOf(')');
+            return (stBracket !== -1 && endBracket !== -1) ?
+                name.substr(0, stBracket) :
+                name;
         };
 
-/// @returns overloaded part of function/event name
+        /**
+         * Should be called to get type name of contract function
+         *
+         * @method extractTypeName
+         * @param {String} name of function/event
+         * @returns {String} type name for function/event eg. multiply(uint256) -> uint256
+         */
         var extractTypeName = function (name) {
-            /// TODO: make it invulnerable
-            var length = name.indexOf('(');
-            return length !== -1 ? name.substr(length + 1, name.length - 1 - (length + 1)).replace(' ', '') : "";
+            var stBracket = name.indexOf('(');
+            var endBracket = name.indexOf(')');
+            return (stBracket !== -1 && endBracket !== -1) ?
+                name.substr(stBracket + 1, endBracket - stBracket - 1).replace(' ', '') :
+                '';
         };
 
         /**
@@ -2168,7 +2203,7 @@ require = (function e(t, n, r) {
                 else if (val.indexOf('0x') === 0)
                     return val;
                 else if (!isFinite(val))
-                    return fromAscii(val);
+                    return fromUtf8(val, 1);
             }
 
             return fromDecimal(val);
@@ -2178,38 +2213,39 @@ require = (function e(t, n, r) {
          * Returns value of unit in Wei
          *
          * @method getValueOfUnit
-         * @param {String} unit the unit to convert to, default ether
+         * @param {String} unit the unit to convert to, default hucer
          * @returns {BigNumber} value of the unit (in Wei)
          * @throws error if the unit is not correct:w
          */
         var getValueOfUnit = function (unit) {
-            unit = unit ? unit.toLowerCase() : 'ether';
+            unit = unit ? unit.toLowerCase() : 'hucer';
             var unitValue = unitMap[unit];
             if (unitValue === undefined) {
-                throw new Error('This unit doesn\'t exists, please use the one of the following units' + JSON.stringify(unitMap, null, 2));
+                throw new Error('This unit doesn\'t exists, please use the one of the following units' +
+                    JSON.stringify(unitMap, null, 2));
             }
             return new BigNumber(unitValue, 10);
         };
 
         /**
-         * Takes a number of wei and converts it to any other ether unit.
+         * Takes a number of wei and converts it to any other hucer unit.
          *
          * Possible units are:
          *   SI Short   SI Full        Effigy       Other
-         * - kwei       femtoether     babbage
-         * - mwei       picoether      lovelace
-         * - gwei       nanoether      shannon      nano
-         * - --         microether     szabo        micro
-         * - --         milliether     finney       milli
-         * - ether      --             --
-         * - kether                    --           grand
-         * - mether
+         * - kwei       femtohucer     babbage
+         * - mwei       picohucer      lovelace
+         * - gwei       nanohucer      shannon      nano
+         * - --         microhucer     szabo        micro
+         * - --         millihucer     finney       milli
+         * - hucer      --             --
+         * - khucer                    --           grand
+         * - mhucer
          * - ghucer
-         * - tether
+         * - thucer
          *
          * @method fromWei
          * @param {Number|String} number can be a number, number string or a HEX of a decimal
-         * @param {String} unit the unit to convert to, default ether
+         * @param {String} unit the unit to convert to, default hucer
          * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
          */
         var fromWei = function (number, unit) {
@@ -2223,21 +2259,20 @@ require = (function e(t, n, r) {
          *
          * Possible units are:
          *   SI Short   SI Full        Effigy       Other
-         * - kwei       femtoether     babbage
-         * - mwei       picoether      lovelace
-         * - gwei       nanoether      shannon      nano
-         * - --         microether     szabo        micro
-         * - --         microether     szabo        micro
-         * - --         milliether     finney       milli
-         * - ether      --             --
-         * - kether                    --           grand
-         * - mether
+         * - kwei       femtohucer     babbage
+         * - mwei       picohucer      lovelace
+         * - gwei       nanohucer      shannon      nano
+         * - --         microhucer     szabo        micro
+         * - --         millihucer     finney       milli
+         * - hucer      --             --
+         * - khucer                    --           grand
+         * - mhucer
          * - ghucer
-         * - tether
+         * - thucer
          *
          * @method toWei
          * @param {Number|String|BigNumber} number can be a number, number string or a HEX of a decimal
-         * @param {String} unit the unit to convert from, default ether
+         * @param {String} unit the unit to convert from, default hucer
          * @return {String|Object} When given a BigNumber object it returns one as well, otherwise a number
          */
         var toWei = function (number, unit) {
@@ -2259,7 +2294,8 @@ require = (function e(t, n, r) {
             if (isBigNumber(number))
                 return number;
 
-            if (isString(number) && (number.indexOf('0x') === 0 || number.indexOf('-0x') === 0)) {
+            if (isString(number) &&
+                (number.indexOf('0x') === 0 || number.indexOf('-0x') === 0)) {
                 return new BigNumber(number.replace('0x', ''), 16);
             }
 
@@ -2276,7 +2312,9 @@ require = (function e(t, n, r) {
         var toTwosComplement = function (number) {
             var bigNumber = toBigNumber(number).round();
             if (bigNumber.lessThan(0)) {
-                return new BigNumber("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16).plus(bigNumber).plus(1);
+                return new BigNumber(
+                    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+                    16).plus(bigNumber).plus(1);
             }
             return bigNumber;
         };
@@ -2303,7 +2341,8 @@ require = (function e(t, n, r) {
             if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) {
                 // check if it has the basic requirements of an address
                 return false;
-            } else if (/^(0x)?[0-9a-f]{40}$/.test(address) || /^(0x)?[0-9A-F]{40}$/.test(address)) {
+            } else if (/^(0x)?[0-9a-f]{40}$/.test(address) ||
+                /^(0x)?[0-9A-F]{40}$/.test(address)) {
                 // If it's all small caps or all all caps, return true
                 return true;
             } else {
@@ -2326,13 +2365,15 @@ require = (function e(t, n, r) {
 
             for (var i = 0; i < 40; i++) {
                 // the nth letter should be uppercase if the nth digit of casemap is 1
-                if ((parseInt(addressHash[i], 16) > 7 && address[i].toUpperCase() !== address[i]) || (parseInt(addressHash[i], 16) <= 7 && address[i].toLowerCase() !== address[i])) {
+                if ((parseInt(addressHash[i], 16) > 7 && address[i].toUpperCase() !==
+                    address[i]) ||
+                    (parseInt(addressHash[i], 16) <= 7 && address[i].toLowerCase() !==
+                        address[i])) {
                     return false;
                 }
             }
             return true;
         };
-
 
         /**
          * Makes a checksum address
@@ -2387,7 +2428,8 @@ require = (function e(t, n, r) {
          */
         var isBigNumber = function (object) {
             return object instanceof BigNumber ||
-                (object && object.constructor && object.constructor.name === 'BigNumber');
+                (object && object.constructor && object.constructor.name ===
+                    'BigNumber');
         };
 
         /**
@@ -2421,7 +2463,8 @@ require = (function e(t, n, r) {
          * @return {Boolean}
          */
         var isObject = function (object) {
-            return object !== null && !(object instanceof Array) && typeof object === 'object';
+            return object !== null && !(Array.isArray(object)) && typeof object ===
+                'object';
         };
 
         /**
@@ -2443,7 +2486,7 @@ require = (function e(t, n, r) {
          * @return {Boolean}
          */
         var isArray = function (object) {
-            return object instanceof Array;
+            return Array.isArray(object);
         };
 
         /**
@@ -2462,7 +2505,7 @@ require = (function e(t, n, r) {
         };
 
         /**
-         * Returns true if given string is a valid HappyUC block header bloom.
+         * Returns true if given string is a valid Happyuc block header bloom.
          *
          * @method isBloom
          * @param {String} hex encoded bloom filter
@@ -2471,7 +2514,8 @@ require = (function e(t, n, r) {
         var isBloom = function (bloom) {
             if (!/^(0x)?[0-9a-f]{512}$/i.test(bloom)) {
                 return false;
-            } else if (/^(0x)?[0-9a-f]{512}$/.test(bloom) || /^(0x)?[0-9A-F]{512}$/.test(bloom)) {
+            } else if (/^(0x)?[0-9a-f]{512}$/.test(bloom) ||
+                /^(0x)?[0-9A-F]{512}$/.test(bloom)) {
                 return true;
             }
             return false;
@@ -2487,7 +2531,8 @@ require = (function e(t, n, r) {
         var isTopic = function (topic) {
             if (!/^(0x)?[0-9a-f]{64}$/i.test(topic)) {
                 return false;
-            } else if (/^(0x)?[0-9a-f]{64}$/.test(topic) || /^(0x)?[0-9A-F]{64}$/.test(topic)) {
+            } else if (/^(0x)?[0-9a-f]{64}$/.test(topic) ||
+                /^(0x)?[0-9A-F]{64}$/.test(topic)) {
                 return true;
             }
             return false;
@@ -2529,29 +2574,29 @@ require = (function e(t, n, r) {
     }, {"./sha3.js": 19, "bignumber.js": "bignumber.js", "utf8": 85}],
     21: [function (require, module, exports) {
         module.exports = {
-            "version": "0.20.1"
+            "version": "1.0.0"
         }
 
     }, {}],
     22: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
-         * @file web3.js
+         * @file webu.js
          * @authors:
          *   Jeffrey Wilcke <jeff@ethdev.com>
          *   Marek Kotewicz <marek@ethdev.com>
@@ -2561,30 +2606,29 @@ require = (function e(t, n, r) {
          * @date 2014
          */
 
-        var RequestManager = require('./web3/requestmanager');
-        var Iban = require('./web3/iban');
-        var Eth = require('./web3/methods/eth');
-        var DB = require('./web3/methods/db');
-        var Shh = require('./web3/methods/shh');
-        var Net = require('./web3/methods/net');
-        var Personal = require('./web3/methods/personal');
-        var Swarm = require('./web3/methods/swarm');
-        var Settings = require('./web3/settings');
+        var RequestManager = require('./webu/requestmanager');
+        var Iban = require('./webu/iban');
+        var Huc = require('./webu/methods/huc');
+        var DB = require('./webu/methods/db');
+        var Shh = require('./webu/methods/shh');
+        var Net = require('./webu/methods/net');
+        var Personal = require('./webu/methods/personal');
+        var Swarm = require('./webu/methods/swarm');
+        var Settings = require('./webu/settings');
         var version = require('./version.json');
         var utils = require('./utils/utils');
         var sha3 = require('./utils/sha3');
-        var extend = require('./web3/extend');
-        var Batch = require('./web3/batch');
-        var Property = require('./web3/property');
-        var HttpProvider = require('./web3/httpprovider');
-        var IpcProvider = require('./web3/ipcprovider');
+        var extend = require('./webu/extend');
+        var Batch = require('./webu/batch');
+        var Property = require('./webu/property');
+        var HttpProvider = require('./webu/httpprovider');
+        var IpcProvider = require('./webu/ipcprovider');
         var BigNumber = require('bignumber.js');
 
-
-        function Web3(provider) {
+        function Webu(provider) {
             this._requestManager = new RequestManager(provider);
             this.currentProvider = provider;
-            this.eth = new Eth(this);
+            this.huc = new Huc(this);
             this.db = new DB(this);
             this.shh = new Shh(this);
             this.net = new Net(this);
@@ -2592,61 +2636,60 @@ require = (function e(t, n, r) {
             this.bzz = new Swarm(this);
             this.settings = new Settings();
             this.version = {
-                api: version.version
+                api: version.version,
             };
             this.providers = {
                 HttpProvider: HttpProvider,
-                IpcProvider: IpcProvider
+                IpcProvider: IpcProvider,
             };
             this._extend = extend(this);
             this._extend({
-                properties: properties()
+                properties: properties(),
             });
         }
 
 // expose providers on the class
-        Web3.providers = {
+        Webu.providers = {
             HttpProvider: HttpProvider,
-            IpcProvider: IpcProvider
+            IpcProvider: IpcProvider,
         };
 
-        Web3.prototype.setProvider = function (provider) {
+        Webu.prototype.setProvider = function (provider) {
             this._requestManager.setProvider(provider);
             this.currentProvider = provider;
         };
 
-        Web3.prototype.reset = function (keepIsSyncing) {
+        Webu.prototype.reset = function (keepIsSyncing) {
             this._requestManager.reset(keepIsSyncing);
             this.settings = new Settings();
         };
 
-        Web3.prototype.BigNumber = BigNumber;
-        Web3.prototype.toHex = utils.toHex;
-        Web3.prototype.toAscii = utils.toAscii;
-        Web3.prototype.toUtf8 = utils.toUtf8;
-        Web3.prototype.fromAscii = utils.fromAscii;
-        Web3.prototype.fromUtf8 = utils.fromUtf8;
-        Web3.prototype.toDecimal = utils.toDecimal;
-        Web3.prototype.fromDecimal = utils.fromDecimal;
-        Web3.prototype.toBigNumber = utils.toBigNumber;
-        Web3.prototype.toWei = utils.toWei;
-        Web3.prototype.fromWei = utils.fromWei;
-        Web3.prototype.isAddress = utils.isAddress;
-        Web3.prototype.isChecksumAddress = utils.isChecksumAddress;
-        Web3.prototype.toChecksumAddress = utils.toChecksumAddress;
-        Web3.prototype.isIBAN = utils.isIBAN;
-        Web3.prototype.padLeft = utils.padLeft;
-        Web3.prototype.padRight = utils.padRight;
+        Webu.prototype.BigNumber = BigNumber;
+        Webu.prototype.toHex = utils.toHex;
+        Webu.prototype.toAscii = utils.toAscii;
+        Webu.prototype.toUtf8 = utils.toUtf8;
+        Webu.prototype.fromAscii = utils.fromAscii;
+        Webu.prototype.fromUtf8 = utils.fromUtf8;
+        Webu.prototype.toDecimal = utils.toDecimal;
+        Webu.prototype.fromDecimal = utils.fromDecimal;
+        Webu.prototype.toBigNumber = utils.toBigNumber;
+        Webu.prototype.toWei = utils.toWei;
+        Webu.prototype.fromWei = utils.fromWei;
+        Webu.prototype.isAddress = utils.isAddress;
+        Webu.prototype.isChecksumAddress = utils.isChecksumAddress;
+        Webu.prototype.toChecksumAddress = utils.toChecksumAddress;
+        Webu.prototype.isIBAN = utils.isIBAN;
+        Webu.prototype.padLeft = utils.padLeft;
+        Webu.prototype.padRight = utils.padRight;
 
-
-        Web3.prototype.sha3 = function (string, options) {
+        Webu.prototype.sha3 = function (string, options) {
             return '0x' + sha3(string, options);
         };
 
         /**
          * Transforms direct icap to address
          */
-        Web3.prototype.fromICAP = function (icap) {
+        Webu.prototype.fromICAP = function (icap) {
             var iban = new Iban(icap);
             return iban.address();
         };
@@ -2655,73 +2698,73 @@ require = (function e(t, n, r) {
             return [
                 new Property({
                     name: 'version.node',
-                    getter: 'web3_clientVersion'
+                    getter: 'webu_clientVersion',
                 }),
                 new Property({
                     name: 'version.network',
                     getter: 'net_version',
-                    inputFormatter: utils.toDecimal
+                    inputFormatter: utils.toDecimal,
                 }),
                 new Property({
                     name: 'version.happyuc',
-                    getter: 'eth_protocolVersion',
-                    inputFormatter: utils.toDecimal
+                    getter: 'huc_protocolVersion',
+                    inputFormatter: utils.toDecimal,
                 }),
                 new Property({
                     name: 'version.whisper',
                     getter: 'shh_version',
-                    inputFormatter: utils.toDecimal
-                })
+                    inputFormatter: utils.toDecimal,
+                }),
             ];
         };
 
-        Web3.prototype.isConnected = function () {
+        Webu.prototype.isConnected = function () {
             return (this.currentProvider && this.currentProvider.isConnected());
         };
 
-        Web3.prototype.createBatch = function () {
+        Webu.prototype.createBatch = function () {
             return new Batch(this);
         };
 
-        module.exports = Web3;
+        module.exports = Webu;
 
 
     }, {
         "./utils/sha3": 19,
         "./utils/utils": 20,
         "./version.json": 21,
-        "./web3/batch": 24,
-        "./web3/extend": 28,
-        "./web3/httpprovider": 32,
-        "./web3/iban": 33,
-        "./web3/ipcprovider": 34,
-        "./web3/methods/db": 37,
-        "./web3/methods/eth": 38,
-        "./web3/methods/net": 39,
-        "./web3/methods/personal": 40,
-        "./web3/methods/shh": 41,
-        "./web3/methods/swarm": 42,
-        "./web3/property": 45,
-        "./web3/requestmanager": 46,
-        "./web3/settings": 47,
+        "./webu/batch": 24,
+        "./webu/extend": 28,
+        "./webu/httpprovider": 32,
+        "./webu/iban": 33,
+        "./webu/ipcprovider": 34,
+        "./webu/methods/db": 37,
+        "./webu/methods/huc": 38,
+        "./webu/methods/net": 39,
+        "./webu/methods/personal": 40,
+        "./webu/methods/shh": 41,
+        "./webu/methods/swarm": 42,
+        "./webu/property": 45,
+        "./webu/requestmanager": 46,
+        "./webu/settings": 47,
         "bignumber.js": "bignumber.js"
     }],
     23: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file allevents.js
@@ -2759,16 +2802,15 @@ require = (function e(t, n, r) {
 
         AllSolidityEvents.prototype.decode = function (data) {
             data.data = data.data || '';
-            data.topics = data.topics || [];
 
-            var eventTopic = data.topics[0].slice(2);
+            var eventTopic = (utils.isArray(data.topics) &&
+                utils.isString(data.topics[0])) ? data.topics[0].slice(2) : '';
             var match = this._json.filter(function (j) {
                 return eventTopic === sha3(utils.transformToFullName(j));
             })[0];
 
             if (!match) { // cannot find matching event?
-                console.warn('cannot find event for log');
-                return data;
+                return formatters.outputLogFormatter(data);
             }
 
             var event = new SolidityEvent(this._requestManager, match, this._address);
@@ -2785,7 +2827,8 @@ require = (function e(t, n, r) {
 
             var o = this.encode(options);
             var formatter = this.decode.bind(this);
-            return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
+            return new Filter(o, 'huc', this._requestManager, watches.huc(), formatter,
+                callback);
         };
 
         AllSolidityEvents.prototype.attachToContract = function (contract) {
@@ -2806,20 +2849,20 @@ require = (function e(t, n, r) {
     }],
     24: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file batch.js
@@ -2830,8 +2873,8 @@ require = (function e(t, n, r) {
         var Jsonrpc = require('./jsonrpc');
         var errors = require('./errors');
 
-        var Batch = function (web3) {
-            this.requestManager = web3._requestManager;
+        var Batch = function (webu) {
+            this.requestManager = webu._requestManager;
             this.requests = [];
         };
 
@@ -2860,10 +2903,13 @@ require = (function e(t, n, r) {
                     if (requests[index].callback) {
 
                         if (!Jsonrpc.isValidResponse(result)) {
-                            return requests[index].callback(errors.InvalidResponse(result));
+                            return requests[index].callback(
+                                errors.InvalidResponse(result));
                         }
 
-                        requests[index].callback(null, (requests[index].format ? requests[index].format(result.result) : result.result));
+                        requests[index].callback(null, (requests[index].format ?
+                            requests[index].format(result.result) :
+                            result.result));
                     }
                 });
             });
@@ -2875,20 +2921,20 @@ require = (function e(t, n, r) {
     }, {"./errors": 26, "./jsonrpc": 35}],
     25: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file contract.js
@@ -2911,7 +2957,8 @@ require = (function e(t, n, r) {
          */
         var encodeConstructorParams = function (abi, params) {
             return abi.filter(function (json) {
-                return json.type === 'constructor' && json.inputs.length === params.length;
+                return json.type === 'constructor' && json.inputs.length ===
+                    params.length;
             }).map(function (json) {
                 return json.inputs.map(function (input) {
                     return input.type;
@@ -2932,7 +2979,7 @@ require = (function e(t, n, r) {
             contract.abi.filter(function (json) {
                 return json.type === 'function';
             }).map(function (json) {
-                return new SolidityFunction(contract._eth, json, contract.address);
+                return new SolidityFunction(contract._huc, json, contract.address);
             }).forEach(function (f) {
                 f.attachToContract(contract);
             });
@@ -2950,16 +2997,17 @@ require = (function e(t, n, r) {
                 return json.type === 'event';
             });
 
-            var All = new AllEvents(contract._eth._requestManager, events, contract.address);
+            var All = new AllEvents(contract._huc._requestManager, events,
+                contract.address);
             All.attachToContract(contract);
 
             events.map(function (json) {
-                return new SolidityEvent(contract._eth._requestManager, json, contract.address);
+                return new SolidityEvent(contract._huc._requestManager, json,
+                    contract.address);
             }).forEach(function (e) {
                 e.attachToContract(contract);
             });
         };
-
 
         /**
          * Should be called to check if the contract gets properly deployed on the blockchain.
@@ -2974,7 +3022,7 @@ require = (function e(t, n, r) {
                 callbackFired = false;
 
             // wait for receipt
-            var filter = contract._eth.filter('latest', function (e) {
+            var filter = contract._huc.filter('latest', function (e) {
                 if (!e && !callbackFired) {
                     count++;
 
@@ -2986,49 +3034,54 @@ require = (function e(t, n, r) {
                         callbackFired = true;
 
                         if (callback)
-                            callback(new Error('Contract transaction couldn\'t be found after 50 blocks'));
+                            callback(new Error(
+                                'Contract transaction couldn\'t be found after 50 blocks'));
                         else
-                            throw new Error('Contract transaction couldn\'t be found after 50 blocks');
-
+                            throw new Error(
+                                'Contract transaction couldn\'t be found after 50 blocks');
 
                     } else {
 
-                        contract._eth.getTransactionReceipt(contract.transactionHash, function (e, receipt) {
-                            if (receipt && !callbackFired) {
+                        contract._huc.getTransactionReceipt(contract.transactionHash,
+                            function (e, receipt) {
+                                if (receipt && receipt.blockHash && !callbackFired) {
 
-                                contract._eth.getCode(receipt.contractAddress, function (e, code) {
-                                    /*jshint maxcomplexity: 6 */
+                                    contract._huc.getCode(receipt.contractAddress,
+                                        function (e, code) {
+                                            /*jshint maxcomplexity: 6 */
 
-                                    if (callbackFired || !code)
-                                        return;
+                                            if (callbackFired || !code)
+                                                return;
 
-                                    filter.stopWatching(function () {
-                                    });
-                                    callbackFired = true;
+                                            filter.stopWatching(function () {
+                                            });
+                                            callbackFired = true;
 
-                                    if (code.length > 3) {
+                                            if (code.length > 3) {
 
-                                        // console.log('Contract code deployed!');
+                                                // console.log('Contract code deployed!');
 
-                                        contract.address = receipt.contractAddress;
+                                                contract.address = receipt.contractAddress;
 
-                                        // attach events and methods again after we have
-                                        addFunctionsToContract(contract);
-                                        addEventsToContract(contract);
+                                                // attach events and methods again after we have
+                                                addFunctionsToContract(contract);
+                                                addEventsToContract(contract);
 
-                                        // call callback for the second time
-                                        if (callback)
-                                            callback(null, contract);
+                                                // call callback for the second time
+                                                if (callback)
+                                                    callback(null, contract);
 
-                                    } else {
-                                        if (callback)
-                                            callback(new Error('The contract code couldn\'t be stored, please check your gas amount.'));
-                                        else
-                                            throw new Error('The contract code couldn\'t be stored, please check your gas amount.');
-                                    }
-                                });
-                            }
-                        });
+                                            } else {
+                                                if (callback)
+                                                    callback(new Error(
+                                                        'The contract code couldn\'t be stored, please check your gas amount.'));
+                                                else
+                                                    throw new Error(
+                                                        'The contract code couldn\'t be stored, please check your gas amount.');
+                                            }
+                                        });
+                                }
+                            });
                     }
                 }
             });
@@ -3040,8 +3093,8 @@ require = (function e(t, n, r) {
          * @method ContractFactory
          * @param {Array} abi
          */
-        var ContractFactory = function (eth, abi) {
-            this.eth = eth;
+        var ContractFactory = function (huc, abi) {
+            this.huc = huc;
             this.abi = abi;
 
             /**
@@ -3057,7 +3110,7 @@ require = (function e(t, n, r) {
             this.new = function () {
                 /*jshint maxcomplexity: 7 */
 
-                var contract = new Contract(this.eth, this.abi);
+                var contract = new Contract(this.huc, this.abi);
 
                 // parse arguments
                 var options = {}; // required!
@@ -3075,7 +3128,8 @@ require = (function e(t, n, r) {
 
                 if (options.value > 0) {
                     var constructorAbi = abi.filter(function (json) {
-                        return json.type === 'constructor' && json.inputs.length === args.length;
+                        return json.type === 'constructor' && json.inputs.length ===
+                            args.length;
                     })[0] || {};
 
                     if (!constructorAbi.payable) {
@@ -3088,8 +3142,8 @@ require = (function e(t, n, r) {
 
                 if (callback) {
 
-                    // wait for the contract address adn check if the code was deployed
-                    this.eth.sendTransaction(options, function (err, hash) {
+                    // wait for the contract address and check if the code was deployed
+                    this.huc.sendTransaction(options, function (err, hash) {
                         if (err) {
                             callback(err);
                         } else {
@@ -3103,7 +3157,7 @@ require = (function e(t, n, r) {
                         }
                     });
                 } else {
-                    var hash = this.eth.sendTransaction(options);
+                    var hash = this.huc.sendTransaction(options);
                     // add the transaction hash
                     contract.transactionHash = hash;
                     checkForContractAddress(contract);
@@ -3123,9 +3177,8 @@ require = (function e(t, n, r) {
          * @returns {ContractFactory} new contract factory
          */
 //var contract = function (abi) {
-        //return new ContractFactory(abi);
+//return new ContractFactory(abi);
 //};
-
 
         /**
          * Should be called to get access to existing contract on a blockchain
@@ -3137,7 +3190,7 @@ require = (function e(t, n, r) {
          * otherwise calls callback function (err, contract)
          */
         ContractFactory.prototype.at = function (address, callback) {
-            var contract = new Contract(this.eth, this.abi, address);
+            var contract = new Contract(this.huc, this.abi, address);
 
             // this functions are not part of prototype,
             // because we dont want to spoil the interface
@@ -3177,8 +3230,8 @@ require = (function e(t, n, r) {
          * @param {Array} abi
          * @param {Address} contract address
          */
-        var Contract = function (eth, abi, address) {
-            this._eth = eth;
+        var Contract = function (huc, abi, address) {
+            this._huc = huc;
             this.transactionHash = null;
             this.address = address;
             this.abi = abi;
@@ -3189,20 +3242,20 @@ require = (function e(t, n, r) {
     }, {"../solidity/coder": 7, "../utils/utils": 20, "./allevents": 23, "./event": 27, "./function": 31}],
     26: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file errors.js
@@ -3235,20 +3288,20 @@ require = (function e(t, n, r) {
     }, {}],
     27: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file event.js
@@ -3325,7 +3378,7 @@ require = (function e(t, n, r) {
          * @method encode
          * @param {Object} indexed
          * @param {Object} options
-         * @return {Object} everything combined toghucer and encoded
+         * @return {Object} everything combined together and encoded
          */
         SolidityEvent.prototype.encode = function (indexed, options) {
             indexed = indexed || {};
@@ -3381,18 +3434,21 @@ require = (function e(t, n, r) {
             var argTopics = this._anonymous ? data.topics : data.topics.slice(1);
             var indexedData = argTopics.map(function (topics) {
                 return topics.slice(2);
-            }).join("");
+            }).join('');
             var indexedParams = coder.decodeParams(this.types(true), indexedData);
 
             var notIndexedData = data.data.slice(2);
-            var notIndexedParams = coder.decodeParams(this.types(false), notIndexedData);
+            var notIndexedParams = coder.decodeParams(this.types(false),
+                notIndexedData);
 
             var result = formatters.outputLogFormatter(data);
             result.event = this.displayName();
             result.address = data.address;
 
             result.args = this._params.reduce(function (acc, current) {
-                acc[current.name] = current.indexed ? indexedParams.shift() : notIndexedParams.shift();
+                acc[current.name] = current.indexed ?
+                    indexedParams.shift() :
+                    notIndexedParams.shift();
                 return acc;
             }, {});
 
@@ -3424,7 +3480,8 @@ require = (function e(t, n, r) {
 
             var o = this.encode(indexed, options);
             var formatter = this.decode.bind(this);
-            return new Filter(o, 'eth', this._requestManager, watches.eth(), formatter, callback);
+            return new Filter(o, 'huc', this._requestManager, watches.huc(), formatter,
+                callback);
         };
 
         /**
@@ -3461,31 +3518,31 @@ require = (function e(t, n, r) {
 
 // TODO: refactor, so the input params are not altered.
 // it's necessary to make same 'extension' work with multiple providers
-        var extend = function (web3) {
+        var extend = function (webu) {
             /* jshint maxcomplexity:5 */
             var ex = function (extension) {
 
                 var extendedObject;
                 if (extension.property) {
-                    if (!web3[extension.property]) {
-                        web3[extension.property] = {};
+                    if (!webu[extension.property]) {
+                        webu[extension.property] = {};
                     }
-                    extendedObject = web3[extension.property];
+                    extendedObject = webu[extension.property];
                 } else {
-                    extendedObject = web3;
+                    extendedObject = webu;
                 }
 
                 if (extension.methods) {
                     extension.methods.forEach(function (method) {
                         method.attachToObject(extendedObject);
-                        method.setRequestManager(web3._requestManager);
+                        method.setRequestManager(webu._requestManager);
                     });
                 }
 
                 if (extension.properties) {
                     extension.properties.forEach(function (property) {
                         property.attachToObject(extendedObject);
-                        property.setRequestManager(web3._requestManager);
+                        property.setRequestManager(webu._requestManager);
                     });
                 }
             };
@@ -3498,27 +3555,26 @@ require = (function e(t, n, r) {
             return ex;
         };
 
-
         module.exports = extend;
 
 
     }, {"./../utils/utils": 20, "./formatters": 30, "./method": 36, "./property": 45}],
     29: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file filter.js
          * @authors:
@@ -3564,14 +3620,15 @@ require = (function e(t, n, r) {
 
             options = options || {};
 
-
             switch (type) {
-                case 'eth':
+                case 'huc':
 
                     // make sure topics, get converted to hex
                     options.topics = options.topics || [];
                     options.topics = options.topics.map(function (topic) {
-                        return (utils.isArray(topic)) ? topic.map(toTopic) : toTopic(topic);
+                        return (utils.isArray(topic)) ?
+                            topic.map(toTopic) :
+                            toTopic(topic);
                     });
 
                     return {
@@ -3579,8 +3636,9 @@ require = (function e(t, n, r) {
                         from: options.from,
                         to: options.to,
                         address: options.address,
-                        fromBlock: formatters.inputBlockNumberFormatter(options.fromBlock),
-                        toBlock: formatters.inputBlockNumberFormatter(options.toBlock)
+                        fromBlock: formatters.inputBlockNumberFormatter(
+                            options.fromBlock),
+                        toBlock: formatters.inputBlockNumberFormatter(options.toBlock),
                     };
                 case 'shh':
                     return options;
@@ -3644,7 +3702,9 @@ require = (function e(t, n, r) {
 
         };
 
-        var Filter = function (options, type, requestManager, methods, formatter, callback, filterCreationErrorCallback) {
+        var Filter = function (
+            options, type, requestManager, methods, formatter, callback,
+            filterCreationErrorCallback) {
             var self = this;
             var implementation = {};
             methods.forEach(function (method) {
@@ -3736,7 +3796,8 @@ require = (function e(t, n, r) {
                 }
             } else {
                 if (this.filterId === null) {
-                    throw new Error('Filter ID Error: filter().get() can\'t be chained synchronous, please provide a callback for the get() method.');
+                    throw new Error(
+                        'Filter ID Error: filter().get() can\'t be chained synchronous, please provide a callback for the get() method.');
                 }
                 var logs = this.implementation.getLogs(this.filterId);
                 return logs.map(function (log) {
@@ -3752,23 +3813,21 @@ require = (function e(t, n, r) {
 
     }, {"../utils/utils": 20, "./formatters": 30}],
     30: [function (require, module, exports) {
-        'use strict'
-
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file formatters.js
@@ -3776,6 +3835,8 @@ require = (function e(t, n, r) {
          * @author Fabian Vogelsteller <fabian@ethdev.com>
          * @date 2015
          */
+
+        'use strict';
 
         var utils = require('../utils/utils');
         var config = require('../utils/config');
@@ -3793,7 +3854,8 @@ require = (function e(t, n, r) {
         };
 
         var isPredefinedBlockNumber = function (blockNumber) {
-            return blockNumber === 'latest' || blockNumber === 'pending' || blockNumber === 'earliest';
+            return blockNumber === 'latest' || blockNumber === 'pending' ||
+                blockNumber === 'earliest';
         };
 
         var inputDefaultBlockNumberFormatter = function (blockNumber) {
@@ -3861,7 +3923,6 @@ require = (function e(t, n, r) {
             }).forEach(function (key) {
                 options[key] = utils.fromDecimal(options[key]);
             });
-
 
             return options;
         };
@@ -4028,7 +4089,6 @@ require = (function e(t, n, r) {
             throw new Error('invalid address');
         };
 
-
         var outputSyncingFormatter = function (result) {
             if (!result) {
                 return result;
@@ -4058,27 +4118,27 @@ require = (function e(t, n, r) {
             outputBlockFormatter: outputBlockFormatter,
             outputLogFormatter: outputLogFormatter,
             outputPostFormatter: outputPostFormatter,
-            outputSyncingFormatter: outputSyncingFormatter
+            outputSyncingFormatter: outputSyncingFormatter,
         };
 
 
     }, {"../utils/config": 18, "../utils/utils": 20, "./iban": 33}],
     31: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file function.js
@@ -4095,8 +4155,8 @@ require = (function e(t, n, r) {
         /**
          * This prototype should be used to call/sendTransaction to solidity functions
          */
-        var SolidityFunction = function (eth, json, address) {
-            this._eth = eth;
+        var SolidityFunction = function (huc, json, address) {
+            this._huc = huc;
             this._inputTypes = json.inputs.map(function (i) {
                 return i.type;
             });
@@ -4116,7 +4176,8 @@ require = (function e(t, n, r) {
         };
 
         SolidityFunction.prototype.extractDefaultBlock = function (args) {
-            if (args.length > this._inputTypes.length && !utils.isObject(args[args.length - 1])) {
+            if (args.length > this._inputTypes.length &&
+                !utils.isObject(args[args.length - 1])) {
                 return formatters.inputDefaultBlockNumberFormatter(args.pop()); // modify the args array!
             }
         };
@@ -4150,12 +4211,14 @@ require = (function e(t, n, r) {
          */
         SolidityFunction.prototype.toPayload = function (args) {
             var options = {};
-            if (args.length > this._inputTypes.length && utils.isObject(args[args.length - 1])) {
+            if (args.length > this._inputTypes.length &&
+                utils.isObject(args[args.length - 1])) {
                 options = args[args.length - 1];
             }
             this.validateArgs(args);
             options.to = this._address;
-            options.data = '0x' + this.signature() + coder.encodeParams(this._inputTypes, args);
+            options.data = '0x' + this.signature() +
+                coder.encodeParams(this._inputTypes, args);
             return options;
         };
 
@@ -4168,7 +4231,6 @@ require = (function e(t, n, r) {
         SolidityFunction.prototype.signature = function () {
             return sha3(this._name).slice(0, 8);
         };
-
 
         SolidityFunction.prototype.unpackOutput = function (output) {
             if (!output) {
@@ -4198,14 +4260,13 @@ require = (function e(t, n, r) {
             var defaultBlock = this.extractDefaultBlock(args);
             var payload = this.toPayload(args);
 
-
             if (!callback) {
-                var output = this._eth.call(payload, defaultBlock);
+                var output = this._huc.call(payload, defaultBlock);
                 return this.unpackOutput(output);
             }
 
             var self = this;
-            this._eth.call(payload, defaultBlock, function (error, output) {
+            this._huc.call(payload, defaultBlock, function (error, output) {
                 if (error) return callback(error, null);
 
                 var unpacked = null;
@@ -4237,10 +4298,10 @@ require = (function e(t, n, r) {
             }
 
             if (!callback) {
-                return this._eth.sendTransaction(payload);
+                return this._huc.sendTransaction(payload);
             }
 
-            this._eth.sendTransaction(payload, callback);
+            this._huc.sendTransaction(payload, callback);
         };
 
         /**
@@ -4254,10 +4315,10 @@ require = (function e(t, n, r) {
             var payload = this.toPayload(args);
 
             if (!callback) {
-                return this._eth.estimateGas(payload);
+                return this._huc.estimateGas(payload);
             }
 
-            this._eth.estimateGas(payload, callback);
+            this._huc.estimateGas(payload, callback);
         };
 
         /**
@@ -4306,10 +4367,10 @@ require = (function e(t, n, r) {
             var format = this.unpackOutput.bind(this);
 
             return {
-                method: this._constant ? 'eth_call' : 'eth_sendTransaction',
+                method: this._constant ? 'huc_call' : 'huc_sendTransaction',
                 callback: callback,
                 params: [payload],
-                format: format
+                format: format,
             };
         };
 
@@ -4323,7 +4384,8 @@ require = (function e(t, n, r) {
 
             // send transaction
             if (transaction) {
-                return this.sendTransaction.apply(this, Array.prototype.slice.call(arguments));
+                return this.sendTransaction.apply(this,
+                    Array.prototype.slice.call(arguments));
             }
 
             // call
@@ -4355,20 +4417,20 @@ require = (function e(t, n, r) {
     }, {"../solidity/coder": 7, "../utils/sha3": 19, "../utils/utils": 20, "./errors": 26, "./formatters": 30}],
     32: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file httpprovider.js
          * @authors:
@@ -4395,11 +4457,12 @@ require = (function e(t, n, r) {
         /**
          * HttpProvider should be used to send rpc calls over http
          */
-        var HttpProvider = function (host, timeout, user, password) {
+        var HttpProvider = function (host, timeout, user, password, headers) {
             this.host = host || 'http://localhost:8545';
             this.timeout = timeout || 0;
             this.user = user;
             this.password = password;
+            this.headers = headers;
         };
 
         /**
@@ -4421,10 +4484,16 @@ require = (function e(t, n, r) {
 
             request.open('POST', this.host, async);
             if (this.user && this.password) {
-                var auth = 'Basic ' + new Buffer(this.user + ':' + this.password).toString('base64');
+                var auth = 'Basic ' +
+                    new Buffer(this.user + ':' + this.password).toString('base64');
                 request.setRequestHeader('Authorization', auth);
             }
             request.setRequestHeader('Content-Type', 'application/json');
+            if (this.headers) {
+                this.headers.forEach(function (header) {
+                    request.setRequestHeader(header.name, header.value);
+                });
+            }
             return request;
         };
 
@@ -4503,7 +4572,7 @@ require = (function e(t, n, r) {
                     id: 9999999999,
                     jsonrpc: '2.0',
                     method: 'net_listening',
-                    params: []
+                    params: [],
                 });
                 return true;
             } catch (e) {
@@ -4516,20 +4585,20 @@ require = (function e(t, n, r) {
     }, {"./errors": 26, "xhr2": 86, "xmlhttprequest": 17}],
     33: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file iban.js
@@ -4641,7 +4710,7 @@ require = (function e(t, n, r) {
          * @return {Iban} the IBAN object
          */
         Iban.createIndirect = function (options) {
-            return Iban.fromBban('HUC' + options.institution + options.identifier);
+            return Iban.fromBban('ETH' + options.institution + options.identifier);
         };
 
         /**
@@ -4663,7 +4732,7 @@ require = (function e(t, n, r) {
          * @returns {Boolean} true if it is, otherwise false
          */
         Iban.prototype.isValid = function () {
-            return /^XE[0-9]{2}(HUC[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
+            return /^XE[0-9]{2}(ETH[0-9A-Z]{13}|[0-9A-Z]{30,31})$/.test(this._iban) &&
                 mod9710(iso13616Prepare(this._iban)) === 1;
         };
 
@@ -4746,20 +4815,20 @@ require = (function e(t, n, r) {
     }, {"bignumber.js": "bignumber.js"}],
     34: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file ipcprovider.js
          * @authors:
@@ -4956,20 +5025,20 @@ require = (function e(t, n, r) {
     }, {"../utils/utils": 20, "./errors": 26}],
     35: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file jsonrpc.js
          * @authors:
@@ -4980,7 +5049,7 @@ require = (function e(t, n, r) {
 
 // Initialize Jsonrpc as a simple object with utility functions.
         var Jsonrpc = {
-            messageId: 0
+            messageId: 0,
         };
 
         /**
@@ -5002,7 +5071,7 @@ require = (function e(t, n, r) {
                 jsonrpc: '2.0',
                 id: Jsonrpc.messageId,
                 method: method,
-                params: params || []
+                params: params || [],
             };
         };
 
@@ -5014,7 +5083,9 @@ require = (function e(t, n, r) {
          * @returns {Boolean} true if response is valid, otherwise false
          */
         Jsonrpc.isValidResponse = function (response) {
-            return Array.isArray(response) ? response.every(validateSingleMessage) : validateSingleMessage(response);
+            return Array.isArray(response) ?
+                response.every(validateSingleMessage) :
+                validateSingleMessage(response);
 
             function validateSingleMessage(message) {
                 return !!message &&
@@ -5044,20 +5115,20 @@ require = (function e(t, n, r) {
     }, {}],
     36: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file method.js
@@ -5143,7 +5214,9 @@ require = (function e(t, n, r) {
          * @return {Object}
          */
         Method.prototype.formatOutput = function (result) {
-            return this.outputFormatter && result ? this.outputFormatter(result) : result;
+            return this.outputFormatter && result ?
+                this.outputFormatter(result) :
+                result;
         };
 
         /**
@@ -5162,7 +5235,7 @@ require = (function e(t, n, r) {
             return {
                 method: call,
                 params: params,
-                callback: callback
+                callback: callback,
             };
         };
 
@@ -5183,9 +5256,10 @@ require = (function e(t, n, r) {
             var send = function () {
                 var payload = method.toPayload(Array.prototype.slice.call(arguments));
                 if (payload.callback) {
-                    return method.requestManager.sendAsync(payload, function (err, result) {
-                        payload.callback(err, method.formatOutput(result));
-                    });
+                    return method.requestManager.sendAsync(payload,
+                        function (err, result) {
+                            payload.callback(err, method.formatOutput(result));
+                        });
                 }
                 return method.formatOutput(method.requestManager.send(payload));
             };
@@ -5211,20 +5285,20 @@ require = (function e(t, n, r) {
     }, {"../utils/utils": 20, "./errors": 26}],
     37: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file db.js
          * @authors:
@@ -5234,14 +5308,14 @@ require = (function e(t, n, r) {
 
         var Method = require('../method');
 
-        var DB = function (web3) {
-            this._requestManager = web3._requestManager;
+        var DB = function (webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
             methods().forEach(function (method) {
                 method.attachToObject(self);
-                method.setRequestManager(web3._requestManager);
+                method.setRequestManager(webu._requestManager);
             });
         };
 
@@ -5249,29 +5323,29 @@ require = (function e(t, n, r) {
             var putString = new Method({
                 name: 'putString',
                 call: 'db_putString',
-                params: 3
+                params: 3,
             });
 
             var getString = new Method({
                 name: 'getString',
                 call: 'db_getString',
-                params: 2
+                params: 2,
             });
 
             var putHex = new Method({
                 name: 'putHex',
                 call: 'db_putHex',
-                params: 3
+                params: 3,
             });
 
             var getHex = new Method({
                 name: 'getHex',
                 call: 'db_getHex',
-                params: 2
+                params: 2,
             });
 
             return [
-                putString, getString, putHex, getHex
+                putString, getString, putHex, getHex,
             ];
         };
 
@@ -5280,29 +5354,29 @@ require = (function e(t, n, r) {
     }, {"../method": 36}],
     38: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
-         * @file eth.js
+         * @file huc.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @author Fabian Vogelsteller <fabian@ethdev.com>
          * @date 2015
          */
 
-        "use strict";
+        'use strict';
 
         var formatters = require('../formatters');
         var utils = require('../../utils/utils');
@@ -5317,29 +5391,38 @@ require = (function e(t, n, r) {
         var Iban = require('../iban');
         var transfer = require('../transfer');
 
-        // TODO eth -> huc
         var blockCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "eth_getBlockByHash" : "eth_getBlockByNumber";
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ?
+                'huc_getBlockByHash' :
+                'huc_getBlockByNumber';
         };
 
         var transactionFromBlockCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getTransactionByBlockHashAndIndex' : 'eth_getTransactionByBlockNumberAndIndex';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ?
+                'huc_getTransactionByBlockHashAndIndex' :
+                'huc_getTransactionByBlockNumberAndIndex';
         };
 
         var uncleCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleByBlockHashAndIndex' : 'eth_getUncleByBlockNumberAndIndex';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ?
+                'huc_getUncleByBlockHashAndIndex' :
+                'huc_getUncleByBlockNumberAndIndex';
         };
 
         var getBlockTransactionCountCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getBlockTransactionCountByHash' : 'eth_getBlockTransactionCountByNumber';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ?
+                'huc_getBlockTransactionCountByHash' :
+                'huc_getBlockTransactionCountByNumber';
         };
 
         var uncleCountCall = function (args) {
-            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getUncleCountByBlockHash' : 'eth_getUncleCountByBlockNumber';
+            return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ?
+                'huc_getUncleCountByHucBlockHash' :
+                'huc_getUncleCountByBlockNumber';
         };
 
-        function Eth(web3) {
-            this._requestManager = web3._requestManager;
+        function Huc(webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
@@ -5353,63 +5436,69 @@ require = (function e(t, n, r) {
                 p.setRequestManager(self._requestManager);
             });
 
-
             this.iban = Iban;
             this.sendIBANTransaction = transfer.bind(null, this);
         }
 
-        Object.defineProperty(Eth.prototype, 'defaultBlock', {
+        Object.defineProperty(Huc.prototype, 'defaultBlock', {
             get: function () {
                 return c.defaultBlock;
             },
             set: function (val) {
                 c.defaultBlock = val;
                 return val;
-            }
+            },
         });
 
-        Object.defineProperty(Eth.prototype, 'defaultAccount', {
+        Object.defineProperty(Huc.prototype, 'defaultAccount', {
             get: function () {
                 return c.defaultAccount;
             },
             set: function (val) {
                 c.defaultAccount = val;
                 return val;
-            }
+            },
         });
 
-        // TODO eth -> huc
         var methods = function () {
             var getBalance = new Method({
                 name: 'getBalance',
-                call: 'eth_getBalance',
+                call: 'huc_getBalance',
                 params: 2,
-                inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter],
-                outputFormatter: formatters.outputBigNumberFormatter
+                inputFormatter: [
+                    formatters.inputAddressFormatter,
+                    formatters.inputDefaultBlockNumberFormatter],
+                outputFormatter: formatters.outputBigNumberFormatter,
             });
 
             var getStorageAt = new Method({
                 name: 'getStorageAt',
-                call: 'eth_getStorageAt',
+                call: 'huc_getStorageAt',
                 params: 3,
-                inputFormatter: [null, utils.toHex, formatters.inputDefaultBlockNumberFormatter]
+                inputFormatter: [
+                    null,
+                    utils.toHex,
+                    formatters.inputDefaultBlockNumberFormatter],
             });
 
             var getCode = new Method({
                 name: 'getCode',
-                call: 'eth_getCode',
+                call: 'huc_getCode',
                 params: 2,
-                inputFormatter: [formatters.inputAddressFormatter, formatters.inputDefaultBlockNumberFormatter]
+                inputFormatter: [
+                    formatters.inputAddressFormatter,
+                    formatters.inputDefaultBlockNumberFormatter],
             });
 
             var getBlock = new Method({
                 name: 'getBlock',
                 call: blockCall,
                 params: 2,
-                inputFormatter: [formatters.inputBlockNumberFormatter, function (val) {
-                    return !!val;
-                }],
-                outputFormatter: formatters.outputBlockFormatter
+                inputFormatter: [
+                    formatters.inputBlockNumberFormatter, function (val) {
+                        return !!val;
+                    }],
+                outputFormatter: formatters.outputBlockFormatter,
             });
 
             var getUncle = new Method({
@@ -5423,8 +5512,8 @@ require = (function e(t, n, r) {
 
             var getCompilers = new Method({
                 name: 'getCompilers',
-                call: 'eth_getCompilers',
-                params: 0
+                call: 'huc_getCompilers',
+                params: 0,
             });
 
             var getBlockTransactionCount = new Method({
@@ -5432,7 +5521,7 @@ require = (function e(t, n, r) {
                 call: getBlockTransactionCountCall,
                 params: 1,
                 inputFormatter: [formatters.inputBlockNumberFormatter],
-                outputFormatter: utils.toDecimal
+                outputFormatter: utils.toDecimal,
             });
 
             var getBlockUncleCount = new Method({
@@ -5440,14 +5529,14 @@ require = (function e(t, n, r) {
                 call: uncleCountCall,
                 params: 1,
                 inputFormatter: [formatters.inputBlockNumberFormatter],
-                outputFormatter: utils.toDecimal
+                outputFormatter: utils.toDecimal,
             });
 
             var getTransaction = new Method({
                 name: 'getTransaction',
-                call: 'eth_getTransactionByHash',
+                call: 'huc_getTransactionByHash',
                 params: 1,
-                outputFormatter: formatters.outputTransactionFormatter
+                outputFormatter: formatters.outputTransactionFormatter,
             });
 
             var getTransactionFromBlock = new Method({
@@ -5455,95 +5544,97 @@ require = (function e(t, n, r) {
                 call: transactionFromBlockCall,
                 params: 2,
                 inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
-                outputFormatter: formatters.outputTransactionFormatter
+                outputFormatter: formatters.outputTransactionFormatter,
             });
 
             var getTransactionReceipt = new Method({
                 name: 'getTransactionReceipt',
-                call: 'eth_getTransactionReceipt',
+                call: 'huc_getTransactionReceipt',
                 params: 1,
-                outputFormatter: formatters.outputTransactionReceiptFormatter
+                outputFormatter: formatters.outputTransactionReceiptFormatter,
             });
 
             var getTransactionCount = new Method({
                 name: 'getTransactionCount',
-                call: 'eth_getTransactionCount',
+                call: 'huc_getTransactionCount',
                 params: 2,
                 inputFormatter: [null, formatters.inputDefaultBlockNumberFormatter],
-                outputFormatter: utils.toDecimal
+                outputFormatter: utils.toDecimal,
             });
 
             var sendRawTransaction = new Method({
                 name: 'sendRawTransaction',
-                call: 'eth_sendRawTransaction',
+                call: 'huc_sendRawTransaction',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var sendTransaction = new Method({
                 name: 'sendTransaction',
-                call: 'eth_sendTransaction',
+                call: 'huc_sendTransaction',
                 params: 1,
-                inputFormatter: [formatters.inputTransactionFormatter]
+                inputFormatter: [formatters.inputTransactionFormatter],
             });
 
             var signTransaction = new Method({
                 name: 'signTransaction',
-                call: 'eth_signTransaction',
+                call: 'huc_signTransaction',
                 params: 1,
-                inputFormatter: [formatters.inputTransactionFormatter]
+                inputFormatter: [formatters.inputTransactionFormatter],
             });
 
             var sign = new Method({
                 name: 'sign',
-                call: 'eth_sign',
+                call: 'huc_sign',
                 params: 2,
-                inputFormatter: [formatters.inputAddressFormatter, null]
+                inputFormatter: [formatters.inputAddressFormatter, null],
             });
 
             var call = new Method({
                 name: 'call',
-                call: 'eth_call',
+                call: 'huc_call',
                 params: 2,
-                inputFormatter: [formatters.inputCallFormatter, formatters.inputDefaultBlockNumberFormatter]
+                inputFormatter: [
+                    formatters.inputCallFormatter,
+                    formatters.inputDefaultBlockNumberFormatter],
             });
 
             var estimateGas = new Method({
                 name: 'estimateGas',
-                call: 'eth_estimateGas',
+                call: 'huc_estimateGas',
                 params: 1,
                 inputFormatter: [formatters.inputCallFormatter],
-                outputFormatter: utils.toDecimal
+                outputFormatter: utils.toDecimal,
             });
 
             var compileSolidity = new Method({
                 name: 'compile.solidity',
-                call: 'eth_compileSolidity',
-                params: 1
+                call: 'huc_compileSolidity',
+                params: 1,
             });
 
             var compileLLL = new Method({
                 name: 'compile.lll',
-                call: 'eth_compileLLL',
-                params: 1
+                call: 'huc_compileLLL',
+                params: 1,
             });
 
             var compileSerpent = new Method({
                 name: 'compile.serpent',
-                call: 'eth_compileSerpent',
-                params: 1
+                call: 'huc_compileSerpent',
+                params: 1,
             });
 
             var submitWork = new Method({
                 name: 'submitWork',
-                call: 'eth_submitWork',
-                params: 3
+                call: 'huc_submitWork',
+                params: 3,
             });
 
             var getWork = new Method({
                 name: 'getWork',
-                call: 'eth_getWork',
-                params: 0
+                call: 'huc_getWork',
+                params: 0,
             });
 
             return [
@@ -5569,74 +5660,75 @@ require = (function e(t, n, r) {
                 compileLLL,
                 compileSerpent,
                 submitWork,
-                getWork
+                getWork,
             ];
         };
-
 
         var properties = function () {
             return [
                 new Property({
                     name: 'coinbase',
-                    getter: 'eth_coinbase'
+                    getter: 'huc_coinbase',
                 }),
                 new Property({
                     name: 'mining',
-                    getter: 'eth_mining'
+                    getter: 'huc_mining',
                 }),
                 new Property({
                     name: 'hashrate',
-                    getter: 'eth_hashrate',
-                    outputFormatter: utils.toDecimal
+                    getter: 'huc_hashrate',
+                    outputFormatter: utils.toDecimal,
                 }),
                 new Property({
                     name: 'syncing',
-                    getter: 'eth_syncing',
-                    outputFormatter: formatters.outputSyncingFormatter
+                    getter: 'huc_syncing',
+                    outputFormatter: formatters.outputSyncingFormatter,
                 }),
                 new Property({
                     name: 'gasPrice',
-                    getter: 'eth_gasPrice',
-                    outputFormatter: formatters.outputBigNumberFormatter
+                    getter: 'huc_gasPrice',
+                    outputFormatter: formatters.outputBigNumberFormatter,
                 }),
                 new Property({
                     name: 'accounts',
-                    getter: 'eth_accounts'
+                    getter: 'huc_accounts',
                 }),
                 new Property({
                     name: 'blockNumber',
-                    getter: 'eth_blockNumber',
-                    outputFormatter: utils.toDecimal
+                    getter: 'huc_blockNumber',
+                    outputFormatter: utils.toDecimal,
                 }),
                 new Property({
                     name: 'protocolVersion',
-                    getter: 'eth_protocolVersion'
-                })
+                    getter: 'huc_protocolVersion',
+                }),
             ];
         };
 
-        Eth.prototype.contract = function (abi) {
+        Huc.prototype.contract = function (abi) {
             var factory = new Contract(this, abi);
             return factory;
         };
 
-        Eth.prototype.filter = function (options, callback, filterCreationErrorCallback) {
-            return new Filter(options, 'eth', this._requestManager, watches.eth(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
+        Huc.prototype.filter = function (
+            options, callback, filterCreationErrorCallback) {
+            return new Filter(options, 'huc', this._requestManager, watches.huc(),
+                formatters.outputLogFormatter, callback, filterCreationErrorCallback);
         };
 
-        Eth.prototype.namereg = function () {
+        Huc.prototype.namereg = function () {
             return this.contract(namereg.global.abi).at(namereg.global.address);
         };
 
-        Eth.prototype.icapNamereg = function () {
+        Huc.prototype.icapNamereg = function () {
             return this.contract(namereg.icap.abi).at(namereg.icap.address);
         };
 
-        Eth.prototype.isSyncing = function (callback) {
+        Huc.prototype.isSyncing = function (callback) {
             return new IsSyncing(this._requestManager, callback);
         };
 
-        module.exports = Eth;
+        module.exports = Huc;
 
     }, {
         "../../utils/config": 18,
@@ -5654,22 +5746,22 @@ require = (function e(t, n, r) {
     }],
     39: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
-        /** @file eth.js
+        /** @file huc.js
          * @authors:
          *   Marek Kotewicz <marek@ethdev.com>
          * @date 2015
@@ -5678,29 +5770,29 @@ require = (function e(t, n, r) {
         var utils = require('../../utils/utils');
         var Property = require('../property');
 
-        var Net = function (web3) {
-            this._requestManager = web3._requestManager;
+        var Net = function (webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
             properties().forEach(function (p) {
                 p.attachToObject(self);
-                p.setRequestManager(web3._requestManager);
+                p.setRequestManager(webu._requestManager);
             });
         };
 
-/// @returns an array of objects describing web3.eth api properties
+/// @returns an array of objects describing webu.huc api properties
         var properties = function () {
             return [
                 new Property({
                     name: 'listening',
-                    getter: 'net_listening'
+                    getter: 'net_listening',
                 }),
                 new Property({
                     name: 'peerCount',
                     getter: 'net_peerCount',
-                    outputFormatter: utils.toDecimal
-                })
+                    outputFormatter: utils.toDecimal,
+                }),
             ];
         };
 
@@ -5709,36 +5801,36 @@ require = (function e(t, n, r) {
     }, {"../../utils/utils": 20, "../property": 45}],
     40: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
-         * @file eth.js
+         * @file huc.js
          * @author Marek Kotewicz <marek@ethdev.com>
          * @author Fabian Vogelsteller <fabian@ethdev.com>
          * @date 2015
          */
 
-        "use strict";
+        'use strict';
 
         var Method = require('../method');
         var Property = require('../property');
         var formatters = require('../formatters');
 
-        function Personal(web3) {
-            this._requestManager = web3._requestManager;
+        function Personal(webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
@@ -5758,47 +5850,47 @@ require = (function e(t, n, r) {
                 name: 'newAccount',
                 call: 'personal_newAccount',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var importRawKey = new Method({
                 name: 'importRawKey',
                 call: 'personal_importRawKey',
-                params: 2
+                params: 2,
             });
 
             var sign = new Method({
                 name: 'sign',
                 call: 'personal_sign',
                 params: 3,
-                inputFormatter: [null, formatters.inputAddressFormatter, null]
+                inputFormatter: [null, formatters.inputAddressFormatter, null],
             });
 
             var ecRecover = new Method({
                 name: 'ecRecover',
                 call: 'personal_ecRecover',
-                params: 2
+                params: 2,
             });
 
             var unlockAccount = new Method({
                 name: 'unlockAccount',
                 call: 'personal_unlockAccount',
                 params: 3,
-                inputFormatter: [formatters.inputAddressFormatter, null, null]
+                inputFormatter: [formatters.inputAddressFormatter, null, null],
             });
 
             var sendTransaction = new Method({
                 name: 'sendTransaction',
                 call: 'personal_sendTransaction',
                 params: 2,
-                inputFormatter: [formatters.inputTransactionFormatter, null]
+                inputFormatter: [formatters.inputTransactionFormatter, null],
             });
 
             var lockAccount = new Method({
                 name: 'lockAccount',
                 call: 'personal_lockAccount',
                 params: 1,
-                inputFormatter: [formatters.inputAddressFormatter]
+                inputFormatter: [formatters.inputAddressFormatter],
             });
 
             return [
@@ -5808,7 +5900,7 @@ require = (function e(t, n, r) {
                 ecRecover,
                 sign,
                 sendTransaction,
-                lockAccount
+                lockAccount,
             ];
         };
 
@@ -5816,31 +5908,30 @@ require = (function e(t, n, r) {
             return [
                 new Property({
                     name: 'listAccounts',
-                    getter: 'personal_listAccounts'
-                })
+                    getter: 'personal_listAccounts',
+                }),
             ];
         };
-
 
         module.exports = Personal;
 
     }, {"../formatters": 30, "../method": 36, "../property": 45}],
     41: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file shh.js
          * @authors:
@@ -5853,8 +5944,8 @@ require = (function e(t, n, r) {
         var Filter = require('../filter');
         var watches = require('./watches');
 
-        var Shh = function (web3) {
-            this._requestManager = web3._requestManager;
+        var Shh = function (webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
@@ -5864,8 +5955,10 @@ require = (function e(t, n, r) {
             });
         };
 
-        Shh.prototype.newMessageFilter = function (options, callback, filterCreationErrorCallback) {
-            return new Filter(options, 'shh', this._requestManager, watches.shh(), null, callback, filterCreationErrorCallback);
+        Shh.prototype.newMessageFilter = function (
+            options, callback, filterCreationErrorCallback) {
+            return new Filter(options, 'shh', this._requestManager, watches.shh(), null,
+                callback, filterCreationErrorCallback);
         };
 
         var methods = function () {
@@ -5874,87 +5967,87 @@ require = (function e(t, n, r) {
                 new Method({
                     name: 'version',
                     call: 'shh_version',
-                    params: 0
+                    params: 0,
                 }),
                 new Method({
                     name: 'info',
                     call: 'shh_info',
-                    params: 0
+                    params: 0,
                 }),
                 new Method({
                     name: 'setMaxMessageSize',
                     call: 'shh_setMaxMessageSize',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'setMinPoW',
                     call: 'shh_setMinPoW',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'markTrustedPeer',
                     call: 'shh_markTrustedPeer',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'newKeyPair',
                     call: 'shh_newKeyPair',
-                    params: 0
+                    params: 0,
                 }),
                 new Method({
                     name: 'addPrivateKey',
                     call: 'shh_addPrivateKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'deleteKeyPair',
                     call: 'shh_deleteKeyPair',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'hasKeyPair',
                     call: 'shh_hasKeyPair',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'getPublicKey',
                     call: 'shh_getPublicKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'getPrivateKey',
                     call: 'shh_getPrivateKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'newSymKey',
                     call: 'shh_newSymKey',
-                    params: 0
+                    params: 0,
                 }),
                 new Method({
                     name: 'addSymKey',
                     call: 'shh_addSymKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'generateSymKeyFromPassword',
                     call: 'shh_generateSymKeyFromPassword',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'hasSymKey',
                     call: 'shh_hasSymKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'getSymKey',
                     call: 'shh_getSymKey',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'deleteSymKey',
                     call: 'shh_deleteSymKey',
-                    params: 1
+                    params: 1,
                 }),
 
                 // subscribe and unsubscribe missing
@@ -5963,8 +6056,8 @@ require = (function e(t, n, r) {
                     name: 'post',
                     call: 'shh_post',
                     params: 1,
-                    inputFormatter: [null]
-                })
+                    inputFormatter: [null],
+                }),
             ];
         };
 
@@ -5974,36 +6067,36 @@ require = (function e(t, n, r) {
     }, {"../filter": 29, "../method": 36, "./watches": 43}],
     42: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file bzz.js
          * @author Alex Beregszaszi <alex@rtfs.hu>
          * @date 2016
-         *
-         * Reference: https://github.com/happyuc-project/happyuc-go/blob/swarm/internal/web3ext/web3ext.go#L33
+         * TODO update reference
+         * Reference: https://github.com/ethereum/go-ethereum/blob/swarm/internal/webuext/webuext.go#L33
          */
 
-        "use strict";
+        'use strict';
 
         var Method = require('../method');
         var Property = require('../property');
 
-        function Swarm(web3) {
-            this._requestManager = web3._requestManager;
+        function Swarm(webu) {
+            this._requestManager = webu._requestManager;
 
             var self = this;
 
@@ -6023,70 +6116,70 @@ require = (function e(t, n, r) {
                 name: 'blockNetworkRead',
                 call: 'bzz_blockNetworkRead',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var syncEnabled = new Method({
                 name: 'syncEnabled',
                 call: 'bzz_syncEnabled',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var swapEnabled = new Method({
                 name: 'swapEnabled',
                 call: 'bzz_swapEnabled',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var download = new Method({
                 name: 'download',
                 call: 'bzz_download',
                 params: 2,
-                inputFormatter: [null, null]
+                inputFormatter: [null, null],
             });
 
             var upload = new Method({
                 name: 'upload',
                 call: 'bzz_upload',
                 params: 2,
-                inputFormatter: [null, null]
+                inputFormatter: [null, null],
             });
 
             var retrieve = new Method({
                 name: 'retrieve',
                 call: 'bzz_retrieve',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var store = new Method({
                 name: 'store',
                 call: 'bzz_store',
                 params: 2,
-                inputFormatter: [null, null]
+                inputFormatter: [null, null],
             });
 
             var get = new Method({
                 name: 'get',
                 call: 'bzz_get',
                 params: 1,
-                inputFormatter: [null]
+                inputFormatter: [null],
             });
 
             var put = new Method({
                 name: 'put',
                 call: 'bzz_put',
                 params: 2,
-                inputFormatter: [null, null]
+                inputFormatter: [null, null],
             });
 
             var modify = new Method({
                 name: 'modify',
                 call: 'bzz_modify',
                 params: 4,
-                inputFormatter: [null, null, null, null]
+                inputFormatter: [null, null, null, null],
             });
 
             return [
@@ -6099,7 +6192,7 @@ require = (function e(t, n, r) {
                 store,
                 get,
                 put,
-                modify
+                modify,
             ];
         };
 
@@ -6107,35 +6200,34 @@ require = (function e(t, n, r) {
             return [
                 new Property({
                     name: 'hive',
-                    getter: 'bzz_hive'
+                    getter: 'bzz_hive',
                 }),
                 new Property({
                     name: 'info',
-                    getter: 'bzz_info'
-                })
+                    getter: 'bzz_info',
+                }),
             ];
         };
-
 
         module.exports = Swarm;
 
     }, {"../method": 36, "../property": 45}],
     43: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file watches.js
          * @authors:
@@ -6145,8 +6237,8 @@ require = (function e(t, n, r) {
 
         var Method = require('../method');
 
-/// @returns an array of objects describing web3.eth.filter api methods
-        var eth = function () {
+/// @returns an array of objects describing webu.huc.filter api methods
+        var huc = function () {
             var newFilterCall = function (args) {
                 var type = args[0];
 
@@ -6154,98 +6246,98 @@ require = (function e(t, n, r) {
                     case 'latest':
                         args.shift();
                         this.params = 0;
-                        return 'eth_newBlockFilter';
+                        return 'huc_newBlockFilter';
                     case 'pending':
                         args.shift();
                         this.params = 0;
-                        return 'eth_newPendingTransactionFilter';
+                        return 'huc_newPendingTransactionFilter';
                     default:
-                        return 'eth_newFilter';
+                        return 'huc_newFilter';
                 }
             };
 
             var newFilter = new Method({
                 name: 'newFilter',
                 call: newFilterCall,
-                params: 1
+                params: 1,
             });
 
             var uninstallFilter = new Method({
                 name: 'uninstallFilter',
-                call: 'eth_uninstallFilter',
-                params: 1
+                call: 'huc_uninstallFilter',
+                params: 1,
             });
 
             var getLogs = new Method({
                 name: 'getLogs',
-                call: 'eth_getFilterLogs',
-                params: 1
+                call: 'huc_getFilterLogs',
+                params: 1,
             });
 
             var poll = new Method({
                 name: 'poll',
-                call: 'eth_getFilterChanges',
-                params: 1
+                call: 'huc_getFilterChanges',
+                params: 1,
             });
 
             return [
                 newFilter,
                 uninstallFilter,
                 getLogs,
-                poll
+                poll,
             ];
         };
 
-/// @returns an array of objects describing web3.shh.watch api methods
+/// @returns an array of objects describing webu.shh.watch api methods
         var shh = function () {
 
             return [
                 new Method({
                     name: 'newFilter',
                     call: 'shh_newMessageFilter',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'uninstallFilter',
                     call: 'shh_deleteMessageFilter',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'getLogs',
                     call: 'shh_getFilterMessages',
-                    params: 1
+                    params: 1,
                 }),
                 new Method({
                     name: 'poll',
                     call: 'shh_getFilterMessages',
-                    params: 1
-                })
+                    params: 1,
+                }),
             ];
         };
 
         module.exports = {
-            eth: eth,
-            shh: shh
+            huc: huc,
+            shh: shh,
         };
 
 
     }, {"../method": 36}],
     44: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file namereg.js
@@ -6262,32 +6354,32 @@ require = (function e(t, n, r) {
         module.exports = {
             global: {
                 abi: globalRegistrarAbi,
-                address: globalNameregAddress
+                address: globalNameregAddress,
             },
             icap: {
                 abi: icapRegistrarAbi,
-                address: icapNameregAddress
-            }
+                address: icapNameregAddress,
+            },
         };
 
 
     }, {"../contracts/GlobalRegistrar.json": 1, "../contracts/ICAPRegistrar.json": 2}],
     45: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file property.js
@@ -6330,7 +6422,9 @@ require = (function e(t, n, r) {
          * @return {Object}
          */
         Property.prototype.formatOutput = function (result) {
-            return this.outputFormatter && result !== null && result !== undefined ? this.outputFormatter(result) : result;
+            return this.outputFormatter && result !== null && result !== undefined ?
+                this.outputFormatter(result) :
+                result;
         };
 
         /**
@@ -6346,7 +6440,6 @@ require = (function e(t, n, r) {
             }
         };
 
-
         /**
          * Should attach function to method
          *
@@ -6357,7 +6450,7 @@ require = (function e(t, n, r) {
         Property.prototype.attachToObject = function (obj) {
             var proto = {
                 get: this.buildGet(),
-                enumerable: true
+                enumerable: true,
             };
 
             var names = this.name.split('.');
@@ -6380,7 +6473,7 @@ require = (function e(t, n, r) {
             var property = this;
             return function get() {
                 return property.formatOutput(property.requestManager.send({
-                    method: property.getter
+                    method: property.getter,
                 }));
             };
         };
@@ -6389,7 +6482,7 @@ require = (function e(t, n, r) {
             var property = this;
             var get = function (callback) {
                 property.requestManager.sendAsync({
-                    method: property.getter
+                    method: property.getter,
                 }, function (err, result) {
                     callback(err, property.formatOutput(result));
                 });
@@ -6409,7 +6502,7 @@ require = (function e(t, n, r) {
             var payload = {
                 method: this.getter,
                 params: [],
-                callback: this.extractCallback(Array.prototype.slice.call(arguments))
+                callback: this.extractCallback(Array.prototype.slice.call(arguments)),
             };
             payload.format = this.formatOutput.bind(this);
             return payload;
@@ -6421,20 +6514,20 @@ require = (function e(t, n, r) {
     }, {"../utils/utils": 20}],
     46: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file requestmanager.js
@@ -6560,9 +6653,14 @@ require = (function e(t, n, r) {
          *
          * @todo cleanup number of params
          */
-        RequestManager.prototype.startPolling = function (data, pollId, callback, uninstall) {
-            this.polls[pollId] = {data: data, id: pollId, callback: callback, uninstall: uninstall};
-
+        RequestManager.prototype.startPolling = function (
+            data, pollId, callback, uninstall) {
+            this.polls[pollId] = {
+                data: data,
+                id: pollId,
+                callback: callback,
+                uninstall: uninstall,
+            };
 
             // start polling
             if (!this.timeout) {
@@ -6617,7 +6715,7 @@ require = (function e(t, n, r) {
          */
         RequestManager.prototype.poll = function () {
             /*jshint maxcomplexity: 6 */
-            this.timeout = setTimeout(this.poll.bind(this), c.HUC_POLLING_TIMEOUT);
+            this.timeout = setTimeout(this.poll.bind(this), c.ETH_POLLING_TIMEOUT);
 
             if (Object.keys(this.polls).length === 0) {
                 return;
@@ -6646,7 +6744,6 @@ require = (function e(t, n, r) {
             payload.forEach(function (load, index) {
                 pollsIdMap[load.id] = pollsIds[index];
             });
-
 
             var self = this;
             this.provider.sendAsync(payload, function (error, results) {
@@ -6688,8 +6785,6 @@ require = (function e(t, n, r) {
 
     }, {"../utils/config": 18, "../utils/utils": 20, "./errors": 26, "./jsonrpc": 35}],
     47: [function (require, module, exports) {
-
-
         var Settings = function () {
             this.defaultBlock = 'latest';
             this.defaultAccount = undefined;
@@ -6701,20 +6796,20 @@ require = (function e(t, n, r) {
     }, {}],
     48: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /** @file syncing.js
          * @authors:
@@ -6763,7 +6858,7 @@ require = (function e(t, n, r) {
             };
 
             self.requestManager.startPolling({
-                method: 'eth_syncing',
+                method: 'huc_syncing',
                 params: [],
             }, self.pollId, onMessage, self.stopWatching.bind(self));
 
@@ -6797,20 +6892,20 @@ require = (function e(t, n, r) {
     }, {"../utils/utils": 20, "./formatters": 30}],
     49: [function (require, module, exports) {
         /*
-    This file is part of web3.js.
+    This file is part of webu.js.
 
-    web3.js is free software: you can redistribute it and/or modify
+    webu.js is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    web3.js is distributed in the hope that it will be useful,
+    webu.js is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-    along with web3.js.  If not, see <http://www.gnu.org/licenses/>.
+    along with webu.js.  If not, see <http://www.gnu.org/licenses/>.
 */
         /**
          * @file transfer.js
@@ -6830,23 +6925,23 @@ require = (function e(t, n, r) {
          * @param {Value} value to be tranfered
          * @param {Function} callback, callback
          */
-        var transfer = function (eth, from, to, value, callback) {
+        var transfer = function (huc, from, to, value, callback) {
             var iban = new Iban(to);
             if (!iban.isValid()) {
                 throw new Error('invalid iban address');
             }
 
             if (iban.isDirect()) {
-                return transferToAddress(eth, from, iban.address(), value, callback);
+                return transferToAddress(huc, from, iban.address(), value, callback);
             }
 
             if (!callback) {
-                var address = eth.icapNamereg().addr(iban.institution());
-                return deposit(eth, from, address, value, iban.client());
+                var address = huc.icapNamereg().addr(iban.institution());
+                return deposit(huc, from, address, value, iban.client());
             }
 
-            eth.icapNamereg().addr(iban.institution(), function (err, address) {
-                return deposit(eth, from, address, value, iban.client(), callback);
+            huc.icapNamereg().addr(iban.institution(), function (err, address) {
+                return deposit(huc, from, address, value, iban.client(), callback);
             });
 
         };
@@ -6860,11 +6955,11 @@ require = (function e(t, n, r) {
          * @param {Value} value to be tranfered
          * @param {Function} callback, callback
          */
-        var transferToAddress = function (eth, from, to, value, callback) {
-            return eth.sendTransaction({
+        var transferToAddress = function (huc, from, to, value, callback) {
+            return huc.sendTransaction({
                 address: to,
                 from: from,
-                value: value
+                value: value,
             }, callback);
         };
 
@@ -6878,11 +6973,11 @@ require = (function e(t, n, r) {
          * @param {String} client unique identifier
          * @param {Function} callback, callback
          */
-        var deposit = function (eth, from, to, value, client, callback) {
+        var deposit = function (huc, from, to, value, client, callback) {
             var abi = exchangeAbi;
-            return eth.contract(abi).at(to).deposit(client, {
+            return huc.contract(abi).at(to).deposit(client, {
                 from: from,
-                value: value
+                value: value,
             }, callback);
         };
 
@@ -7789,9 +7884,7 @@ require = (function e(t, n, r) {
                      *
                      *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key);
                      *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv });
-                     *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, {
-                     *         iv: iv, format: CryptoJS.format.OpenSSL
-                     *     });
+                     *     var ciphertextParams = CryptoJS.lib.SerializableCipher.encrypt(CryptoJS.algo.AES, message, key, { iv: iv, format: CryptoJS.format.OpenSSL });
                      */
                     encrypt: function (cipher, message, key, cfg) {
                         // Apply config defaults
@@ -7831,12 +7924,8 @@ require = (function e(t, n, r) {
                      *
                      * @example
                      *
-                     *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, key, {
-                     *         iv: iv, format: CryptoJS.format.OpenSSL
-                     *     });
-                     *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, key, {
-                      *        iv: iv, format: CryptoJS.format.OpenSSL
-                     *     });
+                     *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, key, { iv: iv, format: CryptoJS.format.OpenSSL });
+                     *     var plaintext = CryptoJS.lib.SerializableCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, key, { iv: iv, format: CryptoJS.format.OpenSSL });
                      */
                     decrypt: function (cipher, ciphertext, key, cfg) {
                         // Apply config defaults
@@ -7948,9 +8037,7 @@ require = (function e(t, n, r) {
                      * @example
                      *
                      *     var ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password');
-                     *     var ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password', {
-                     *         format: CryptoJS.format.OpenSSL
-                     *     });
+                     *     var ciphertextParams = CryptoJS.lib.PasswordBasedCipher.encrypt(CryptoJS.algo.AES, message, 'password', { format: CryptoJS.format.OpenSSL });
                      */
                     encrypt: function (cipher, message, password, cfg) {
                         // Apply config defaults
@@ -7985,10 +8072,8 @@ require = (function e(t, n, r) {
                      *
                      * @example
                      *
-                     *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES,
-                     *     formattedCiphertext, 'password', { format: CryptoJS.format.OpenSSL });
-                     *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES,
-                     *     ciphertextParams, 'password', { format: CryptoJS.format.OpenSSL });
+                     *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, formattedCiphertext, 'password', { format: CryptoJS.format.OpenSSL });
+                     *     var plaintext = CryptoJS.lib.PasswordBasedCipher.decrypt(CryptoJS.algo.AES, ciphertextParams, 'password', { format: CryptoJS.format.OpenSSL });
                      */
                     decrypt: function (cipher, ciphertext, password, cfg) {
                         // Apply config defaults
@@ -9416,78 +9501,11 @@ require = (function e(t, n, r) {
         ;(function (root, factory, undef) {
             if (typeof exports === "object") {
                 // CommonJS
-                module.exports = exports = factory(
-                    require("./core"),
-                    require("./x64-core"),
-                    require("./lib-typedarrays"),
-                    require("./enc-utf16"),
-                    require("./enc-base64"),
-                    require("./md5"),
-                    require("./sha1"),
-                    require("./sha256"),
-                    require("./sha224"),
-                    require("./sha512"),
-                    require("./sha384"),
-                    require("./sha3"),
-                    require("./ripemd160"),
-                    require("./hmac"),
-                    require("./pbkdf2"),
-                    require("./evpkdf"),
-                    require("./cipher-core"),
-                    require("./mode-cfb"),
-                    require("./mode-ctr"),
-                    require("./mode-ctr-gladman"),
-                    require("./mode-ofb"),
-                    require("./mode-ecb"),
-                    require("./pad-ansix923"),
-                    require("./pad-iso10126"),
-                    require("./pad-iso97971"),
-                    require("./pad-zeropadding"),
-                    require("./pad-nopadding"),
-                    require("./format-hex"),
-                    require("./aes"),
-                    require("./tripledes"),
-                    require("./rc4"),
-                    require("./rabbit"),
-                    require("./rabbit-legacy"));
+                module.exports = exports = factory(require("./core"), require("./x64-core"), require("./lib-typedarrays"), require("./enc-utf16"), require("./enc-base64"), require("./md5"), require("./sha1"), require("./sha256"), require("./sha224"), require("./sha512"), require("./sha384"), require("./sha3"), require("./ripemd160"), require("./hmac"), require("./pbkdf2"), require("./evpkdf"), require("./cipher-core"), require("./mode-cfb"), require("./mode-ctr"), require("./mode-ctr-gladman"), require("./mode-ofb"), require("./mode-ecb"), require("./pad-ansix923"), require("./pad-iso10126"), require("./pad-iso97971"), require("./pad-zeropadding"), require("./pad-nopadding"), require("./format-hex"), require("./aes"), require("./tripledes"), require("./rc4"), require("./rabbit"), require("./rabbit-legacy"));
             }
             else if (typeof define === "function" && define.amd) {
                 // AMD
-                define([
-                    "./core",
-                    "./x64-core",
-                    "./lib-typedarrays",
-                    "./enc-utf16",
-                    "./enc-base64",
-                    "./md5",
-                    "./sha1",
-                    "./sha256",
-                    "./sha224",
-                    "./sha512",
-                    "./sha384",
-                    "./sha3",
-                    "./ripemd160",
-                    "./hmac",
-                    "./pbkdf2",
-                    "./evpkdf",
-                    "./cipher-core",
-                    "./mode-cfb",
-                    "./mode-ctr",
-                    "./mode-ctr-gladman",
-                    "./mode-ofb",
-                    "./mode-ecb",
-                    "./pad-ansix923",
-                    "./pad-iso10126",
-                    "./pad-iso97971",
-                    "./pad-zeropadding",
-                    "./pad-nopadding",
-                    "./format-hex",
-                    "./aes",
-                    "./tripledes",
-                    "./rc4",
-                    "./rabbit",
-                    "./rabbit-legacy"
-                ], factory);
+                define(["./core", "./x64-core", "./lib-typedarrays", "./enc-utf16", "./enc-base64", "./md5", "./sha1", "./sha256", "./sha224", "./sha512", "./sha384", "./sha3", "./ripemd160", "./hmac", "./pbkdf2", "./evpkdf", "./cipher-core", "./mode-cfb", "./mode-ctr", "./mode-ctr-gladman", "./mode-ofb", "./mode-ecb", "./pad-ansix923", "./pad-iso10126", "./pad-iso97971", "./pad-zeropadding", "./pad-nopadding", "./format-hex", "./aes", "./tripledes", "./rc4", "./rabbit", "./rabbit-legacy"], factory);
             }
             else {
                 // Global (browser)
@@ -11139,15 +11157,9 @@ require = (function e(t, n, r) {
              Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
              - Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-             - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-             in the documentation and/or other materials provided with the distribution.
+             - Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-             THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-             BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-             IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-             OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-             OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHHUCER IN CONTRACT, STRICT LIABILITY,
-             OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+             THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
              */
 
             (function (Math) {
@@ -13895,22 +13907,2716 @@ require = (function e(t, n, r) {
 
     }, {}],
     "bignumber.js": [function (require, module, exports) {
-        'use strict';
+        /*! bignumber.js v2.0.7 https://github.com/MikeMcl/bignumber.js/LICENCE */
 
-        module.exports = BigNumber; // jshint ignore:line
+        ;(function (global) {
+            'use strict';
+
+            /*
+      bignumber.js v2.0.7
+      A JavaScript library for arbitrary-precision arithmetic.
+      https://github.com/MikeMcl/bignumber.js
+      Copyright (c) 2015 Michael Mclaughlin <M8ch88l@gmail.com>
+      MIT Expat Licence
+    */
 
 
-    }, {}],
-    "web3": [function (require, module, exports) {
-        var Web3 = require('./lib/web3');
+            var BigNumber, crypto, parseNumeric,
+                isNumeric = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i,
+                mathceil = Math.ceil,
+                mathfloor = Math.floor,
+                notBool = ' not a boolean or binary digit',
+                roundingMode = 'rounding mode',
+                tooManyDigits = 'number type has more than 15 significant digits',
+                ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_',
+                BASE = 1e14,
+                LOG_BASE = 14,
+                MAX_SAFE_INTEGER = 0x1fffffffffffff,         // 2^53 - 1
+                // MAX_INT32 = 0x7fffffff,                   // 2^31 - 1
+                POWS_TEN = [1, 10, 100, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13],
+                SQRT_BASE = 1e7,
+
+                /*
+         * The limit on the value of DECIMAL_PLACES, TO_EXP_NEG, TO_EXP_POS, MIN_EXP, MAX_EXP, and
+         * the arguments to toExponential, toFixed, toFormat, and toPrecision, beyond which an
+         * exception is thrown (if ERRORS is true).
+         */
+                MAX = 1E9;                                   // 0 to MAX_INT32
+
+
+            /*
+     * Create and return a BigNumber constructor.
+     */
+            function another(configObj) {
+                var div,
+
+                    // id tracks the caller function, so its name can be included in error messages.
+                    id = 0,
+                    P = BigNumber.prototype,
+                    ONE = new BigNumber(1),
+
+
+                    /********************************* EDITABLE DEFAULTS **********************************/
+
+
+                    /*
+             * The default values below must be integers within the inclusive ranges stated.
+             * The values can also be changed at run-time using BigNumber.config.
+             */
+
+                    // The maximum number of decimal places for operations involving division.
+                    DECIMAL_PLACES = 20,                     // 0 to MAX
+
+                    /*
+             * The rounding mode used when rounding to the above decimal places, and when using
+             * toExponential, toFixed, toFormat and toPrecision, and round (default value).
+             * UP         0 Away from zero.
+             * DOWN       1 Towards zero.
+             * CEIL       2 Towards +Infinity.
+             * FLOOR      3 Towards -Infinity.
+             * HALF_UP    4 Towards nearest neighbour. If equidistant, up.
+             * HALF_DOWN  5 Towards nearest neighbour. If equidistant, down.
+             * HALF_EVEN  6 Towards nearest neighbour. If equidistant, towards even neighbour.
+             * HALF_CEIL  7 Towards nearest neighbour. If equidistant, towards +Infinity.
+             * HALF_FLOOR 8 Towards nearest neighbour. If equidistant, towards -Infinity.
+             */
+                    ROUNDING_MODE = 4,                       // 0 to 8
+
+                    // EXPONENTIAL_AT : [TO_EXP_NEG , TO_EXP_POS]
+
+                    // The exponent value at and beneath which toString returns exponential notation.
+                    // Number type: -7
+                    TO_EXP_NEG = -7,                         // 0 to -MAX
+
+                    // The exponent value at and above which toString returns exponential notation.
+                    // Number type: 21
+                    TO_EXP_POS = 21,                         // 0 to MAX
+
+                    // RANGE : [MIN_EXP, MAX_EXP]
+
+                    // The minimum exponent value, beneath which underflow to zero occurs.
+                    // Number type: -324  (5e-324)
+                    MIN_EXP = -1e7,                          // -1 to -MAX
+
+                    // The maximum exponent value, above which overflow to Infinity occurs.
+                    // Number type:  308  (1.7976931348623157e+308)
+                    // For MAX_EXP > 1e7, e.g. new BigNumber('1e100000000').plus(1) may be slow.
+                    MAX_EXP = 1e7,                           // 1 to MAX
+
+                    // Whether BigNumber Errors are ever thrown.
+                    ERRORS = true,                           // true or false
+
+                    // Change to intValidatorNoErrors if ERRORS is false.
+                    isValidInt = intValidatorWithErrors,     // intValidatorWithErrors/intValidatorNoErrors
+
+                    // Whether to use cryptographically-secure random number generation, if available.
+                    CRYPTO = false,                          // true or false
+
+                    /*
+             * The modulo mode used when calculating the modulus: a mod n.
+             * The quotient (q = a / n) is calculated according to the corresponding rounding mode.
+             * The remainder (r) is calculated as: r = a - n * q.
+             *
+             * UP        0 The remainder is positive if the dividend is negative, else is negative.
+             * DOWN      1 The remainder has the same sign as the dividend.
+             *             This modulo mode is commonly known as 'truncated division' and is
+             *             equivalent to (a % n) in JavaScript.
+             * FLOOR     3 The remainder has the same sign as the divisor (Python %).
+             * HALF_EVEN 6 This modulo mode implements the IEEE 754 remainder function.
+             * EUCLID    9 Euclidian division. q = sign(n) * floor(a / abs(n)).
+             *             The remainder is always positive.
+             *
+             * The truncated division, floored division, Euclidian division and IEEE 754 remainder
+             * modes are commonly used for the modulus operation.
+             * Although the other rounding modes can also be used, they may not give useful results.
+             */
+                    MODULO_MODE = 1,                         // 0 to 9
+
+                    // The maximum number of significant digits of the result of the toPower operation.
+                    // If POW_PRECISION is 0, there will be unlimited significant digits.
+                    POW_PRECISION = 100,                     // 0 to MAX
+
+                    // The format specification used by the BigNumber.prototype.toFormat method.
+                    FORMAT = {
+                        decimalSeparator: '.',
+                        groupSeparator: ',',
+                        groupSize: 3,
+                        secondaryGroupSize: 0,
+                        fractionGroupSeparator: '\xA0',      // non-breaking space
+                        fractionGroupSize: 0
+                    };
+
+
+                /******************************************************************************************/
+
+
+                // CONSTRUCTOR
+
+
+                /*
+         * The BigNumber constructor and exported function.
+         * Create and return a new instance of a BigNumber object.
+         *
+         * n {number|string|BigNumber} A numeric value.
+         * [b] {number} The base of n. Integer, 2 to 64 inclusive.
+         */
+                function BigNumber(n, b) {
+                    var c, e, i, num, len, str,
+                        x = this;
+
+                    // Enable constructor usage without new.
+                    if (!(x instanceof BigNumber)) {
+
+                        // 'BigNumber() constructor call without new: {n}'
+                        if (ERRORS) raise(26, 'constructor call without new', n);
+                        return new BigNumber(n, b);
+                    }
+
+                    // 'new BigNumber() base not an integer: {b}'
+                    // 'new BigNumber() base out of range: {b}'
+                    if (b == null || !isValidInt(b, 2, 64, id, 'base')) {
+
+                        // Duplicate.
+                        if (n instanceof BigNumber) {
+                            x.s = n.s;
+                            x.e = n.e;
+                            x.c = (n = n.c) ? n.slice() : n;
+                            id = 0;
+                            return;
+                        }
+
+                        if ((num = typeof n == 'number') && n * 0 == 0) {
+                            x.s = 1 / n < 0 ? (n = -n, -1) : 1;
+
+                            // Fast path for integers.
+                            if (n === ~~n) {
+                                for (e = 0, i = n; i >= 10; i /= 10, e++) ;
+                                x.e = e;
+                                x.c = [n];
+                                id = 0;
+                                return;
+                            }
+
+                            str = n + '';
+                        } else {
+                            if (!isNumeric.test(str = n + '')) return parseNumeric(x, str, num);
+                            x.s = str.charCodeAt(0) === 45 ? (str = str.slice(1), -1) : 1;
+                        }
+                    } else {
+                        b = b | 0;
+                        str = n + '';
+
+                        // Ensure return value is rounded to DECIMAL_PLACES as with other bases.
+                        // Allow exponential notation to be used with base 10 argument.
+                        if (b == 10) {
+                            x = new BigNumber(n instanceof BigNumber ? n : str);
+                            return round(x, DECIMAL_PLACES + x.e + 1, ROUNDING_MODE);
+                        }
+
+                        // Avoid potential interpretation of Infinity and NaN as base 44+ values.
+                        // Any number in exponential form will fail due to the [Ee][+-].
+                        if ((num = typeof n == 'number') && n * 0 != 0 ||
+                            !(new RegExp('^-?' + (c = '[' + ALPHABET.slice(0, b) + ']+') +
+                                '(?:\\.' + c + ')?$', b < 37 ? 'i' : '')).test(str)) {
+                            return parseNumeric(x, str, num, b);
+                        }
+
+                        if (num) {
+                            x.s = 1 / n < 0 ? (str = str.slice(1), -1) : 1;
+
+                            if (ERRORS && str.replace(/^0\.0*|\./, '').length > 15) {
+
+                                // 'new BigNumber() number type has more than 15 significant digits: {n}'
+                                raise(id, tooManyDigits, n);
+                            }
+
+                            // Prevent later check for length on converted number.
+                            num = false;
+                        } else {
+                            x.s = str.charCodeAt(0) === 45 ? (str = str.slice(1), -1) : 1;
+                        }
+
+                        str = convertBase(str, 10, b, x.s);
+                    }
+
+                    // Decimal point?
+                    if ((e = str.indexOf('.')) > -1) str = str.replace('.', '');
+
+                    // Exponential form?
+                    if ((i = str.search(/e/i)) > 0) {
+
+                        // Determine exponent.
+                        if (e < 0) e = i;
+                        e += +str.slice(i + 1);
+                        str = str.substring(0, i);
+                    } else if (e < 0) {
+
+                        // Integer.
+                        e = str.length;
+                    }
+
+                    // Determine leading zeros.
+                    for (i = 0; str.charCodeAt(i) === 48; i++) ;
+
+                    // Determine trailing zeros.
+                    for (len = str.length; str.charCodeAt(--len) === 48;) ;
+                    str = str.slice(i, len + 1);
+
+                    if (str) {
+                        len = str.length;
+
+                        // Disallow numbers with over 15 significant digits if number type.
+                        // 'new BigNumber() number type has more than 15 significant digits: {n}'
+                        if (num && ERRORS && len > 15) raise(id, tooManyDigits, x.s * n);
+
+                        e = e - i - 1;
+
+                        // Overflow?
+                        if (e > MAX_EXP) {
+
+                            // Infinity.
+                            x.c = x.e = null;
+
+                            // Underflow?
+                        } else if (e < MIN_EXP) {
+
+                            // Zero.
+                            x.c = [x.e = 0];
+                        } else {
+                            x.e = e;
+                            x.c = [];
+
+                            // Transform base
+
+                            // e is the base 10 exponent.
+                            // i is where to slice str to get the first element of the coefficient array.
+                            i = (e + 1) % LOG_BASE;
+                            if (e < 0) i += LOG_BASE;
+
+                            if (i < len) {
+                                if (i) x.c.push(+str.slice(0, i));
+
+                                for (len -= LOG_BASE; i < len;) {
+                                    x.c.push(+str.slice(i, i += LOG_BASE));
+                                }
+
+                                str = str.slice(i);
+                                i = LOG_BASE - str.length;
+                            } else {
+                                i -= len;
+                            }
+
+                            for (; i--; str += '0') ;
+                            x.c.push(+str);
+                        }
+                    } else {
+
+                        // Zero.
+                        x.c = [x.e = 0];
+                    }
+
+                    id = 0;
+                }
+
+
+                // CONSTRUCTOR PROPERTIES
+
+
+                BigNumber.another = another;
+
+                BigNumber.ROUND_UP = 0;
+                BigNumber.ROUND_DOWN = 1;
+                BigNumber.ROUND_CEIL = 2;
+                BigNumber.ROUND_FLOOR = 3;
+                BigNumber.ROUND_HALF_UP = 4;
+                BigNumber.ROUND_HALF_DOWN = 5;
+                BigNumber.ROUND_HALF_EVEN = 6;
+                BigNumber.ROUND_HALF_CEIL = 7;
+                BigNumber.ROUND_HALF_FLOOR = 8;
+                BigNumber.EUCLID = 9;
+
+
+                /*
+         * Configure infrequently-changing library-wide settings.
+         *
+         * Accept an object or an argument list, with one or many of the following properties or
+         * parameters respectively:
+         *
+         *   DECIMAL_PLACES  {number}  Integer, 0 to MAX inclusive
+         *   ROUNDING_MODE   {number}  Integer, 0 to 8 inclusive
+         *   EXPONENTIAL_AT  {number|number[]}  Integer, -MAX to MAX inclusive or
+         *                                      [integer -MAX to 0 incl., 0 to MAX incl.]
+         *   RANGE           {number|number[]}  Non-zero integer, -MAX to MAX inclusive or
+         *                                      [integer -MAX to -1 incl., integer 1 to MAX incl.]
+         *   ERRORS          {boolean|number}   true, false, 1 or 0
+         *   CRYPTO          {boolean|number}   true, false, 1 or 0
+         *   MODULO_MODE     {number}           0 to 9 inclusive
+         *   POW_PRECISION   {number}           0 to MAX inclusive
+         *   FORMAT          {object}           See BigNumber.prototype.toFormat
+         *      decimalSeparator       {string}
+         *      groupSeparator         {string}
+         *      groupSize              {number}
+         *      secondaryGroupSize     {number}
+         *      fractionGroupSeparator {string}
+         *      fractionGroupSize      {number}
+         *
+         * (The values assigned to the above FORMAT object properties are not checked for validity.)
+         *
+         * E.g.
+         * BigNumber.config(20, 4) is equivalent to
+         * BigNumber.config({ DECIMAL_PLACES : 20, ROUNDING_MODE : 4 })
+         *
+         * Ignore properties/parameters set to null or undefined.
+         * Return an object with the properties current values.
+         */
+                BigNumber.config = function () {
+                    var v, p,
+                        i = 0,
+                        r = {},
+                        a = arguments,
+                        o = a[0],
+                        has = o && typeof o == 'object'
+                            ? function () {
+                                if (o.hasOwnProperty(p)) return (v = o[p]) != null;
+                            }
+                            : function () {
+                                if (a.length > i) return (v = a[i++]) != null;
+                            };
+
+                    // DECIMAL_PLACES {number} Integer, 0 to MAX inclusive.
+                    // 'config() DECIMAL_PLACES not an integer: {v}'
+                    // 'config() DECIMAL_PLACES out of range: {v}'
+                    if (has(p = 'DECIMAL_PLACES') && isValidInt(v, 0, MAX, 2, p)) {
+                        DECIMAL_PLACES = v | 0;
+                    }
+                    r[p] = DECIMAL_PLACES;
+
+                    // ROUNDING_MODE {number} Integer, 0 to 8 inclusive.
+                    // 'config() ROUNDING_MODE not an integer: {v}'
+                    // 'config() ROUNDING_MODE out of range: {v}'
+                    if (has(p = 'ROUNDING_MODE') && isValidInt(v, 0, 8, 2, p)) {
+                        ROUNDING_MODE = v | 0;
+                    }
+                    r[p] = ROUNDING_MODE;
+
+                    // EXPONENTIAL_AT {number|number[]}
+                    // Integer, -MAX to MAX inclusive or [integer -MAX to 0 inclusive, 0 to MAX inclusive].
+                    // 'config() EXPONENTIAL_AT not an integer: {v}'
+                    // 'config() EXPONENTIAL_AT out of range: {v}'
+                    if (has(p = 'EXPONENTIAL_AT')) {
+
+                        if (isArray(v)) {
+                            if (isValidInt(v[0], -MAX, 0, 2, p) && isValidInt(v[1], 0, MAX, 2, p)) {
+                                TO_EXP_NEG = v[0] | 0;
+                                TO_EXP_POS = v[1] | 0;
+                            }
+                        } else if (isValidInt(v, -MAX, MAX, 2, p)) {
+                            TO_EXP_NEG = -(TO_EXP_POS = (v < 0 ? -v : v) | 0);
+                        }
+                    }
+                    r[p] = [TO_EXP_NEG, TO_EXP_POS];
+
+                    // RANGE {number|number[]} Non-zero integer, -MAX to MAX inclusive or
+                    // [integer -MAX to -1 inclusive, integer 1 to MAX inclusive].
+                    // 'config() RANGE not an integer: {v}'
+                    // 'config() RANGE cannot be zero: {v}'
+                    // 'config() RANGE out of range: {v}'
+                    if (has(p = 'RANGE')) {
+
+                        if (isArray(v)) {
+                            if (isValidInt(v[0], -MAX, -1, 2, p) && isValidInt(v[1], 1, MAX, 2, p)) {
+                                MIN_EXP = v[0] | 0;
+                                MAX_EXP = v[1] | 0;
+                            }
+                        } else if (isValidInt(v, -MAX, MAX, 2, p)) {
+                            if (v | 0) MIN_EXP = -(MAX_EXP = (v < 0 ? -v : v) | 0);
+                            else if (ERRORS) raise(2, p + ' cannot be zero', v);
+                        }
+                    }
+                    r[p] = [MIN_EXP, MAX_EXP];
+
+                    // ERRORS {boolean|number} true, false, 1 or 0.
+                    // 'config() ERRORS not a boolean or binary digit: {v}'
+                    if (has(p = 'ERRORS')) {
+
+                        if (v === !!v || v === 1 || v === 0) {
+                            id = 0;
+                            isValidInt = (ERRORS = !!v) ? intValidatorWithErrors : intValidatorNoErrors;
+                        } else if (ERRORS) {
+                            raise(2, p + notBool, v);
+                        }
+                    }
+                    r[p] = ERRORS;
+
+                    // CRYPTO {boolean|number} true, false, 1 or 0.
+                    // 'config() CRYPTO not a boolean or binary digit: {v}'
+                    // 'config() crypto unavailable: {crypto}'
+                    if (has(p = 'CRYPTO')) {
+
+                        if (v === !!v || v === 1 || v === 0) {
+                            CRYPTO = !!(v && crypto && typeof crypto == 'object');
+                            if (v && !CRYPTO && ERRORS) raise(2, 'crypto unavailable', crypto);
+                        } else if (ERRORS) {
+                            raise(2, p + notBool, v);
+                        }
+                    }
+                    r[p] = CRYPTO;
+
+                    // MODULO_MODE {number} Integer, 0 to 9 inclusive.
+                    // 'config() MODULO_MODE not an integer: {v}'
+                    // 'config() MODULO_MODE out of range: {v}'
+                    if (has(p = 'MODULO_MODE') && isValidInt(v, 0, 9, 2, p)) {
+                        MODULO_MODE = v | 0;
+                    }
+                    r[p] = MODULO_MODE;
+
+                    // POW_PRECISION {number} Integer, 0 to MAX inclusive.
+                    // 'config() POW_PRECISION not an integer: {v}'
+                    // 'config() POW_PRECISION out of range: {v}'
+                    if (has(p = 'POW_PRECISION') && isValidInt(v, 0, MAX, 2, p)) {
+                        POW_PRECISION = v | 0;
+                    }
+                    r[p] = POW_PRECISION;
+
+                    // FORMAT {object}
+                    // 'config() FORMAT not an object: {v}'
+                    if (has(p = 'FORMAT')) {
+
+                        if (typeof v == 'object') {
+                            FORMAT = v;
+                        } else if (ERRORS) {
+                            raise(2, p + ' not an object', v);
+                        }
+                    }
+                    r[p] = FORMAT;
+
+                    return r;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the maximum of the arguments.
+         *
+         * arguments {number|string|BigNumber}
+         */
+                BigNumber.max = function () {
+                    return maxOrMin(arguments, P.lt);
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the minimum of the arguments.
+         *
+         * arguments {number|string|BigNumber}
+         */
+                BigNumber.min = function () {
+                    return maxOrMin(arguments, P.gt);
+                };
+
+
+                /*
+         * Return a new BigNumber with a random value equal to or greater than 0 and less than 1,
+         * and with dp, or DECIMAL_PLACES if dp is omitted, decimal places (or less if trailing
+         * zeros are produced).
+         *
+         * [dp] {number} Decimal places. Integer, 0 to MAX inclusive.
+         *
+         * 'random() decimal places not an integer: {dp}'
+         * 'random() decimal places out of range: {dp}'
+         * 'random() crypto unavailable: {crypto}'
+         */
+                BigNumber.random = (function () {
+                    var pow2_53 = 0x20000000000000;
+
+                    // Return a 53 bit integer n, where 0 <= n < 9007199254740992.
+                    // Check if Math.random() produces more than 32 bits of randomness.
+                    // If it does, assume at least 53 bits are produced, otherwise assume at least 30 bits.
+                    // 0x40000000 is 2^30, 0x800000 is 2^23, 0x1fffff is 2^21 - 1.
+                    var random53bitInt = (Math.random() * pow2_53) & 0x1fffff
+                        ? function () {
+                            return mathfloor(Math.random() * pow2_53);
+                        }
+                        : function () {
+                            return ((Math.random() * 0x40000000 | 0) * 0x800000) +
+                                (Math.random() * 0x800000 | 0);
+                        };
+
+                    return function (dp) {
+                        var a, b, e, k, v,
+                            i = 0,
+                            c = [],
+                            rand = new BigNumber(ONE);
+
+                        dp = dp == null || !isValidInt(dp, 0, MAX, 14) ? DECIMAL_PLACES : dp | 0;
+                        k = mathceil(dp / LOG_BASE);
+
+                        if (CRYPTO) {
+
+                            // Browsers supporting crypto.getRandomValues.
+                            if (crypto && crypto.getRandomValues) {
+
+                                a = crypto.getRandomValues(new Uint32Array(k *= 2));
+
+                                for (; i < k;) {
+
+                                    // 53 bits:
+                                    // ((Math.pow(2, 32) - 1) * Math.pow(2, 21)).toString(2)
+                                    // 11111 11111111 11111111 11111111 11100000 00000000 00000000
+                                    // ((Math.pow(2, 32) - 1) >>> 11).toString(2)
+                                    //                                     11111 11111111 11111111
+                                    // 0x20000 is 2^21.
+                                    v = a[i] * 0x20000 + (a[i + 1] >>> 11);
+
+                                    // Rejection sampling:
+                                    // 0 <= v < 9007199254740992
+                                    // Probability that v >= 9e15, is
+                                    // 7199254740992 / 9007199254740992 ~= 0.0008, i.e. 1 in 1251
+                                    if (v >= 9e15) {
+                                        b = crypto.getRandomValues(new Uint32Array(2));
+                                        a[i] = b[0];
+                                        a[i + 1] = b[1];
+                                    } else {
+
+                                        // 0 <= v <= 8999999999999999
+                                        // 0 <= (v % 1e14) <= 99999999999999
+                                        c.push(v % 1e14);
+                                        i += 2;
+                                    }
+                                }
+                                i = k / 2;
+
+                                // Node.js supporting crypto.randomBytes.
+                            } else if (crypto && crypto.randomBytes) {
+
+                                // buffer
+                                a = crypto.randomBytes(k *= 7);
+
+                                for (; i < k;) {
+
+                                    // 0x1000000000000 is 2^48, 0x10000000000 is 2^40
+                                    // 0x100000000 is 2^32, 0x1000000 is 2^24
+                                    // 11111 11111111 11111111 11111111 11111111 11111111 11111111
+                                    // 0 <= v < 9007199254740992
+                                    v = ((a[i] & 31) * 0x1000000000000) + (a[i + 1] * 0x10000000000) +
+                                        (a[i + 2] * 0x100000000) + (a[i + 3] * 0x1000000) +
+                                        (a[i + 4] << 16) + (a[i + 5] << 8) + a[i + 6];
+
+                                    if (v >= 9e15) {
+                                        crypto.randomBytes(7).copy(a, i);
+                                    } else {
+
+                                        // 0 <= (v % 1e14) <= 99999999999999
+                                        c.push(v % 1e14);
+                                        i += 7;
+                                    }
+                                }
+                                i = k / 7;
+                            } else if (ERRORS) {
+                                raise(14, 'crypto unavailable', crypto);
+                            }
+                        }
+
+                        // Use Math.random: CRYPTO is false or crypto is unavailable and ERRORS is false.
+                        if (!i) {
+
+                            for (; i < k;) {
+                                v = random53bitInt();
+                                if (v < 9e15) c[i++] = v % 1e14;
+                            }
+                        }
+
+                        k = c[--i];
+                        dp %= LOG_BASE;
+
+                        // Convert trailing digits to zeros according to dp.
+                        if (k && dp) {
+                            v = POWS_TEN[LOG_BASE - dp];
+                            c[i] = mathfloor(k / v) * v;
+                        }
+
+                        // Remove trailing elements which are zero.
+                        for (; c[i] === 0; c.pop(), i--) ;
+
+                        // Zero?
+                        if (i < 0) {
+                            c = [e = 0];
+                        } else {
+
+                            // Remove leading elements which are zero and adjust exponent accordingly.
+                            for (e = -1; c[0] === 0; c.shift(), e -= LOG_BASE) ;
+
+                            // Count the digits of the first element of c to determine leading zeros, and...
+                            for (i = 1, v = c[0]; v >= 10; v /= 10, i++) ;
+
+                            // adjust the exponent accordingly.
+                            if (i < LOG_BASE) e -= LOG_BASE - i;
+                        }
+
+                        rand.e = e;
+                        rand.c = c;
+                        return rand;
+                    };
+                })();
+
+
+                // PRIVATE FUNCTIONS
+
+
+                // Convert a numeric string of baseIn to a numeric string of baseOut.
+                function convertBase(str, baseOut, baseIn, sign) {
+                    var d, e, k, r, x, xc, y,
+                        i = str.indexOf('.'),
+                        dp = DECIMAL_PLACES,
+                        rm = ROUNDING_MODE;
+
+                    if (baseIn < 37) str = str.toLowerCase();
+
+                    // Non-integer.
+                    if (i >= 0) {
+                        k = POW_PRECISION;
+
+                        // Unlimited precision.
+                        POW_PRECISION = 0;
+                        str = str.replace('.', '');
+                        y = new BigNumber(baseIn);
+                        x = y.pow(str.length - i);
+                        POW_PRECISION = k;
+
+                        // Convert str as if an integer, then restore the fraction part by dividing the
+                        // result by its base raised to a power.
+                        y.c = toBaseOut(toFixedPoint(coeffToString(x.c), x.e), 10, baseOut);
+                        y.e = y.c.length;
+                    }
+
+                    // Convert the number as integer.
+                    xc = toBaseOut(str, baseIn, baseOut);
+                    e = k = xc.length;
+
+                    // Remove trailing zeros.
+                    for (; xc[--k] == 0; xc.pop()) ;
+                    if (!xc[0]) return '0';
+
+                    if (i < 0) {
+                        --e;
+                    } else {
+                        x.c = xc;
+                        x.e = e;
+
+                        // sign is needed for correct rounding.
+                        x.s = sign;
+                        x = div(x, y, dp, rm, baseOut);
+                        xc = x.c;
+                        r = x.r;
+                        e = x.e;
+                    }
+
+                    d = e + dp + 1;
+
+                    // The rounding digit, i.e. the digit to the right of the digit that may be rounded up.
+                    i = xc[d];
+                    k = baseOut / 2;
+                    r = r || d < 0 || xc[d + 1] != null;
+
+                    r = rm < 4 ? (i != null || r) && (rm == 0 || rm == (x.s < 0 ? 3 : 2))
+                        : i > k || i == k && (rm == 4 || r || rm == 6 && xc[d - 1] & 1 ||
+                        rm == (x.s < 0 ? 8 : 7));
+
+                    if (d < 1 || !xc[0]) {
+
+                        // 1^-dp or 0.
+                        str = r ? toFixedPoint('1', -dp) : '0';
+                    } else {
+                        xc.length = d;
+
+                        if (r) {
+
+                            // Rounding up may mean the previous digit has to be rounded up and so on.
+                            for (--baseOut; ++xc[--d] > baseOut;) {
+                                xc[d] = 0;
+
+                                if (!d) {
+                                    ++e;
+                                    xc.unshift(1);
+                                }
+                            }
+                        }
+
+                        // Determine trailing zeros.
+                        for (k = xc.length; !xc[--k];) ;
+
+                        // E.g. [4, 11, 15] becomes 4bf.
+                        for (i = 0, str = ''; i <= k; str += ALPHABET.charAt(xc[i++])) ;
+                        str = toFixedPoint(str, e);
+                    }
+
+                    // The caller will add the sign.
+                    return str;
+                }
+
+
+                // Perform division in the specified base. Called by div and convertBase.
+                div = (function () {
+
+                    // Assume non-zero x and k.
+                    function multiply(x, k, base) {
+                        var m, temp, xlo, xhi,
+                            carry = 0,
+                            i = x.length,
+                            klo = k % SQRT_BASE,
+                            khi = k / SQRT_BASE | 0;
+
+                        for (x = x.slice(); i--;) {
+                            xlo = x[i] % SQRT_BASE;
+                            xhi = x[i] / SQRT_BASE | 0;
+                            m = khi * xlo + xhi * klo;
+                            temp = klo * xlo + ((m % SQRT_BASE) * SQRT_BASE) + carry;
+                            carry = (temp / base | 0) + (m / SQRT_BASE | 0) + khi * xhi;
+                            x[i] = temp % base;
+                        }
+
+                        if (carry) x.unshift(carry);
+
+                        return x;
+                    }
+
+                    function compare(a, b, aL, bL) {
+                        var i, cmp;
+
+                        if (aL != bL) {
+                            cmp = aL > bL ? 1 : -1;
+                        } else {
+
+                            for (i = cmp = 0; i < aL; i++) {
+
+                                if (a[i] != b[i]) {
+                                    cmp = a[i] > b[i] ? 1 : -1;
+                                    break;
+                                }
+                            }
+                        }
+                        return cmp;
+                    }
+
+                    function subtract(a, b, aL, base) {
+                        var i = 0;
+
+                        // Subtract b from a.
+                        for (; aL--;) {
+                            a[aL] -= i;
+                            i = a[aL] < b[aL] ? 1 : 0;
+                            a[aL] = i * base + a[aL] - b[aL];
+                        }
+
+                        // Remove leading zeros.
+                        for (; !a[0] && a.length > 1; a.shift()) ;
+                    }
+
+                    // x: dividend, y: divisor.
+                    return function (x, y, dp, rm, base) {
+                        var cmp, e, i, more, n, prod, prodL, q, qc, rem, remL, rem0, xi, xL, yc0,
+                            yL, yz,
+                            s = x.s == y.s ? 1 : -1,
+                            xc = x.c,
+                            yc = y.c;
+
+                        // Either NaN, Infinity or 0?
+                        if (!xc || !xc[0] || !yc || !yc[0]) {
+
+                            return new BigNumber(
+                                // Return NaN if either NaN, or both Infinity or 0.
+                                !x.s || !y.s || (xc ? yc && xc[0] == yc[0] : !yc) ? NaN :
+
+                                    // Return ±0 if x is ±0 or y is ±Infinity, or return ±Infinity as y is ±0.
+                                    xc && xc[0] == 0 || !yc ? s * 0 : s / 0
+                            );
+                        }
+
+                        q = new BigNumber(s);
+                        qc = q.c = [];
+                        e = x.e - y.e;
+                        s = dp + e + 1;
+
+                        if (!base) {
+                            base = BASE;
+                            e = bitFloor(x.e / LOG_BASE) - bitFloor(y.e / LOG_BASE);
+                            s = s / LOG_BASE | 0;
+                        }
+
+                        // Result exponent may be one less then the current value of e.
+                        // The coefficients of the BigNumbers from convertBase may have trailing zeros.
+                        for (i = 0; yc[i] == (xc[i] || 0); i++) ;
+                        if (yc[i] > (xc[i] || 0)) e--;
+
+                        if (s < 0) {
+                            qc.push(1);
+                            more = true;
+                        } else {
+                            xL = xc.length;
+                            yL = yc.length;
+                            i = 0;
+                            s += 2;
+
+                            // Normalise xc and yc so highest order digit of yc is >= base / 2.
+
+                            n = mathfloor(base / (yc[0] + 1));
+
+                            // Not necessary, but to handle odd bases where yc[0] == ( base / 2 ) - 1.
+                            // if ( n > 1 || n++ == 1 && yc[0] < base / 2 ) {
+                            if (n > 1) {
+                                yc = multiply(yc, n, base);
+                                xc = multiply(xc, n, base);
+                                yL = yc.length;
+                                xL = xc.length;
+                            }
+
+                            xi = yL;
+                            rem = xc.slice(0, yL);
+                            remL = rem.length;
+
+                            // Add zeros to make remainder as long as divisor.
+                            for (; remL < yL; rem[remL++] = 0) ;
+                            yz = yc.slice();
+                            yz.unshift(0);
+                            yc0 = yc[0];
+                            if (yc[1] >= base / 2) yc0++;
+                            // Not necessary, but to prevent trial digit n > base, when using base 3.
+                            // else if ( base == 3 && yc0 == 1 ) yc0 = 1 + 1e-15;
+
+                            do {
+                                n = 0;
+
+                                // Compare divisor and remainder.
+                                cmp = compare(yc, rem, yL, remL);
+
+                                // If divisor < remainder.
+                                if (cmp < 0) {
+
+                                    // Calculate trial digit, n.
+
+                                    rem0 = rem[0];
+                                    if (yL != remL) rem0 = rem0 * base + (rem[1] || 0);
+
+                                    // n is how many times the divisor goes into the current remainder.
+                                    n = mathfloor(rem0 / yc0);
+
+                                    //  Algorithm:
+                                    //  1. product = divisor * trial digit (n)
+                                    //  2. if product > remainder: product -= divisor, n--
+                                    //  3. remainder -= product
+                                    //  4. if product was < remainder at 2:
+                                    //    5. compare new remainder and divisor
+                                    //    6. If remainder > divisor: remainder -= divisor, n++
+
+                                    if (n > 1) {
+
+                                        // n may be > base only when base is 3.
+                                        if (n >= base) n = base - 1;
+
+                                        // product = divisor * trial digit.
+                                        prod = multiply(yc, n, base);
+                                        prodL = prod.length;
+                                        remL = rem.length;
+
+                                        // Compare product and remainder.
+                                        // If product > remainder.
+                                        // Trial digit n too high.
+                                        // n is 1 too high about 5% of the time, and is not known to have
+                                        // ever been more than 1 too high.
+                                        while (compare(prod, rem, prodL, remL) == 1) {
+                                            n--;
+
+                                            // Subtract divisor from product.
+                                            subtract(prod, yL < prodL ? yz : yc, prodL, base);
+                                            prodL = prod.length;
+                                            cmp = 1;
+                                        }
+                                    } else {
+
+                                        // n is 0 or 1, cmp is -1.
+                                        // If n is 0, there is no need to compare yc and rem again below,
+                                        // so change cmp to 1 to avoid it.
+                                        // If n is 1, leave cmp as -1, so yc and rem are compared again.
+                                        if (n == 0) {
+
+                                            // divisor < remainder, so n must be at least 1.
+                                            cmp = n = 1;
+                                        }
+
+                                        // product = divisor
+                                        prod = yc.slice();
+                                        prodL = prod.length;
+                                    }
+
+                                    if (prodL < remL) prod.unshift(0);
+
+                                    // Subtract product from remainder.
+                                    subtract(rem, prod, remL, base);
+                                    remL = rem.length;
+
+                                    // If product was < remainder.
+                                    if (cmp == -1) {
+
+                                        // Compare divisor and new remainder.
+                                        // If divisor < new remainder, subtract divisor from remainder.
+                                        // Trial digit n too low.
+                                        // n is 1 too low about 5% of the time, and very rarely 2 too low.
+                                        while (compare(yc, rem, yL, remL) < 1) {
+                                            n++;
+
+                                            // Subtract divisor from remainder.
+                                            subtract(rem, yL < remL ? yz : yc, remL, base);
+                                            remL = rem.length;
+                                        }
+                                    }
+                                } else if (cmp === 0) {
+                                    n++;
+                                    rem = [0];
+                                } // else cmp === 1 and n will be 0
+
+                                // Add the next digit, n, to the result array.
+                                qc[i++] = n;
+
+                                // Update the remainder.
+                                if (rem[0]) {
+                                    rem[remL++] = xc[xi] || 0;
+                                } else {
+                                    rem = [xc[xi]];
+                                    remL = 1;
+                                }
+                            } while ((xi++ < xL || rem[0] != null) && s--);
+
+                            more = rem[0] != null;
+
+                            // Leading zero?
+                            if (!qc[0]) qc.shift();
+                        }
+
+                        if (base == BASE) {
+
+                            // To calculate q.e, first get the number of digits of qc[0].
+                            for (i = 1, s = qc[0]; s >= 10; s /= 10, i++) ;
+                            round(q, dp + (q.e = i + e * LOG_BASE - 1) + 1, rm, more);
+
+                            // Caller is convertBase.
+                        } else {
+                            q.e = e;
+                            q.r = +more;
+                        }
+
+                        return q;
+                    };
+                })();
+
+
+                /*
+         * Return a string representing the value of BigNumber n in fixed-point or exponential
+         * notation rounded to the specified decimal places or significant digits.
+         *
+         * n is a BigNumber.
+         * i is the index of the last digit required (i.e. the digit that may be rounded up).
+         * rm is the rounding mode.
+         * caller is caller id: toExponential 19, toFixed 20, toFormat 21, toPrecision 24.
+         */
+                function format(n, i, rm, caller) {
+                    var c0, e, ne, len, str;
+
+                    rm = rm != null && isValidInt(rm, 0, 8, caller, roundingMode)
+                        ? rm | 0 : ROUNDING_MODE;
+
+                    if (!n.c) return n.toString();
+                    c0 = n.c[0];
+                    ne = n.e;
+
+                    if (i == null) {
+                        str = coeffToString(n.c);
+                        str = caller == 19 || caller == 24 && ne <= TO_EXP_NEG
+                            ? toExponential(str, ne)
+                            : toFixedPoint(str, ne);
+                    } else {
+                        n = round(new BigNumber(n), i, rm);
+
+                        // n.e may have changed if the value was rounded up.
+                        e = n.e;
+
+                        str = coeffToString(n.c);
+                        len = str.length;
+
+                        // toPrecision returns exponential notation if the number of significant digits
+                        // specified is less than the number of digits necessary to represent the integer
+                        // part of the value in fixed-point notation.
+
+                        // Exponential notation.
+                        if (caller == 19 || caller == 24 && (i <= e || e <= TO_EXP_NEG)) {
+
+                            // Append zeros?
+                            for (; len < i; str += '0', len++) ;
+                            str = toExponential(str, e);
+
+                            // Fixed-point notation.
+                        } else {
+                            i -= ne;
+                            str = toFixedPoint(str, e);
+
+                            // Append zeros?
+                            if (e + 1 > len) {
+                                if (--i > 0) for (str += '.'; i--; str += '0') ;
+                            } else {
+                                i += e - len;
+                                if (i > 0) {
+                                    if (e + 1 == len) str += '.';
+                                    for (; i--; str += '0') ;
+                                }
+                            }
+                        }
+                    }
+
+                    return n.s < 0 && c0 ? '-' + str : str;
+                }
+
+
+                // Handle BigNumber.max and BigNumber.min.
+                function maxOrMin(args, method) {
+                    var m, n,
+                        i = 0;
+
+                    if (isArray(args[0])) args = args[0];
+                    m = new BigNumber(args[0]);
+
+                    for (; ++i < args.length;) {
+                        n = new BigNumber(args[i]);
+
+                        // If any number is NaN, return NaN.
+                        if (!n.s) {
+                            m = n;
+                            break;
+                        } else if (method.call(m, n)) {
+                            m = n;
+                        }
+                    }
+
+                    return m;
+                }
+
+
+                /*
+         * Return true if n is an integer in range, otherwise throw.
+         * Use for argument validation when ERRORS is true.
+         */
+                function intValidatorWithErrors(n, min, max, caller, name) {
+                    if (n < min || n > max || n != truncate(n)) {
+                        raise(caller, (name || 'decimal places') +
+                            (n < min || n > max ? ' out of range' : ' not an integer'), n);
+                    }
+
+                    return true;
+                }
+
+
+                /*
+         * Strip trailing zeros, calculate base 10 exponent and check against MIN_EXP and MAX_EXP.
+         * Called by minus, plus and times.
+         */
+                function normalise(n, c, e) {
+                    var i = 1,
+                        j = c.length;
+
+                    // Remove trailing zeros.
+                    for (; !c[--j]; c.pop()) ;
+
+                    // Calculate the base 10 exponent. First get the number of digits of c[0].
+                    for (j = c[0]; j >= 10; j /= 10, i++) ;
+
+                    // Overflow?
+                    if ((e = i + e * LOG_BASE - 1) > MAX_EXP) {
+
+                        // Infinity.
+                        n.c = n.e = null;
+
+                        // Underflow?
+                    } else if (e < MIN_EXP) {
+
+                        // Zero.
+                        n.c = [n.e = 0];
+                    } else {
+                        n.e = e;
+                        n.c = c;
+                    }
+
+                    return n;
+                }
+
+
+                // Handle values that fail the validity test in BigNumber.
+                parseNumeric = (function () {
+                    var basePrefix = /^(-?)0([xbo])/i,
+                        dotAfter = /^([^.]+)\.$/,
+                        dotBefore = /^\.([^.]+)$/,
+                        isInfinityOrNaN = /^-?(Infinity|NaN)$/,
+                        whitespaceOrPlus = /^\s*\+|^\s+|\s+$/g;
+
+                    return function (x, str, num, b) {
+                        var base,
+                            s = num ? str : str.replace(whitespaceOrPlus, '');
+
+                        // No exception on ±Infinity or NaN.
+                        if (isInfinityOrNaN.test(s)) {
+                            x.s = isNaN(s) ? null : s < 0 ? -1 : 1;
+                        } else {
+                            if (!num) {
+
+                                // basePrefix = /^(-?)0([xbo])(?=\w[\w.]*$)/i
+                                s = s.replace(basePrefix, function (m, p1, p2) {
+                                    base = (p2 = p2.toLowerCase()) == 'x' ? 16 : p2 == 'b' ? 2 : 8;
+                                    return !b || b == base ? p1 : m;
+                                });
+
+                                if (b) {
+                                    base = b;
+
+                                    // E.g. '1.' to '1', '.1' to '0.1'
+                                    s = s.replace(dotAfter, '$1').replace(dotBefore, '0.$1');
+                                }
+
+                                if (str != s) return new BigNumber(s, base);
+                            }
+
+                            // 'new BigNumber() not a number: {n}'
+                            // 'new BigNumber() not a base {b} number: {n}'
+                            if (ERRORS) raise(id, 'not a' + (b ? ' base ' + b : '') + ' number', str);
+                            x.s = null;
+                        }
+
+                        x.c = x.e = null;
+                        id = 0;
+                    }
+                })();
+
+
+                // Throw a BigNumber Error.
+                function raise(caller, msg, val) {
+                    var error = new Error([
+                        'new BigNumber',     // 0
+                        'cmp',               // 1
+                        'config',            // 2
+                        'div',               // 3
+                        'divToInt',          // 4
+                        'eq',                // 5
+                        'gt',                // 6
+                        'gte',               // 7
+                        'lt',                // 8
+                        'lte',               // 9
+                        'minus',             // 10
+                        'mod',               // 11
+                        'plus',              // 12
+                        'precision',         // 13
+                        'random',            // 14
+                        'round',             // 15
+                        'shift',             // 16
+                        'times',             // 17
+                        'toDigits',          // 18
+                        'toExponential',     // 19
+                        'toFixed',           // 20
+                        'toFormat',          // 21
+                        'toFraction',        // 22
+                        'pow',               // 23
+                        'toPrecision',       // 24
+                        'toString',          // 25
+                        'BigNumber'          // 26
+                    ][caller] + '() ' + msg + ': ' + val);
+
+                    error.name = 'BigNumber Error';
+                    id = 0;
+                    throw error;
+                }
+
+
+                /*
+         * Round x to sd significant digits using rounding mode rm. Check for over/under-flow.
+         * If r is truthy, it is known that there are more digits after the rounding digit.
+         */
+                function round(x, sd, rm, r) {
+                    var d, i, j, k, n, ni, rd,
+                        xc = x.c,
+                        pows10 = POWS_TEN;
+
+                    // if x is not Infinity or NaN...
+                    if (xc) {
+
+                        // rd is the rounding digit, i.e. the digit after the digit that may be rounded up.
+                        // n is a base 1e14 number, the value of the element of array x.c containing rd.
+                        // ni is the index of n within x.c.
+                        // d is the number of digits of n.
+                        // i is the index of rd within n including leading zeros.
+                        // j is the actual index of rd within n (if < 0, rd is a leading zero).
+                        out: {
+
+                            // Get the number of digits of the first element of xc.
+                            for (d = 1, k = xc[0]; k >= 10; k /= 10, d++) ;
+                            i = sd - d;
+
+                            // If the rounding digit is in the first element of xc...
+                            if (i < 0) {
+                                i += LOG_BASE;
+                                j = sd;
+                                n = xc[ni = 0];
+
+                                // Get the rounding digit at index j of n.
+                                rd = n / pows10[d - j - 1] % 10 | 0;
+                            } else {
+                                ni = mathceil((i + 1) / LOG_BASE);
+
+                                if (ni >= xc.length) {
+
+                                    if (r) {
+
+                                        // Needed by sqrt.
+                                        for (; xc.length <= ni; xc.push(0)) ;
+                                        n = rd = 0;
+                                        d = 1;
+                                        i %= LOG_BASE;
+                                        j = i - LOG_BASE + 1;
+                                    } else {
+                                        break out;
+                                    }
+                                } else {
+                                    n = k = xc[ni];
+
+                                    // Get the number of digits of n.
+                                    for (d = 1; k >= 10; k /= 10, d++) ;
+
+                                    // Get the index of rd within n.
+                                    i %= LOG_BASE;
+
+                                    // Get the index of rd within n, adjusted for leading zeros.
+                                    // The number of leading zeros of n is given by LOG_BASE - d.
+                                    j = i - LOG_BASE + d;
+
+                                    // Get the rounding digit at index j of n.
+                                    rd = j < 0 ? 0 : n / pows10[d - j - 1] % 10 | 0;
+                                }
+                            }
+
+                            r = r || sd < 0 ||
+
+                                // Are there any non-zero digits after the rounding digit?
+                                // The expression  n % pows10[ d - j - 1 ]  returns all digits of n to the right
+                                // of the digit at j, e.g. if n is 908714 and j is 2, the expression gives 714.
+                                xc[ni + 1] != null || (j < 0 ? n : n % pows10[d - j - 1]);
+
+                            r = rm < 4
+                                ? (rd || r) && (rm == 0 || rm == (x.s < 0 ? 3 : 2))
+                                : rd > 5 || rd == 5 && (rm == 4 || r || rm == 6 &&
+
+                                // Check whether the digit to the left of the rounding digit is odd.
+                                ((i > 0 ? j > 0 ? n / pows10[d - j] : 0 : xc[ni - 1]) % 10) & 1 ||
+                                rm == (x.s < 0 ? 8 : 7));
+
+                            if (sd < 1 || !xc[0]) {
+                                xc.length = 0;
+
+                                if (r) {
+
+                                    // Convert sd to decimal places.
+                                    sd -= x.e + 1;
+
+                                    // 1, 0.1, 0.01, 0.001, 0.0001 etc.
+                                    xc[0] = pows10[sd % LOG_BASE];
+                                    x.e = -sd || 0;
+                                } else {
+
+                                    // Zero.
+                                    xc[0] = x.e = 0;
+                                }
+
+                                return x;
+                            }
+
+                            // Remove excess digits.
+                            if (i == 0) {
+                                xc.length = ni;
+                                k = 1;
+                                ni--;
+                            } else {
+                                xc.length = ni + 1;
+                                k = pows10[LOG_BASE - i];
+
+                                // E.g. 56700 becomes 56000 if 7 is the rounding digit.
+                                // j > 0 means i > number of leading zeros of n.
+                                xc[ni] = j > 0 ? mathfloor(n / pows10[d - j] % pows10[j]) * k : 0;
+                            }
+
+                            // Round up?
+                            if (r) {
+
+                                for (; ;) {
+
+                                    // If the digit to be rounded up is in the first element of xc...
+                                    if (ni == 0) {
+
+                                        // i will be the length of xc[0] before k is added.
+                                        for (i = 1, j = xc[0]; j >= 10; j /= 10, i++) ;
+                                        j = xc[0] += k;
+                                        for (k = 1; j >= 10; j /= 10, k++) ;
+
+                                        // if i != k the length has increased.
+                                        if (i != k) {
+                                            x.e++;
+                                            if (xc[0] == BASE) xc[0] = 1;
+                                        }
+
+                                        break;
+                                    } else {
+                                        xc[ni] += k;
+                                        if (xc[ni] != BASE) break;
+                                        xc[ni--] = 0;
+                                        k = 1;
+                                    }
+                                }
+                            }
+
+                            // Remove trailing zeros.
+                            for (i = xc.length; xc[--i] === 0; xc.pop()) ;
+                        }
+
+                        // Overflow? Infinity.
+                        if (x.e > MAX_EXP) {
+                            x.c = x.e = null;
+
+                            // Underflow? Zero.
+                        } else if (x.e < MIN_EXP) {
+                            x.c = [x.e = 0];
+                        }
+                    }
+
+                    return x;
+                }
+
+
+                // PROTOTYPE/INSTANCE METHODS
+
+
+                /*
+         * Return a new BigNumber whose value is the absolute value of this BigNumber.
+         */
+                P.absoluteValue = P.abs = function () {
+                    var x = new BigNumber(this);
+                    if (x.s < 0) x.s = 1;
+                    return x;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber rounded to a whole
+         * number in the direction of Infinity.
+         */
+                P.ceil = function () {
+                    return round(new BigNumber(this), this.e + 1, 2);
+                };
+
+
+                /*
+         * Return
+         * 1 if the value of this BigNumber is greater than the value of BigNumber(y, b),
+         * -1 if the value of this BigNumber is less than the value of BigNumber(y, b),
+         * 0 if they have the same value,
+         * or null if the value of either is NaN.
+         */
+                P.comparedTo = P.cmp = function (y, b) {
+                    id = 1;
+                    return compare(this, new BigNumber(y, b));
+                };
+
+
+                /*
+         * Return the number of decimal places of the value of this BigNumber, or null if the value
+         * of this BigNumber is ±Infinity or NaN.
+         */
+                P.decimalPlaces = P.dp = function () {
+                    var n, v,
+                        c = this.c;
+
+                    if (!c) return null;
+                    n = ((v = c.length - 1) - bitFloor(this.e / LOG_BASE)) * LOG_BASE;
+
+                    // Subtract the number of trailing zeros of the last number.
+                    if (v = c[v]) for (; v % 10 == 0; v /= 10, n--) ;
+                    if (n < 0) n = 0;
+
+                    return n;
+                };
+
+
+                /*
+         *  n / 0 = I
+         *  n / N = N
+         *  n / I = 0
+         *  0 / n = 0
+         *  0 / 0 = N
+         *  0 / N = N
+         *  0 / I = 0
+         *  N / n = N
+         *  N / 0 = N
+         *  N / N = N
+         *  N / I = N
+         *  I / n = I
+         *  I / 0 = I
+         *  I / N = N
+         *  I / I = N
+         *
+         * Return a new BigNumber whose value is the value of this BigNumber divided by the value of
+         * BigNumber(y, b), rounded according to DECIMAL_PLACES and ROUNDING_MODE.
+         */
+                P.dividedBy = P.div = function (y, b) {
+                    id = 3;
+                    return div(this, new BigNumber(y, b), DECIMAL_PLACES, ROUNDING_MODE);
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the integer part of dividing the value of this
+         * BigNumber by the value of BigNumber(y, b).
+         */
+                P.dividedToIntegerBy = P.divToInt = function (y, b) {
+                    id = 4;
+                    return div(this, new BigNumber(y, b), 0, 1);
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is equal to the value of BigNumber(y, b),
+         * otherwise returns false.
+         */
+                P.equals = P.eq = function (y, b) {
+                    id = 5;
+                    return compare(this, new BigNumber(y, b)) === 0;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber rounded to a whole
+         * number in the direction of -Infinity.
+         */
+                P.floor = function () {
+                    return round(new BigNumber(this), this.e + 1, 3);
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is greater than the value of BigNumber(y, b),
+         * otherwise returns false.
+         */
+                P.greaterThan = P.gt = function (y, b) {
+                    id = 6;
+                    return compare(this, new BigNumber(y, b)) > 0;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is greater than or equal to the value of
+         * BigNumber(y, b), otherwise returns false.
+         */
+                P.greaterThanOrEqualTo = P.gte = function (y, b) {
+                    id = 7;
+                    return (b = compare(this, new BigNumber(y, b))) === 1 || b === 0;
+
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is a finite number, otherwise returns false.
+         */
+                P.isFinite = function () {
+                    return !!this.c;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is an integer, otherwise return false.
+         */
+                P.isInteger = P.isInt = function () {
+                    return !!this.c && bitFloor(this.e / LOG_BASE) > this.c.length - 2;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is NaN, otherwise returns false.
+         */
+                P.isNaN = function () {
+                    return !this.s;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is negative, otherwise returns false.
+         */
+                P.isNegative = P.isNeg = function () {
+                    return this.s < 0;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is 0 or -0, otherwise returns false.
+         */
+                P.isZero = function () {
+                    return !!this.c && this.c[0] == 0;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is less than the value of BigNumber(y, b),
+         * otherwise returns false.
+         */
+                P.lessThan = P.lt = function (y, b) {
+                    id = 8;
+                    return compare(this, new BigNumber(y, b)) < 0;
+                };
+
+
+                /*
+         * Return true if the value of this BigNumber is less than or equal to the value of
+         * BigNumber(y, b), otherwise returns false.
+         */
+                P.lessThanOrEqualTo = P.lte = function (y, b) {
+                    id = 9;
+                    return (b = compare(this, new BigNumber(y, b))) === -1 || b === 0;
+                };
+
+
+                /*
+         *  n - 0 = n
+         *  n - N = N
+         *  n - I = -I
+         *  0 - n = -n
+         *  0 - 0 = 0
+         *  0 - N = N
+         *  0 - I = -I
+         *  N - n = N
+         *  N - 0 = N
+         *  N - N = N
+         *  N - I = N
+         *  I - n = I
+         *  I - 0 = I
+         *  I - N = N
+         *  I - I = N
+         *
+         * Return a new BigNumber whose value is the value of this BigNumber minus the value of
+         * BigNumber(y, b).
+         */
+                P.minus = P.sub = function (y, b) {
+                    var i, j, t, xLTy,
+                        x = this,
+                        a = x.s;
+
+                    id = 10;
+                    y = new BigNumber(y, b);
+                    b = y.s;
+
+                    // Either NaN?
+                    if (!a || !b) return new BigNumber(NaN);
+
+                    // Signs differ?
+                    if (a != b) {
+                        y.s = -b;
+                        return x.plus(y);
+                    }
+
+                    var xe = x.e / LOG_BASE,
+                        ye = y.e / LOG_BASE,
+                        xc = x.c,
+                        yc = y.c;
+
+                    if (!xe || !ye) {
+
+                        // Either Infinity?
+                        if (!xc || !yc) return xc ? (y.s = -b, y) : new BigNumber(yc ? x : NaN);
+
+                        // Either zero?
+                        if (!xc[0] || !yc[0]) {
+
+                            // Return y if y is non-zero, x if x is non-zero, or zero if both are zero.
+                            return yc[0] ? (y.s = -b, y) : new BigNumber(xc[0] ? x :
+
+                                // IEEE 754 (2008) 6.3: n - n = -0 when rounding to -Infinity
+                                ROUNDING_MODE == 3 ? -0 : 0);
+                        }
+                    }
+
+                    xe = bitFloor(xe);
+                    ye = bitFloor(ye);
+                    xc = xc.slice();
+
+                    // Determine which is the bigger number.
+                    if (a = xe - ye) {
+
+                        if (xLTy = a < 0) {
+                            a = -a;
+                            t = xc;
+                        } else {
+                            ye = xe;
+                            t = yc;
+                        }
+
+                        t.reverse();
+
+                        // Prepend zeros to equalise exponents.
+                        for (b = a; b--; t.push(0)) ;
+                        t.reverse();
+                    } else {
+
+                        // Exponents equal. Check digit by digit.
+                        j = (xLTy = (a = xc.length) < (b = yc.length)) ? a : b;
+
+                        for (a = b = 0; b < j; b++) {
+
+                            if (xc[b] != yc[b]) {
+                                xLTy = xc[b] < yc[b];
+                                break;
+                            }
+                        }
+                    }
+
+                    // x < y? Point xc to the array of the bigger number.
+                    if (xLTy) t = xc, xc = yc, yc = t, y.s = -y.s;
+
+                    b = (j = yc.length) - (i = xc.length);
+
+                    // Append zeros to xc if shorter.
+                    // No need to add zeros to yc if shorter as subtract only needs to start at yc.length.
+                    if (b > 0) for (; b--; xc[i++] = 0) ;
+                    b = BASE - 1;
+
+                    // Subtract yc from xc.
+                    for (; j > a;) {
+
+                        if (xc[--j] < yc[j]) {
+                            for (i = j; i && !xc[--i]; xc[i] = b) ;
+                            --xc[i];
+                            xc[j] += BASE;
+                        }
+
+                        xc[j] -= yc[j];
+                    }
+
+                    // Remove leading zeros and adjust exponent accordingly.
+                    for (; xc[0] == 0; xc.shift(), --ye) ;
+
+                    // Zero?
+                    if (!xc[0]) {
+
+                        // Following IEEE 754 (2008) 6.3,
+                        // n - n = +0  but  n - n = -0  when rounding towards -Infinity.
+                        y.s = ROUNDING_MODE == 3 ? -1 : 1;
+                        y.c = [y.e = 0];
+                        return y;
+                    }
+
+                    // No need to check for Infinity as +x - +y != Infinity && -x - -y != Infinity
+                    // for finite x and y.
+                    return normalise(y, xc, ye);
+                };
+
+
+                /*
+         *   n % 0 =  N
+         *   n % N =  N
+         *   n % I =  n
+         *   0 % n =  0
+         *  -0 % n = -0
+         *   0 % 0 =  N
+         *   0 % N =  N
+         *   0 % I =  0
+         *   N % n =  N
+         *   N % 0 =  N
+         *   N % N =  N
+         *   N % I =  N
+         *   I % n =  N
+         *   I % 0 =  N
+         *   I % N =  N
+         *   I % I =  N
+         *
+         * Return a new BigNumber whose value is the value of this BigNumber modulo the value of
+         * BigNumber(y, b). The result depends on the value of MODULO_MODE.
+         */
+                P.modulo = P.mod = function (y, b) {
+                    var q, s,
+                        x = this;
+
+                    id = 11;
+                    y = new BigNumber(y, b);
+
+                    // Return NaN if x is Infinity or NaN, or y is NaN or zero.
+                    if (!x.c || !y.s || y.c && !y.c[0]) {
+                        return new BigNumber(NaN);
+
+                        // Return x if y is Infinity or x is zero.
+                    } else if (!y.c || x.c && !x.c[0]) {
+                        return new BigNumber(x);
+                    }
+
+                    if (MODULO_MODE == 9) {
+
+                        // Euclidian division: q = sign(y) * floor(x / abs(y))
+                        // r = x - qy    where  0 <= r < abs(y)
+                        s = y.s;
+                        y.s = 1;
+                        q = div(x, y, 0, 3);
+                        y.s = s;
+                        q.s *= s;
+                    } else {
+                        q = div(x, y, 0, MODULO_MODE);
+                    }
+
+                    return x.minus(q.times(y));
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber negated,
+         * i.e. multiplied by -1.
+         */
+                P.negated = P.neg = function () {
+                    var x = new BigNumber(this);
+                    x.s = -x.s || null;
+                    return x;
+                };
+
+
+                /*
+         *  n + 0 = n
+         *  n + N = N
+         *  n + I = I
+         *  0 + n = n
+         *  0 + 0 = 0
+         *  0 + N = N
+         *  0 + I = I
+         *  N + n = N
+         *  N + 0 = N
+         *  N + N = N
+         *  N + I = N
+         *  I + n = I
+         *  I + 0 = I
+         *  I + N = N
+         *  I + I = I
+         *
+         * Return a new BigNumber whose value is the value of this BigNumber plus the value of
+         * BigNumber(y, b).
+         */
+                P.plus = P.add = function (y, b) {
+                    var t,
+                        x = this,
+                        a = x.s;
+
+                    id = 12;
+                    y = new BigNumber(y, b);
+                    b = y.s;
+
+                    // Either NaN?
+                    if (!a || !b) return new BigNumber(NaN);
+
+                    // Signs differ?
+                    if (a != b) {
+                        y.s = -b;
+                        return x.minus(y);
+                    }
+
+                    var xe = x.e / LOG_BASE,
+                        ye = y.e / LOG_BASE,
+                        xc = x.c,
+                        yc = y.c;
+
+                    if (!xe || !ye) {
+
+                        // Return ±Infinity if either ±Infinity.
+                        if (!xc || !yc) return new BigNumber(a / 0);
+
+                        // Either zero?
+                        // Return y if y is non-zero, x if x is non-zero, or zero if both are zero.
+                        if (!xc[0] || !yc[0]) return yc[0] ? y : new BigNumber(xc[0] ? x : a * 0);
+                    }
+
+                    xe = bitFloor(xe);
+                    ye = bitFloor(ye);
+                    xc = xc.slice();
+
+                    // Prepend zeros to equalise exponents. Faster to use reverse then do unshifts.
+                    if (a = xe - ye) {
+                        if (a > 0) {
+                            ye = xe;
+                            t = yc;
+                        } else {
+                            a = -a;
+                            t = xc;
+                        }
+
+                        t.reverse();
+                        for (; a--; t.push(0)) ;
+                        t.reverse();
+                    }
+
+                    a = xc.length;
+                    b = yc.length;
+
+                    // Point xc to the longer array, and b to the shorter length.
+                    if (a - b < 0) t = yc, yc = xc, xc = t, b = a;
+
+                    // Only start adding at yc.length - 1 as the further digits of xc can be ignored.
+                    for (a = 0; b;) {
+                        a = (xc[--b] = xc[b] + yc[b] + a) / BASE | 0;
+                        xc[b] %= BASE;
+                    }
+
+                    if (a) {
+                        xc.unshift(a);
+                        ++ye;
+                    }
+
+                    // No need to check for zero, as +x + +y != 0 && -x + -y != 0
+                    // ye = MAX_EXP + 1 possible
+                    return normalise(y, xc, ye);
+                };
+
+
+                /*
+         * Return the number of significant digits of the value of this BigNumber.
+         *
+         * [z] {boolean|number} Whether to count integer-part trailing zeros: true, false, 1 or 0.
+         */
+                P.precision = P.sd = function (z) {
+                    var n, v,
+                        x = this,
+                        c = x.c;
+
+                    // 'precision() argument not a boolean or binary digit: {z}'
+                    if (z != null && z !== !!z && z !== 1 && z !== 0) {
+                        if (ERRORS) raise(13, 'argument' + notBool, z);
+                        if (z != !!z) z = null;
+                    }
+
+                    if (!c) return null;
+                    v = c.length - 1;
+                    n = v * LOG_BASE + 1;
+
+                    if (v = c[v]) {
+
+                        // Subtract the number of trailing zeros of the last element.
+                        for (; v % 10 == 0; v /= 10, n--) ;
+
+                        // Add the number of digits of the first element.
+                        for (v = c[0]; v >= 10; v /= 10, n++) ;
+                    }
+
+                    if (z && x.e + 1 > n) n = x.e + 1;
+
+                    return n;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber rounded to a maximum of
+         * dp decimal places using rounding mode rm, or to 0 and ROUNDING_MODE respectively if
+         * omitted.
+         *
+         * [dp] {number} Decimal places. Integer, 0 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'round() decimal places out of range: {dp}'
+         * 'round() decimal places not an integer: {dp}'
+         * 'round() rounding mode not an integer: {rm}'
+         * 'round() rounding mode out of range: {rm}'
+         */
+                P.round = function (dp, rm) {
+                    var n = new BigNumber(this);
+
+                    if (dp == null || isValidInt(dp, 0, MAX, 15)) {
+                        round(n, ~~dp + this.e + 1, rm == null ||
+                        !isValidInt(rm, 0, 8, 15, roundingMode) ? ROUNDING_MODE : rm | 0);
+                    }
+
+                    return n;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber shifted by k places
+         * (powers of 10). Shift to the right if n > 0, and to the left if n < 0.
+         *
+         * k {number} Integer, -MAX_SAFE_INTEGER to MAX_SAFE_INTEGER inclusive.
+         *
+         * If k is out of range and ERRORS is false, the result will be ±0 if k < 0, or ±Infinity
+         * otherwise.
+         *
+         * 'shift() argument not an integer: {k}'
+         * 'shift() argument out of range: {k}'
+         */
+                P.shift = function (k) {
+                    var n = this;
+                    return isValidInt(k, -MAX_SAFE_INTEGER, MAX_SAFE_INTEGER, 16, 'argument')
+
+                        // k < 1e+21, or truncate(k) will produce exponential notation.
+                        ? n.times('1e' + truncate(k))
+                        : new BigNumber(n.c && n.c[0] && (k < -MAX_SAFE_INTEGER || k > MAX_SAFE_INTEGER)
+                            ? n.s * (k < 0 ? 0 : 1 / 0)
+                            : n);
+                };
+
+
+                /*
+         *  sqrt(-n) =  N
+         *  sqrt( N) =  N
+         *  sqrt(-I) =  N
+         *  sqrt( I) =  I
+         *  sqrt( 0) =  0
+         *  sqrt(-0) = -0
+         *
+         * Return a new BigNumber whose value is the square root of the value of this BigNumber,
+         * rounded according to DECIMAL_PLACES and ROUNDING_MODE.
+         */
+                P.squareRoot = P.sqrt = function () {
+                    var m, n, r, rep, t,
+                        x = this,
+                        c = x.c,
+                        s = x.s,
+                        e = x.e,
+                        dp = DECIMAL_PLACES + 4,
+                        half = new BigNumber('0.5');
+
+                    // Negative/NaN/Infinity/zero?
+                    if (s !== 1 || !c || !c[0]) {
+                        return new BigNumber(!s || s < 0 && (!c || c[0]) ? NaN : c ? x : 1 / 0);
+                    }
+
+                    // Initial estimate.
+                    s = Math.sqrt(+x);
+
+                    // Math.sqrt underflow/overflow?
+                    // Pass x to Math.sqrt as integer, then adjust the exponent of the result.
+                    if (s == 0 || s == 1 / 0) {
+                        n = coeffToString(c);
+                        if ((n.length + e) % 2 == 0) n += '0';
+                        s = Math.sqrt(n);
+                        e = bitFloor((e + 1) / 2) - (e < 0 || e % 2);
+
+                        if (s == 1 / 0) {
+                            n = '1e' + e;
+                        } else {
+                            n = s.toExponential();
+                            n = n.slice(0, n.indexOf('e') + 1) + e;
+                        }
+
+                        r = new BigNumber(n);
+                    } else {
+                        r = new BigNumber(s + '');
+                    }
+
+                    // Check for zero.
+                    // r could be zero if MIN_EXP is changed after the this value was created.
+                    // This would cause a division by zero (x/t) and hence Infinity below, which would cause
+                    // coeffToString to throw.
+                    if (r.c[0]) {
+                        e = r.e;
+                        s = e + dp;
+                        if (s < 3) s = 0;
+
+                        // Newton-Raphson iteration.
+                        for (; ;) {
+                            t = r;
+                            r = half.times(t.plus(div(x, t, dp, 1)));
+
+                            if (coeffToString(t.c).slice(0, s) === (n =
+                                coeffToString(r.c)).slice(0, s)) {
+
+                                // The exponent of r may here be one less than the final result exponent,
+                                // e.g 0.0009999 (e-4) --> 0.001 (e-3), so adjust s so the rounding digits
+                                // are indexed correctly.
+                                if (r.e < e) --s;
+                                n = n.slice(s - 3, s + 1);
+
+                                // The 4th rounding digit may be in error by -1 so if the 4 rounding digits
+                                // are 9999 or 4999 (i.e. approaching a rounding boundary) continue the
+                                // iteration.
+                                if (n == '9999' || !rep && n == '4999') {
+
+                                    // On the first iteration only, check to see if rounding up gives the
+                                    // exact result as the nines may infinitely repeat.
+                                    if (!rep) {
+                                        round(t, t.e + DECIMAL_PLACES + 2, 0);
+
+                                        if (t.times(t).eq(x)) {
+                                            r = t;
+                                            break;
+                                        }
+                                    }
+
+                                    dp += 4;
+                                    s += 4;
+                                    rep = 1;
+                                } else {
+
+                                    // If rounding digits are null, 0{0,4} or 50{0,3}, check for exact
+                                    // result. If not, then there are further digits and m will be truthy.
+                                    if (!+n || !+n.slice(1) && n.charAt(0) == '5') {
+
+                                        // Truncate to the first rounding digit.
+                                        round(r, r.e + DECIMAL_PLACES + 2, 1);
+                                        m = !r.times(r).eq(x);
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    return round(r, r.e + DECIMAL_PLACES + 1, ROUNDING_MODE, m);
+                };
+
+
+                /*
+         *  n * 0 = 0
+         *  n * N = N
+         *  n * I = I
+         *  0 * n = 0
+         *  0 * 0 = 0
+         *  0 * N = N
+         *  0 * I = N
+         *  N * n = N
+         *  N * 0 = N
+         *  N * N = N
+         *  N * I = N
+         *  I * n = I
+         *  I * 0 = N
+         *  I * N = N
+         *  I * I = I
+         *
+         * Return a new BigNumber whose value is the value of this BigNumber times the value of
+         * BigNumber(y, b).
+         */
+                P.times = P.mul = function (y, b) {
+                    var c, e, i, j, k, m, xcL, xlo, xhi, ycL, ylo, yhi, zc,
+                        base, sqrtBase,
+                        x = this,
+                        xc = x.c,
+                        yc = (id = 17, y = new BigNumber(y, b)).c;
+
+                    // Either NaN, ±Infinity or ±0?
+                    if (!xc || !yc || !xc[0] || !yc[0]) {
+
+                        // Return NaN if either is NaN, or one is 0 and the other is Infinity.
+                        if (!x.s || !y.s || xc && !xc[0] && !yc || yc && !yc[0] && !xc) {
+                            y.c = y.e = y.s = null;
+                        } else {
+                            y.s *= x.s;
+
+                            // Return ±Infinity if either is ±Infinity.
+                            if (!xc || !yc) {
+                                y.c = y.e = null;
+
+                                // Return ±0 if either is ±0.
+                            } else {
+                                y.c = [0];
+                                y.e = 0;
+                            }
+                        }
+
+                        return y;
+                    }
+
+                    e = bitFloor(x.e / LOG_BASE) + bitFloor(y.e / LOG_BASE);
+                    y.s *= x.s;
+                    xcL = xc.length;
+                    ycL = yc.length;
+
+                    // Ensure xc points to longer array and xcL to its length.
+                    if (xcL < ycL) zc = xc, xc = yc, yc = zc, i = xcL, xcL = ycL, ycL = i;
+
+                    // Initialise the result array with zeros.
+                    for (i = xcL + ycL, zc = []; i--; zc.push(0)) ;
+
+                    base = BASE;
+                    sqrtBase = SQRT_BASE;
+
+                    for (i = ycL; --i >= 0;) {
+                        c = 0;
+                        ylo = yc[i] % sqrtBase;
+                        yhi = yc[i] / sqrtBase | 0;
+
+                        for (k = xcL, j = i + k; j > i;) {
+                            xlo = xc[--k] % sqrtBase;
+                            xhi = xc[k] / sqrtBase | 0;
+                            m = yhi * xlo + xhi * ylo;
+                            xlo = ylo * xlo + ((m % sqrtBase) * sqrtBase) + zc[j] + c;
+                            c = (xlo / base | 0) + (m / sqrtBase | 0) + yhi * xhi;
+                            zc[j--] = xlo % base;
+                        }
+
+                        zc[j] = c;
+                    }
+
+                    if (c) {
+                        ++e;
+                    } else {
+                        zc.shift();
+                    }
+
+                    return normalise(y, zc, e);
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber rounded to a maximum of
+         * sd significant digits using rounding mode rm, or ROUNDING_MODE if rm is omitted.
+         *
+         * [sd] {number} Significant digits. Integer, 1 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'toDigits() precision out of range: {sd}'
+         * 'toDigits() precision not an integer: {sd}'
+         * 'toDigits() rounding mode not an integer: {rm}'
+         * 'toDigits() rounding mode out of range: {rm}'
+         */
+                P.toDigits = function (sd, rm) {
+                    var n = new BigNumber(this);
+                    sd = sd == null || !isValidInt(sd, 1, MAX, 18, 'precision') ? null : sd | 0;
+                    rm = rm == null || !isValidInt(rm, 0, 8, 18, roundingMode) ? ROUNDING_MODE : rm | 0;
+                    return sd ? round(n, sd, rm) : n;
+                };
+
+
+                /*
+         * Return a string representing the value of this BigNumber in exponential notation and
+         * rounded using ROUNDING_MODE to dp fixed decimal places.
+         *
+         * [dp] {number} Decimal places. Integer, 0 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'toExponential() decimal places not an integer: {dp}'
+         * 'toExponential() decimal places out of range: {dp}'
+         * 'toExponential() rounding mode not an integer: {rm}'
+         * 'toExponential() rounding mode out of range: {rm}'
+         */
+                P.toExponential = function (dp, rm) {
+                    return format(this,
+                        dp != null && isValidInt(dp, 0, MAX, 19) ? ~~dp + 1 : null, rm, 19);
+                };
+
+
+                /*
+         * Return a string representing the value of this BigNumber in fixed-point notation rounding
+         * to dp fixed decimal places using rounding mode rm, or ROUNDING_MODE if rm is omitted.
+         *
+         * Note: as with JavaScript's number type, (-0).toFixed(0) is '0',
+         * but e.g. (-0.00001).toFixed(0) is '-0'.
+         *
+         * [dp] {number} Decimal places. Integer, 0 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'toFixed() decimal places not an integer: {dp}'
+         * 'toFixed() decimal places out of range: {dp}'
+         * 'toFixed() rounding mode not an integer: {rm}'
+         * 'toFixed() rounding mode out of range: {rm}'
+         */
+                P.toFixed = function (dp, rm) {
+                    return format(this, dp != null && isValidInt(dp, 0, MAX, 20)
+                        ? ~~dp + this.e + 1 : null, rm, 20);
+                };
+
+
+                /*
+         * Return a string representing the value of this BigNumber in fixed-point notation rounded
+         * using rm or ROUNDING_MODE to dp decimal places, and formatted according to the properties
+         * of the FORMAT object (see BigNumber.config).
+         *
+         * FORMAT = {
+         *      decimalSeparator : '.',
+         *      groupSeparator : ',',
+         *      groupSize : 3,
+         *      secondaryGroupSize : 0,
+         *      fractionGroupSeparator : '\xA0',    // non-breaking space
+         *      fractionGroupSize : 0
+         * };
+         *
+         * [dp] {number} Decimal places. Integer, 0 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'toFormat() decimal places not an integer: {dp}'
+         * 'toFormat() decimal places out of range: {dp}'
+         * 'toFormat() rounding mode not an integer: {rm}'
+         * 'toFormat() rounding mode out of range: {rm}'
+         */
+                P.toFormat = function (dp, rm) {
+                    var str = format(this, dp != null && isValidInt(dp, 0, MAX, 21)
+                        ? ~~dp + this.e + 1 : null, rm, 21);
+
+                    if (this.c) {
+                        var i,
+                            arr = str.split('.'),
+                            g1 = +FORMAT.groupSize,
+                            g2 = +FORMAT.secondaryGroupSize,
+                            groupSeparator = FORMAT.groupSeparator,
+                            intPart = arr[0],
+                            fractionPart = arr[1],
+                            isNeg = this.s < 0,
+                            intDigits = isNeg ? intPart.slice(1) : intPart,
+                            len = intDigits.length;
+
+                        if (g2) i = g1, g1 = g2, g2 = i, len -= i;
+
+                        if (g1 > 0 && len > 0) {
+                            i = len % g1 || g1;
+                            intPart = intDigits.substr(0, i);
+
+                            for (; i < len; i += g1) {
+                                intPart += groupSeparator + intDigits.substr(i, g1);
+                            }
+
+                            if (g2 > 0) intPart += groupSeparator + intDigits.slice(i);
+                            if (isNeg) intPart = '-' + intPart;
+                        }
+
+                        str = fractionPart
+                            ? intPart + FORMAT.decimalSeparator + ((g2 = +FORMAT.fractionGroupSize)
+                            ? fractionPart.replace(new RegExp('\\d{' + g2 + '}\\B', 'g'),
+                                '$&' + FORMAT.fractionGroupSeparator)
+                            : fractionPart)
+                            : intPart;
+                    }
+
+                    return str;
+                };
+
+
+                /*
+         * Return a string array representing the value of this BigNumber as a simple fraction with
+         * an integer numerator and an integer denominator. The denominator will be a positive
+         * non-zero value less than or equal to the specified maximum denominator. If a maximum
+         * denominator is not specified, the denominator will be the lowest value necessary to
+         * represent the number exactly.
+         *
+         * [md] {number|string|BigNumber} Integer >= 1 and < Infinity. The maximum denominator.
+         *
+         * 'toFraction() max denominator not an integer: {md}'
+         * 'toFraction() max denominator out of range: {md}'
+         */
+                P.toFraction = function (md) {
+                    var arr, d0, d2, e, exp, n, n0, q, s,
+                        k = ERRORS,
+                        x = this,
+                        xc = x.c,
+                        d = new BigNumber(ONE),
+                        n1 = d0 = new BigNumber(ONE),
+                        d1 = n0 = new BigNumber(ONE);
+
+                    if (md != null) {
+                        ERRORS = false;
+                        n = new BigNumber(md);
+                        ERRORS = k;
+
+                        if (!(k = n.isInt()) || n.lt(ONE)) {
+
+                            if (ERRORS) {
+                                raise(22,
+                                    'max denominator ' + (k ? 'out of range' : 'not an integer'), md);
+                            }
+
+                            // ERRORS is false:
+                            // If md is a finite non-integer >= 1, round it to an integer and use it.
+                            md = !k && n.c && round(n, n.e + 1, 1).gte(ONE) ? n : null;
+                        }
+                    }
+
+                    if (!xc) return x.toString();
+                    s = coeffToString(xc);
+
+                    // Determine initial denominator.
+                    // d is a power of 10 and the minimum max denominator that specifies the value exactly.
+                    e = d.e = s.length - x.e - 1;
+                    d.c[0] = POWS_TEN[(exp = e % LOG_BASE) < 0 ? LOG_BASE + exp : exp];
+                    md = !md || n.cmp(d) > 0 ? (e > 0 ? d : n1) : n;
+
+                    exp = MAX_EXP;
+                    MAX_EXP = 1 / 0;
+                    n = new BigNumber(s);
+
+                    // n0 = d1 = 0
+                    n0.c[0] = 0;
+
+                    for (; ;) {
+                        q = div(n, d, 0, 1);
+                        d2 = d0.plus(q.times(d1));
+                        if (d2.cmp(md) == 1) break;
+                        d0 = d1;
+                        d1 = d2;
+                        n1 = n0.plus(q.times(d2 = n1));
+                        n0 = d2;
+                        d = n.minus(q.times(d2 = d));
+                        n = d2;
+                    }
+
+                    d2 = div(md.minus(d0), d1, 0, 1);
+                    n0 = n0.plus(d2.times(n1));
+                    d0 = d0.plus(d2.times(d1));
+                    n0.s = n1.s = x.s;
+                    e *= 2;
+
+                    // Determine which fraction is closer to x, n0/d0 or n1/d1
+                    arr = div(n1, d1, e, ROUNDING_MODE).minus(x).abs().cmp(
+                        div(n0, d0, e, ROUNDING_MODE).minus(x).abs()) < 1
+                        ? [n1.toString(), d1.toString()]
+                        : [n0.toString(), d0.toString()];
+
+                    MAX_EXP = exp;
+                    return arr;
+                };
+
+
+                /*
+         * Return the value of this BigNumber converted to a number primitive.
+         */
+                P.toNumber = function () {
+                    var x = this;
+
+                    // Ensure zero has correct sign.
+                    return +x || (x.s ? x.s * 0 : NaN);
+                };
+
+
+                /*
+         * Return a BigNumber whose value is the value of this BigNumber raised to the power n.
+         * If n is negative round according to DECIMAL_PLACES and ROUNDING_MODE.
+         * If POW_PRECISION is not 0, round to POW_PRECISION using ROUNDING_MODE.
+         *
+         * n {number} Integer, -9007199254740992 to 9007199254740992 inclusive.
+         * (Performs 54 loop iterations for n of 9007199254740992.)
+         *
+         * 'pow() exponent not an integer: {n}'
+         * 'pow() exponent out of range: {n}'
+         */
+                P.toPower = P.pow = function (n) {
+                    var k, y,
+                        i = mathfloor(n < 0 ? -n : +n),
+                        x = this;
+
+                    // Pass ±Infinity to Math.pow if exponent is out of range.
+                    if (!isValidInt(n, -MAX_SAFE_INTEGER, MAX_SAFE_INTEGER, 23, 'exponent') &&
+                        (!isFinite(n) || i > MAX_SAFE_INTEGER && (n /= 0) ||
+                            parseFloat(n) != n && !(n = NaN))) {
+                        return new BigNumber(Math.pow(+x, n));
+                    }
+
+                    // Truncating each coefficient array to a length of k after each multiplication equates
+                    // to truncating significant digits to POW_PRECISION + [28, 41], i.e. there will be a
+                    // minimum of 28 guard digits retained. (Using + 1.5 would give [9, 21] guard digits.)
+                    k = POW_PRECISION ? mathceil(POW_PRECISION / LOG_BASE + 2) : 0;
+                    y = new BigNumber(ONE);
+
+                    for (; ;) {
+
+                        if (i % 2) {
+                            y = y.times(x);
+                            if (!y.c) break;
+                            if (k && y.c.length > k) y.c.length = k;
+                        }
+
+                        i = mathfloor(i / 2);
+                        if (!i) break;
+
+                        x = x.times(x);
+                        if (k && x.c && x.c.length > k) x.c.length = k;
+                    }
+
+                    if (n < 0) y = ONE.div(y);
+                    return k ? round(y, POW_PRECISION, ROUNDING_MODE) : y;
+                };
+
+
+                /*
+         * Return a string representing the value of this BigNumber rounded to sd significant digits
+         * using rounding mode rm or ROUNDING_MODE. If sd is less than the number of digits
+         * necessary to represent the integer part of the value in fixed-point notation, then use
+         * exponential notation.
+         *
+         * [sd] {number} Significant digits. Integer, 1 to MAX inclusive.
+         * [rm] {number} Rounding mode. Integer, 0 to 8 inclusive.
+         *
+         * 'toPrecision() precision not an integer: {sd}'
+         * 'toPrecision() precision out of range: {sd}'
+         * 'toPrecision() rounding mode not an integer: {rm}'
+         * 'toPrecision() rounding mode out of range: {rm}'
+         */
+                P.toPrecision = function (sd, rm) {
+                    return format(this, sd != null && isValidInt(sd, 1, MAX, 24, 'precision')
+                        ? sd | 0 : null, rm, 24);
+                };
+
+
+                /*
+         * Return a string representing the value of this BigNumber in base b, or base 10 if b is
+         * omitted. If a base is specified, including base 10, round according to DECIMAL_PLACES and
+         * ROUNDING_MODE. If a base is not specified, and this BigNumber has a positive exponent
+         * that is equal to or greater than TO_EXP_POS, or a negative exponent equal to or less than
+         * TO_EXP_NEG, return exponential notation.
+         *
+         * [b] {number} Integer, 2 to 64 inclusive.
+         *
+         * 'toString() base not an integer: {b}'
+         * 'toString() base out of range: {b}'
+         */
+                P.toString = function (b) {
+                    var str,
+                        n = this,
+                        s = n.s,
+                        e = n.e;
+
+                    // Infinity or NaN?
+                    if (e === null) {
+
+                        if (s) {
+                            str = 'Infinity';
+                            if (s < 0) str = '-' + str;
+                        } else {
+                            str = 'NaN';
+                        }
+                    } else {
+                        str = coeffToString(n.c);
+
+                        if (b == null || !isValidInt(b, 2, 64, 25, 'base')) {
+                            str = e <= TO_EXP_NEG || e >= TO_EXP_POS
+                                ? toExponential(str, e)
+                                : toFixedPoint(str, e);
+                        } else {
+                            str = convertBase(toFixedPoint(str, e), b | 0, 10, s);
+                        }
+
+                        if (s < 0 && n.c[0]) str = '-' + str;
+                    }
+
+                    return str;
+                };
+
+
+                /*
+         * Return a new BigNumber whose value is the value of this BigNumber truncated to a whole
+         * number.
+         */
+                P.truncated = P.trunc = function () {
+                    return round(new BigNumber(this), this.e + 1, 1);
+                };
+
+
+                /*
+         * Return as toString, but do not accept a base argument.
+         */
+                P.valueOf = P.toJSON = function () {
+                    return this.toString();
+                };
+
+
+                // Aliases for BigDecimal methods.
+                //P.add = P.plus;         // P.add included above
+                //P.subtract = P.minus;   // P.sub included above
+                //P.multiply = P.times;   // P.mul included above
+                //P.divide = P.div;
+                //P.remainder = P.mod;
+                //P.compareTo = P.cmp;
+                //P.negate = P.neg;
+
+
+                if (configObj != null) BigNumber.config(configObj);
+
+                return BigNumber;
+            }
+
+
+            // PRIVATE HELPER FUNCTIONS
+
+
+            function bitFloor(n) {
+                var i = n | 0;
+                return n > 0 || n === i ? i : i - 1;
+            }
+
+
+            // Return a coefficient array as a string of base 10 digits.
+            function coeffToString(a) {
+                var s, z,
+                    i = 1,
+                    j = a.length,
+                    r = a[0] + '';
+
+                for (; i < j;) {
+                    s = a[i++] + '';
+                    z = LOG_BASE - s.length;
+                    for (; z--; s = '0' + s) ;
+                    r += s;
+                }
+
+                // Determine trailing zeros.
+                for (j = r.length; r.charCodeAt(--j) === 48;) ;
+                return r.slice(0, j + 1 || 1);
+            }
+
+
+            // Compare the value of BigNumbers x and y.
+            function compare(x, y) {
+                var a, b,
+                    xc = x.c,
+                    yc = y.c,
+                    i = x.s,
+                    j = y.s,
+                    k = x.e,
+                    l = y.e;
+
+                // Either NaN?
+                if (!i || !j) return null;
+
+                a = xc && !xc[0];
+                b = yc && !yc[0];
+
+                // Either zero?
+                if (a || b) return a ? b ? 0 : -j : i;
+
+                // Signs differ?
+                if (i != j) return i;
+
+                a = i < 0;
+                b = k == l;
+
+                // Either Infinity?
+                if (!xc || !yc) return b ? 0 : !xc ^ a ? 1 : -1;
+
+                // Compare exponents.
+                if (!b) return k > l ^ a ? 1 : -1;
+
+                j = (k = xc.length) < (l = yc.length) ? k : l;
+
+                // Compare digit by digit.
+                for (i = 0; i < j; i++) if (xc[i] != yc[i]) return xc[i] > yc[i] ^ a ? 1 : -1;
+
+                // Compare lengths.
+                return k == l ? 0 : k > l ^ a ? 1 : -1;
+            }
+
+
+            /*
+     * Return true if n is a valid number in range, otherwise false.
+     * Use for argument validation when ERRORS is false.
+     * Note: parseInt('1e+1') == 1 but parseFloat('1e+1') == 10.
+     */
+            function intValidatorNoErrors(n, min, max) {
+                return (n = truncate(n)) >= min && n <= max;
+            }
+
+
+            function isArray(obj) {
+                return Object.prototype.toString.call(obj) == '[object Array]';
+            }
+
+
+            /*
+     * Convert string of baseIn to an array of numbers of baseOut.
+     * Eg. convertBase('255', 10, 16) returns [15, 15].
+     * Eg. convertBase('ff', 16, 10) returns [2, 5, 5].
+     */
+            function toBaseOut(str, baseIn, baseOut) {
+                var j,
+                    arr = [0],
+                    arrL,
+                    i = 0,
+                    len = str.length;
+
+                for (; i < len;) {
+                    for (arrL = arr.length; arrL--; arr[arrL] *= baseIn) ;
+                    arr[j = 0] += ALPHABET.indexOf(str.charAt(i++));
+
+                    for (; j < arr.length; j++) {
+
+                        if (arr[j] > baseOut - 1) {
+                            if (arr[j + 1] == null) arr[j + 1] = 0;
+                            arr[j + 1] += arr[j] / baseOut | 0;
+                            arr[j] %= baseOut;
+                        }
+                    }
+                }
+
+                return arr.reverse();
+            }
+
+
+            function toExponential(str, e) {
+                return (str.length > 1 ? str.charAt(0) + '.' + str.slice(1) : str) +
+                    (e < 0 ? 'e' : 'e+') + e;
+            }
+
+
+            function toFixedPoint(str, e) {
+                var len, z;
+
+                // Negative exponent?
+                if (e < 0) {
+
+                    // Prepend zeros.
+                    for (z = '0.'; ++e; z += '0') ;
+                    str = z + str;
+
+                    // Positive exponent
+                } else {
+                    len = str.length;
+
+                    // Append zeros.
+                    if (++e > len) {
+                        for (z = '0', e -= len; --e; z += '0') ;
+                        str += z;
+                    } else if (e < len) {
+                        str = str.slice(0, e) + '.' + str.slice(e);
+                    }
+                }
+
+                return str;
+            }
+
+
+            function truncate(n) {
+                n = parseFloat(n);
+                return n < 0 ? mathceil(n) : mathfloor(n);
+            }
+
+
+            // EXPORT
+
+
+            BigNumber = another();
+
+            // AMD.
+            if (typeof define == 'function' && define.amd) {
+                define(function () {
+                    return BigNumber;
+                });
+
+                // Node and other environments that support module.exports.
+            } else if (typeof module != 'undefined' && module.exports) {
+                module.exports = BigNumber;
+                if (!crypto) try {
+                    crypto = require('crypto');
+                } catch (e) {
+                }
+
+                // Browser.
+            } else {
+                global.BigNumber = BigNumber;
+            }
+        })(this);
+
+    }, {"crypto": 50}],
+    "webu": [function (require, module, exports) {
+        var Webu = require('./lib/webu');
 
 // dont override global variable
-        if (typeof window !== 'undefined' && typeof window.Web3 === 'undefined') {
-            window.Web3 = Web3;
+        if (typeof window !== 'undefined' && typeof window.Webu === 'undefined') {
+            window.Webu = Webu;
         }
 
-        module.exports = Web3;
+        module.exports = Webu;
 
-    }, {"./lib/web3": 22}]
-}, {}, ["web3"])
-//# sourceMappingURL=web3-light.js.map
+    }, {"./lib/webu": 22}]
+}, {}, ["webu"])
+//# sourceMappingURL=webu.js.map

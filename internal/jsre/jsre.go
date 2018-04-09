@@ -33,7 +33,7 @@ import (
 
 var (
 	BigNumber_JS = deps.MustAsset("bignumber.js")
-	Web3_JS      = deps.MustAsset("web3.js")
+	Webu_JS      = deps.MustAsset("webu.js")
 )
 
 /*

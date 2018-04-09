@@ -381,23 +381,23 @@ func (api *PublicDebugAPI) Metrics(raw bool) (map[string]interface{}, error) {
 	return counters, nil
 }
 
-// PublicWeb3API offers helper utils
-type PublicWeb3API struct {
+// PublicWebuAPI offers helper utils
+type PublicWebuAPI struct {
 	stack *Node
 }
 
-// NewPublicWeb3API creates a new Web3Service instance
-func NewPublicWeb3API(stack *Node) *PublicWeb3API {
-	return &PublicWeb3API{stack}
+// NewPublicWebuAPI creates a new webuService instance
+func NewPublicWebuAPI(stack *Node) *PublicWebuAPI {
+	return &PublicWebuAPI{stack}
 }
 
 // ClientVersion returns the node name
-func (s *PublicWeb3API) ClientVersion() string {
+func (s *PublicWebuAPI) ClientVersion() string {
 	return s.stack.Server().Name
 }
 
 // Sha3 applies the happyuc sha3 implementation on the input.
 // It assumes the input is hex encoded.
-func (s *PublicWeb3API) Sha3(input hexutil.Bytes) hexutil.Bytes {
+func (s *PublicWebuAPI) Sha3(input hexutil.Bytes) hexutil.Bytes {
 	return crypto.Keccak256(input)
 }
