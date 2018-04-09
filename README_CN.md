@@ -67,7 +67,7 @@ This command will:
    download more data in exchange for avoiding processing the entire history of the HappyUC network,
    which is very CPU intensive.
  * Start up Ghuc's built-in interactive [JavaScript console](https://github.com/happyuc-project/happyuc-go/wiki/JavaScript-Console),
-   (via the trailing `console` subcommand) through which you can invoke all official [`web3` methods](https://github.com/happyuc-project/wiki/wiki/JavaScript-API)
+   (via the trailing `console` subcommand) through which you can invoke all official [`webu` methods](https://github.com/happyuc-project/wiki/wiki/JavaScript-API)
    as well as Ghuc's own [management APIs](https://github.com/happyuc-project/happyuc-go/wiki/Management-APIs).
    This too is optional and if you leave it out you can always attach to an already running Ghuc instance
    with `ghuc attach`.
@@ -156,15 +156,15 @@ HTTP based JSON-RPC API options:
   * `--rpc` Enable the HTTP-RPC server
   * `--rpcaddr` HTTP-RPC server listening interface (default: "localhost")
   * `--rpcport` HTTP-RPC server listening port (default: 8545)
-  * `--rpcapi` API's offered over the HTTP-RPC interface (default: "eth,net,web3")
+  * `--rpcapi` API's offered over the HTTP-RPC interface (default: "eth,net,webu")
   * `--rpccorsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
   * `--ws` Enable the WS-RPC server
   * `--wsaddr` WS-RPC server listening interface (default: "localhost")
   * `--wsport` WS-RPC server listening port (default: 8546)
-  * `--wsapi` API's offered over the WS-RPC interface (default: "eth,net,web3")
+  * `--wsapi` API's offered over the WS-RPC interface (default: "eth,net,webu")
   * `--wsorigins` Origins from which to accept websockets requests
   * `--ipcdisable` Disable the IPC-RPC server
-  * `--ipcapi` API's offered over the IPC-RPC interface (default: "admin,debug,eth,miner,net,personal,shh,txpool,web3")
+  * `--ipcapi` API's offered over the IPC-RPC interface (default: "admin,debug,eth,miner,net,personal,shh,txpool,webu")
   * `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
 
 You'll need to use your own programming environments' capabilities (libraries, tools, etc) to connect

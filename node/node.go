@@ -675,9 +675,9 @@ func (n *Node) apis() []rpc.API {
 			Service:   NewPublicDebugAPI(n),
 			Public:    true,
 		}, {
-			Namespace: "web3",
+			Namespace: "webu",
 			Version:   "1.0",
-			Service:   NewPublicWeb3API(n),
+			Service:   NewPublicWebuAPI(n),
 			Public:    true,
 		},
 	}
