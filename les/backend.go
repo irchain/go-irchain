@@ -102,7 +102,7 @@ func New(ctx *node.ServiceContext, config *huc.Config) (*LightHappyUC, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           huc.CreateConsensusEngine(ctx, &config.Ethash, chainConfig, chainDb),
+		engine:           huc.CreateConsensusEngine(ctx, &config.Huchash, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),

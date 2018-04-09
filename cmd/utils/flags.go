@@ -222,27 +222,27 @@ var (
 	EthashCachesInMemoryFlag = cli.IntFlag{
 		Name:  "huchash.cachesinmem",
 		Usage: "Number of recent huchash caches to keep in memory (16MB each)",
-		Value: huc.DefaultConfig.Ethash.CachesInMem,
+		Value: huc.DefaultConfig.Huchash.CachesInMem,
 	}
 	EthashCachesOnDiskFlag = cli.IntFlag{
 		Name:  "huchash.cachesondisk",
 		Usage: "Number of recent huchash caches to keep on disk (16MB each)",
-		Value: huc.DefaultConfig.Ethash.CachesOnDisk,
+		Value: huc.DefaultConfig.Huchash.CachesOnDisk,
 	}
 	EthashDatasetDirFlag = DirectoryFlag{
 		Name:  "huchash.dagdir",
 		Usage: "Directory to store the huchash mining DAGs (default = inside home folder)",
-		Value: DirectoryString{huc.DefaultConfig.Ethash.DatasetDir},
+		Value: DirectoryString{huc.DefaultConfig.Huchash.DatasetDir},
 	}
 	EthashDatasetsInMemoryFlag = cli.IntFlag{
 		Name:  "huchash.dagsinmem",
 		Usage: "Number of recent huchash mining DAGs to keep in memory (1+GB each)",
-		Value: huc.DefaultConfig.Ethash.DatasetsInMem,
+		Value: huc.DefaultConfig.Huchash.DatasetsInMem,
 	}
 	EthashDatasetsOnDiskFlag = cli.IntFlag{
 		Name:  "huchash.dagsondisk",
 		Usage: "Number of recent huchash mining DAGs to keep on disk (1+GB each)",
-		Value: huc.DefaultConfig.Ethash.DatasetsOnDisk,
+		Value: huc.DefaultConfig.Huchash.DatasetsOnDisk,
 	}
 	// Transaction pool settings
 	TxPoolNoLocalsFlag = cli.BoolFlag{
@@ -830,11 +830,11 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	ethPeers := cfg.MaxPeers - lightPeers
+	hucPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		ethPeers = 0
+		hucPeers = 0
 	}
-	log.Info("Maximum peer count", "HUC", ethPeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "HUC", hucPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -944,22 +944,22 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 
 func setEthash(ctx *cli.Context, cfg *huc.Config) {
 	if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
-		cfg.Ethash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
+		cfg.Huchash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
 	}
 	if ctx.GlobalIsSet(EthashDatasetDirFlag.Name) {
-		cfg.Ethash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
+		cfg.Huchash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
 	}
 	if ctx.GlobalIsSet(EthashCachesInMemoryFlag.Name) {
-		cfg.Ethash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
+		cfg.Huchash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
 	}
 	if ctx.GlobalIsSet(EthashCachesOnDiskFlag.Name) {
-		cfg.Ethash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
+		cfg.Huchash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
 	}
 	if ctx.GlobalIsSet(EthashDatasetsInMemoryFlag.Name) {
-		cfg.Ethash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
+		cfg.Huchash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
 	}
 	if ctx.GlobalIsSet(EthashDatasetsOnDiskFlag.Name) {
-		cfg.Ethash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
+		cfg.Huchash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
 	}
 }
 
@@ -1011,7 +1011,7 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetHucConfig applies eth-related command line flags to the config.
+// SetHucConfig applies huc-related command line flags to the config.
 func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, DeveloperFlag, TestnetFlag, RinkebyFlag)
@@ -1230,12 +1230,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		engine = huchash.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
 			engine = huchash.New(huchash.Config{
-				CacheDir:       stack.ResolvePath(huc.DefaultConfig.Ethash.CacheDir),
-				CachesInMem:    huc.DefaultConfig.Ethash.CachesInMem,
-				CachesOnDisk:   huc.DefaultConfig.Ethash.CachesOnDisk,
-				DatasetDir:     stack.ResolvePath(huc.DefaultConfig.Ethash.DatasetDir),
-				DatasetsInMem:  huc.DefaultConfig.Ethash.DatasetsInMem,
-				DatasetsOnDisk: huc.DefaultConfig.Ethash.DatasetsOnDisk,
+				CacheDir:       stack.ResolvePath(huc.DefaultConfig.Huchash.CacheDir),
+				CachesInMem:    huc.DefaultConfig.Huchash.CachesInMem,
+				CachesOnDisk:   huc.DefaultConfig.Huchash.CachesOnDisk,
+				DatasetDir:     stack.ResolvePath(huc.DefaultConfig.Huchash.DatasetDir),
+				DatasetsInMem:  huc.DefaultConfig.Huchash.DatasetsInMem,
+				DatasetsOnDisk: huc.DefaultConfig.Huchash.DatasetsOnDisk,
 			})
 		}
 	}

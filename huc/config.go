@@ -36,8 +36,8 @@ import (
 // DefaultConfig contains default settings for use on the HappyUC main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: huchash.Config{
-		CacheDir:       "ethash",
+	Huchash: huchash.Config{
+		CacheDir:       "huchash",
 		CachesInMem:    2,
 		CachesOnDisk:   3,
 		DatasetsInMem:  1,
@@ -65,9 +65,9 @@ func init() {
 		}
 	}
 	if runtime.GOOS == "windows" {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "AppData", "Ethash")
+		DefaultConfig.Huchash.DatasetDir = filepath.Join(home, "AppData", "Huchash")
 	} else {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+		DefaultConfig.Huchash.DatasetDir = filepath.Join(home, ".huchash")
 	}
 }
 
@@ -101,7 +101,7 @@ type Config struct {
 	GasPrice     *big.Int
 
 	// Ethash options
-	Ethash huchash.Config
+	Huchash huchash.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig

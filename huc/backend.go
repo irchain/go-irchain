@@ -103,7 +103,7 @@ func (s *HappyUC) AddLesServer(ls LesServer) {
 // initialisation of the common HappyUC object)
 func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run eth.HappyUC in light sync mode, use les.LightHappyUC")
+		return nil, errors.New("can't run huc.HappyUC in light sync mode, use les.LightHappyUC")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -125,7 +125,7 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 		chainConfig:    chainConfig,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, &config.Ethash, chainConfig, chainDb),
+		engine:         CreateConsensusEngine(ctx, &config.Huchash, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
 		stopDbUpgrade:  stopDbUpgrade,
 		networkId:      config.NetworkId,

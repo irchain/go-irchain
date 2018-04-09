@@ -29,7 +29,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/internal/jsre"
 	"github.com/happyuc-project/happyuc-go/node"
 )
@@ -95,7 +95,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	ethConf := &eth.Config{
+	ethConf := &huc.Config{
 		Genesis:   core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
 		Ethash: huchash.Config{

@@ -34,11 +34,11 @@ var (
 	makecacheCommand = cli.Command{
 		Action:    utils.MigrateFlags(makecache),
 		Name:      "makecache",
-		Usage:     "Generate ethash verification cache (for testing)",
+		Usage:     "Generate huchash verification cache (for testing)",
 		ArgsUsage: "<blockNum> <outputDir>",
 		Category:  "MISCELLANEOUS COMMANDS",
 		Description: `
-The makecache command generates an ethash cache in <outputDir>.
+The makecache command generates an huchash cache in <outputDir>.
 
 This command exists to support the system testing project.
 Regular users do not need to execute it.
@@ -47,11 +47,11 @@ Regular users do not need to execute it.
 	makedagCommand = cli.Command{
 		Action:    utils.MigrateFlags(makedag),
 		Name:      "makedag",
-		Usage:     "Generate ethash mining DAG (for testing)",
+		Usage:     "Generate huchash mining DAG (for testing)",
 		ArgsUsage: "<blockNum> <outputDir>",
 		Category:  "MISCELLANEOUS COMMANDS",
 		Description: `
-The makedag command generates an ethash DAG in <outputDir>.
+The makedag command generates an huchash DAG in <outputDir>.
 
 This command exists to support the system testing project.
 Regular users do not need to execute it.
@@ -76,7 +76,7 @@ The output of this command is supposed to be machine-readable.
 	}
 )
 
-// makecache generates an ethash verification cache into the provided folder.
+// makecache generates an huchash verification cache into the provided folder.
 func makecache(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
@@ -91,7 +91,7 @@ func makecache(ctx *cli.Context) error {
 	return nil
 }
 
-// makedag generates an ethash mining DAG into the provided folder.
+// makedag generates an huchash mining DAG into the provided folder.
 func makedag(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
