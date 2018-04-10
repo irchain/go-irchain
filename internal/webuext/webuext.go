@@ -22,7 +22,7 @@ var Modules = map[string]string{
 	"chequebook": Chequebook_JS,
 	"clique":     Clique_JS,
 	"debug":      Debug_JS,
-	"huc":        Eth_JS,         // TODO huc -> huc
+	"huc":        Huc_JS,
 	"miner":      Miner_JS,
 	"net":        Net_JS,
 	"personal":   Personal_JS,
@@ -389,44 +389,44 @@ webu._extend({
 	properties: []
 });
 `
-// eth -> huc
-const Eth_JS = `
+
+const Huc_JS = `
 webu._extend({
-	property: 'eth',
+	property: 'huc',
 	methods: [
 		new webu._extend.Method({
 			name: 'sign',
-			call: 'eth_sign',
+			call: 'huc_sign',
 			params: 2,
 			inputFormatter: [webu._extend.formatters.inputAddressFormatter, null]
 		}),
 		new webu._extend.Method({
 			name: 'resend',
-			call: 'eth_resend',
+			call: 'huc_resend',
 			params: 3,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter, webu._extend.utils.fromDecimal, webu._extend.utils.fromDecimal]
 		}),
 		new webu._extend.Method({
 			name: 'signTransaction',
-			call: 'eth_signTransaction',
+			call: 'huc_signTransaction',
 			params: 1,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter]
 		}),
 		new webu._extend.Method({
 			name: 'submitTransaction',
-			call: 'eth_submitTransaction',
+			call: 'huc_submitTransaction',
 			params: 1,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter]
 		}),
 		new webu._extend.Method({
 			name: 'getRawTransaction',
-			call: 'eth_getRawTransactionByHash',
+			call: 'huc_getRawTransactionByHash',
 			params: 1
 		}),
 		new webu._extend.Method({
 			name: 'getRawTransactionFromBlock',
 			call: function(args) {
-				return (webu._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'eth_getRawTransactionByBlockHashAndIndex' : 'eth_getRawTransactionByBlockNumberAndIndex';
+				return (webu._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'huc_getRawTransactionByBlockHashAndIndex' : 'huc_getRawTransactionByBlockNumberAndIndex';
 			},
 			params: 2,
 			inputFormatter: [webu._extend.formatters.inputBlockNumberFormatter, webu._extend.utils.toHex]
@@ -435,7 +435,7 @@ webu._extend({
 	properties: [
 		new webu._extend.Property({
 			name: 'pendingTransactions',
-			getter: 'eth_pendingTransactions',
+			getter: 'huc_pendingTransactions',
 			outputFormatter: function(txs) {
 				var formatted = [];
 				for (var i = 0; i < txs.length; i++) {
