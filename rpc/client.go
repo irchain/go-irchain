@@ -350,7 +350,7 @@ func (c *Client) BatchCallContext(ctx context.Context, b []BatchElem) error {
 }
 
 // Hucscribe registers a subscripion under the "huc" namespace.
-func (c *Client) EthSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
+func (c *Client) HucSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
 	return c.Subscribe(ctx, "huc", channel, args...)
 }
 
