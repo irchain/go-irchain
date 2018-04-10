@@ -30,15 +30,15 @@ import (
 
 // Constants to match up protocol versions and messages
 const (
-	eth62 = 62
-	eth63 = 63
+	huc62 = 62
+	huc63 = 63
 )
 
 // Official short name of the protocol used during capability negotiation.
 var ProtocolName = "huc"
 
 // Supported versions of the huc protocol (first is primary).
-var ProtocolVersions = []uint{eth63, eth62}
+var ProtocolVersions = []uint{huc63, huc62}
 
 // Number of implemented message corresponding to different protocol versions.
 var ProtocolLengths = []uint64{17, 8}

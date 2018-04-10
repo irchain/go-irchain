@@ -60,13 +60,13 @@ var (
 
 // Author implements consensus.Engine, returning the header's coinbase as the
 // proof-of-work verified author of the block.
-func (huchash *Ethash) Author(header *types.Header) (common.Address, error) {
+func (huchash *Huchash) Author(header *types.Header) (common.Address, error) {
 	return header.Coinbase, nil
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock HappyUC huchash engine.
-func (huchash *Ethash) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+func (huchash *Huchash) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 	// If we're running a full engine faking, accept any input as valid
 	if huchash.config.PowMode == ModeFullFake {
 		return nil
@@ -87,7 +87,7 @@ func (huchash *Ethash) VerifyHeader(chain consensus.ChainReader, header *types.H
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications.
-func (huchash *Ethash) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+func (huchash *Huchash) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	// If we're running a full engine faking, accept any input as valid
 	if huchash.config.PowMode == ModeFullFake || len(headers) == 0 {
 		abort, results := make(chan struct{}), make(chan error, len(headers))
@@ -149,7 +149,8 @@ func (huchash *Ethash) VerifyHeaders(chain consensus.ChainReader, headers []*typ
 	return abort, errorsOut
 }
 
-func (huchash *Ethash) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header, seals []bool, index int) error {
+
+func (huchash *Huchash) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header, seals []bool, index int) error {
 	var parent *types.Header
 	if index == 0 {
 		parent = chain.GetHeader(headers[0].ParentHash, headers[0].Number.Uint64()-1)
@@ -166,8 +167,8 @@ func (huchash *Ethash) verifyHeaderWorker(chain consensus.ChainReader, headers [
 }
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus
-// rules of the stock HappyUC huchash engine.
-func (huchash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
+// rules of the stock HappyUC huchash engine
+func (huchash *Huchash) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
 	// If we're running a full engine faking, accept any input as valid
 	if huchash.config.PowMode == ModeFullFake {
 		return nil
@@ -220,7 +221,7 @@ func (huchash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Bl
 // verifyHeader checks whether a header conforms to the consensus rules of the
 // stock HappyUC huchash engine.
 // See YP section 4.3.4. "Block Header Validity"
-func (huchash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
+func (huchash *Huchash) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(header.Extra), params.MaximumExtraDataSize)
@@ -287,7 +288,7 @@ func (huchash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent 
 // CalcDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
-func (huchash *Ethash) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+func (huchash *Huchash) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 	return CalcDifficulty(chain.Config(), time, parent)
 }
 
@@ -460,7 +461,7 @@ func calcDifficultyFrontier(time uint64, parent *types.Header) *big.Int {
 
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
-func (huchash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (huchash *Huchash) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
 	// If we're running a fake PoW, accept any seal as valid
 	if huchash.config.PowMode == ModeFake || huchash.config.PowMode == ModeFullFake {
 		time.Sleep(huchash.fakeDelay)
@@ -502,7 +503,7 @@ func (huchash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Hea
 
 // Prepare implements consensus.Engine, initializing the difficulty field of a
 // header to conform to the huchash protocol. The changes are done inline.
-func (huchash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (huchash *Huchash) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	parent := chain.GetHeader(header.ParentHash, header.Number.Uint64()-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
@@ -513,7 +514,7 @@ func (huchash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header
 
 // Finalize implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state and assembling the block.
-func (huchash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+func (huchash *Huchash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(chain.Config(), state, header, uncles)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))

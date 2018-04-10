@@ -174,17 +174,17 @@ func (s *LightDummyAPI) Mining() bool {
 func (huc *LightHappyUC) APIs() []rpc.API {
 	return append(hucapi.GetAPIs(huc.ApiBackend), []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   &LightDummyAPI{},
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(huc.protocolManager.downloader, huc.eventMux),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(huc.ApiBackend, true),
 			Public:    true,

@@ -57,7 +57,7 @@ func (w *wizard) makeGenesis() {
 	switch {
 	case choice == "1":
 		// In case of huchash, we're pretty much done
-		genesis.Config.Huchash = new(params.EthashConfig)
+		genesis.Config.Huchash = new(params.HuchashConfig)
 		genesis.ExtraData = make([]byte, 32)
 
 	case choice == "" || choice == "2":

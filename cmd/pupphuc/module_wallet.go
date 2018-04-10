@@ -40,11 +40,11 @@ RUN \
 	echo $'ghuc --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --hucstats \'{{.Hucstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*"' >> wallet.sh
 
 RUN \
-	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/etherwallet-master.js && \
-	sed -i 's/PuppethNetwork/{{.Network}}/g'     dist/js/etherwallet-master.js && \
-	sed -i 's/PuppethDenom/{{.Denom}}/g'         dist/js/etherwallet-master.js && \
-	sed -i 's/PuppethHost/{{.Host}}/g'           dist/js/etherwallet-master.js && \
-	sed -i 's/PuppethRPCPort/{{.RPCPort}}/g'     dist/js/etherwallet-master.js
+	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/happyucwallet-master.js && \
+	sed -i 's/PuppethNetwork/{{.Network}}/g'     dist/js/happyucwallet-master.js && \
+	sed -i 's/PuppethDenom/{{.Denom}}/g'         dist/js/happyucwallet-master.js && \
+	sed -i 's/PuppethHost/{{.Host}}/g'           dist/js/happyucwallet-master.js && \
+	sed -i 's/PuppethRPCPort/{{.RPCPort}}/g'     dist/js/happyucwallet-master.js
 
 ENTRYPOINT ["/bin/sh", "wallet.sh"]
 `

@@ -59,7 +59,7 @@ services:
       - "{{.Port}}:{{.Port}}"
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
-      - {{.Datadir}}:/root/.happyuc{{if .Ethashdir}}
+      - {{.Datadir}}:/root/.happyuc{{if .Huchashdir}}
       - {{.Huchashdir}}:/root/.huchash{{end}}
     environment:
       - PORT={{.Port}}/tcp
@@ -113,7 +113,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
 		"Type":       kind,
 		"Datadir":    config.datadir,
-		"Ethashdir":  config.huchashdir,
+		"Huchashdir": config.huchashdir,
 		"Network":    network,
 		"Port":       config.port,
 		"TotalPeers": config.peersTotal,

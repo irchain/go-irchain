@@ -213,7 +213,7 @@ type implementsResult struct {
 func (r *implementsResult) PrintPlain(printf printfFunc) {
 	relation := "is implemented by"
 
-	meth := func(sel *types.Selection) {
+	mhuc := func(sel *types.Selection) {
 		if sel != nil {
 			printf(sel.Obj(), "\t%s method (%s).%s",
 				relation, r.qpos.typeString(sel.Recv()), sel.Obj().Name())

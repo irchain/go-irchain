@@ -144,7 +144,7 @@ var (
 
 	// the following flags are deprecated and should be removed in the future
 	DeprecatedEthAPIFlag = cli.StringFlag{
-		Name:  "ethapi",
+		Name:  "hucapi",
 		Usage: "DEPRECATED: please use --ens-api and --swap-api",
 	}
 	DeprecatedEnsAddrFlag = cli.StringFlag{

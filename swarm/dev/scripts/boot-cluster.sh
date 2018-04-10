@@ -254,7 +254,7 @@ EOF
 }
 
 # create_node_network creates a network namespace and connects it to the Linux
-# bridge using a veth pair
+# bridge using a vhuc pair
 create_node_network() {
   local name="$1"
   local ip="$2"
@@ -262,10 +262,10 @@ create_node_network() {
   # create the namespace
   ip netns add "${name}"
 
-  # create the veth pair
+  # create the vhuc pair
   local veth0="veth${name}0"
   local veth1="veth${name}1"
-  ip link add name "${veth0}" type veth peer name "${veth1}"
+  ip link add name "${veth0}" type vhuc peer name "${veth1}"
 
   # add one end to the bridge
   ip link set dev "${veth0}" master "${BRIDGE_NAME}"

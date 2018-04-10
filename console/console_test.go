@@ -96,9 +96,9 @@ func newTester(t *testing.T, confOverride func(*huc.Config)) *tester {
 		t.Fatalf("failed to create node: %v", err)
 	}
 	hucConf := &huc.Config{
-		Genesis:   core.DeveloperGenesisBlock(15, common.Address{}),
+		Genesis : core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
-		Huchash: huchash.Config{
+		Huchash : huchash.Config{
 			PowMode: huchash.ModeTest,
 		},
 	}
@@ -117,10 +117,10 @@ func newTester(t *testing.T, confOverride func(*huc.Config)) *tester {
 		t.Fatalf("failed to attach to node: %v", err)
 	}
 	prompter := &hookedPrompter{scheduler: make(chan string)}
-	printer := new(bytes.Buffer)
+	printer  := new(bytes.Buffer)
 
 	console, err := New(Config{
-		DataDir:  stack.DataDir(),
+		DataDir:  stack.InstanceDir(),
 		DocRoot:  "testdata",
 		Client:   client,
 		Prompter: prompter,
