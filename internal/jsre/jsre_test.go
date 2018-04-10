@@ -135,3 +135,7 @@ func TestLoadScript(t *testing.T) {
 	}
 	jsre.Stop(false)
 }
+
+func TestBin2String() {
+	
+}

@@ -151,7 +151,7 @@ func (e *GenesisMismatchError) Error() string {
 // The returned chain configuration is never nil.
 func SetupGenesisBlock(db hucdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
-		return params.AllEthashProtocolChanges, common.Hash{}, errGenesisNoConfig
+		return params.AllHuchashProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
 
 	// Just commit the new block if there is no stored genesis block.
@@ -215,7 +215,7 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 	case ghash == params.TestnetGenesisHash:
 		return params.TestnetChainConfig
 	default:
-		return params.AllEthashProtocolChanges
+		return params.AllHuchashProtocolChanges
 	}
 }
 
@@ -287,7 +287,7 @@ func (g *Genesis) Commit(db hucdb.Database) (*types.Block, error) {
 	}
 	config := g.Config
 	if config == nil {
-		config = params.AllEthashProtocolChanges
+		config = params.AllHuchashProtocolChanges
 	}
 	return block, WriteChainConfig(db, block.Hash(), config)
 }

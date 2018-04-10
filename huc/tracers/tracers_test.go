@@ -36,6 +36,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/tests"
 )
 
+
 // callTrace is the result of a callTracer run.
 type callTrace struct {
 	Type    string          `json:"type"`

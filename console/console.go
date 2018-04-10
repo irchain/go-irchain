@@ -280,7 +280,7 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 // console's available modules.
 func (c *Console) Welcome() {
 	// Print some generic Ghuc metadata
-	fmt.Fprint(c.printer, "Welcome to the Ghuc JavaScript console!\n\n")
+	fmt.Fprint(c.printer, "Welcome to the Ghuc JavaScript console(webu.js)!\n\n")
 	c.jsre.Run(`
 		console.log("instance: " + webu.version.node);
 		console.log("coinbase: " + huc.coinbase);

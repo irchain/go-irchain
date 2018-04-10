@@ -46,8 +46,8 @@ var (
 	// maxUint256 is a big integer representing 2^256-1
 	maxUint256 = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
 
-	// sharedEthash is a full instance that can be shared between multiple users.
-	sharedEthash = New(Config{"", 3, 0, "", 1, 0, ModeNormal})
+	// sharedHuchash is a full instance that can be shared between multiple users.
+	sharedHuchash = New(Config{"", 3, 0, "", 1, 0, ModeNormal})
 
 	// algorithmRevision is the data structure version used for file naming.
 	algorithmRevision = 23
@@ -391,7 +391,7 @@ type Config struct {
 
 // Huchash is a consensus engine based on proot-of-work implementing the huchash
 // algorithm.
-type Ethash struct {
+type Huchash struct {
 	config Config
 
 	caches   *lru // In memory caches to avoid regenerating too often
@@ -404,7 +404,7 @@ type Ethash struct {
 	hashrate metrics.Meter // Meter tracking the average hashrate
 
 	// The fields below are hooks for testing
-	shared    *Ethash       // Shared PoW verifier to avoid cache regeneration
+	shared    *Huchash       // Shared PoW verifier to avoid cache regeneration
 	fakeFail  uint64        // Block number which fails PoW check even in fake mode
 	fakeDelay time.Duration // Time delay to sleep for before returning from verify
 
@@ -412,7 +412,7 @@ type Ethash struct {
 }
 
 // New creates a full sized huchash PoW scheme.
-func New(config Config) *Ethash {
+func New(config Config) *Huchash {
 	if config.CachesInMem <= 0 {
 		log.Warn("One huchash cache must always be in memory", "requested", config.CachesInMem)
 		config.CachesInMem = 1
@@ -423,7 +423,7 @@ func New(config Config) *Ethash {
 	if config.DatasetDir != "" && config.DatasetsOnDisk > 0 {
 		log.Info("Disk storage enabled for huchash DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
 	}
-	return &Ethash{
+	return &Huchash{
 		config:   config,
 		caches:   newlru("cache", config.CachesInMem, newCache),
 		datasets: newlru("dataset", config.DatasetsInMem, newDataset),
@@ -434,15 +434,15 @@ func New(config Config) *Ethash {
 
 // NewTester creates a small sized huchash PoW scheme useful only for testing
 // purposes.
-func NewTester() *Ethash {
+func NewTester() *Huchash {
 	return New(Config{CachesInMem: 1, PowMode: ModeTest})
 }
 
 // NewFaker creates a huchash consensus engine with a fake PoW scheme that accepts
 // all blocks' seal as valid, though they still have to conform to the HappyUC
 // consensus rules.
-func NewFaker() *Ethash {
-	return &Ethash{
+func NewFaker() *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
@@ -452,8 +452,8 @@ func NewFaker() *Ethash {
 // NewFakeFailer creates a huchash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid apart from the single one specified, though they
 // still have to conform to the HappyUC consensus rules.
-func NewFakeFailer(fail uint64) *Ethash {
-	return &Ethash{
+func NewFakeFailer(fail uint64) *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
@@ -464,8 +464,8 @@ func NewFakeFailer(fail uint64) *Ethash {
 // NewFakeDelayer creates a huchash consensus engine with a fake PoW scheme that
 // accepts all blocks as valid, but delays verifications by some time, though
 // they still have to conform to the HappyUC consensus rules.
-func NewFakeDelayer(delay time.Duration) *Ethash {
-	return &Ethash{
+func NewFakeDelayer(delay time.Duration) *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFake,
 		},
@@ -475,8 +475,8 @@ func NewFakeDelayer(delay time.Duration) *Ethash {
 
 // NewFullFaker creates an huchash consensus engine with a full fake scheme that
 // accepts all blocks as valid, without checking any consensus rules whatsoever.
-func NewFullFaker() *Ethash {
-	return &Ethash{
+func NewFullFaker() *Huchash {
+	return &Huchash{
 		config: Config{
 			PowMode: ModeFullFake,
 		},
@@ -485,14 +485,14 @@ func NewFullFaker() *Ethash {
 
 // NewShared creates a full sized huchash PoW shared between all requesters running
 // in the same process.
-func NewShared() *Ethash {
-	return &Ethash{shared: sharedEthash}
+func NewShared() *Huchash {
+	return &Huchash{shared: sharedHuchash}
 }
 
 // cache tries to retrieve a verification cache for the specified block number
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
-func (huchash *Ethash) cache(block uint64) *cache {
+func (huchash *Huchash) cache(block uint64) *cache {
 	epoch := block / epochLength
 	currentI, futureI := huchash.caches.get(epoch)
 	current := currentI.(*cache)
@@ -511,7 +511,7 @@ func (huchash *Ethash) cache(block uint64) *cache {
 // dataset tries to retrieve a mining dataset for the specified block number
 // by first checking against a list of in-memory datasets, then against DAGs
 // stored on disk, and finally generating one if none can be found.
-func (huchash *Ethash) dataset(block uint64) *dataset {
+func (huchash *Huchash) dataset(block uint64) *dataset {
 	epoch := block / epochLength
 	currentI, futureI := huchash.datasets.get(epoch)
 	current := currentI.(*dataset)
@@ -530,7 +530,7 @@ func (huchash *Ethash) dataset(block uint64) *dataset {
 
 // Threads returns the number of mining threads currently enabled. This doesn't
 // necessarily mean that mining is running!
-func (huchash *Ethash) Threads() int {
+func (huchash *Huchash) Threads() int {
 	huchash.lock.Lock()
 	defer huchash.lock.Unlock()
 
@@ -542,7 +542,7 @@ func (huchash *Ethash) Threads() int {
 // specified, the miner will use all cores of the machine. Setting a thread
 // count below zero is allowed and will cause the miner to idle, without any
 // work being done.
-func (huchash *Ethash) SetThreads(threads int) {
+func (huchash *Huchash) SetThreads(threads int) {
 	huchash.lock.Lock()
 	defer huchash.lock.Unlock()
 
@@ -561,13 +561,13 @@ func (huchash *Ethash) SetThreads(threads int) {
 
 // Hashrate implements PoW, returning the measured rate of the search invocations
 // per second over the last minute.
-func (huchash *Ethash) Hashrate() float64 {
+func (huchash *Huchash) Hashrate() float64 {
 	return huchash.hashrate.Rate1()
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs. Currently
 // that is empty.
-func (huchash *Ethash) APIs(chain consensus.ChainReader) []rpc.API {
+func (huchash *Huchash) APIs(chain consensus.ChainReader) []rpc.API {
 	return nil
 }
 

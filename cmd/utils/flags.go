@@ -1011,7 +1011,7 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetHucConfig applies eth-related command line flags to the config.
+// SetHucConfig applies huc-related command line flags to the config.
 func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, DeveloperFlag, TestnetFlag, RinkebyFlag)

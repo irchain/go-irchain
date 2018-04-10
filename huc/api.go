@@ -206,8 +206,8 @@ type PrivateAdminAPI struct {
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
 // admin methods of the HappyUC service.
-func NewPrivateAdminAPI(eth *HappyUC) *PrivateAdminAPI {
-	return &PrivateAdminAPI{huc: eth}
+func NewPrivateAdminAPI(huc *HappyUC) *PrivateAdminAPI {
+	return &PrivateAdminAPI{huc: huc}
 }
 
 // ExportChain exports the current blockchain into a local file.
