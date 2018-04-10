@@ -128,7 +128,7 @@ func (c *Console) init(preload []string) error {
 	}
 
 	// TODO do require webu
-	if _, err := c.jsre.Run("var Webu = require('web3');"); err != nil {
+	if _, err := c.jsre.Run("var Webu = require('webu');"); err != nil {
 		return fmt.Errorf("webu require: %v", err)
 	}
 
