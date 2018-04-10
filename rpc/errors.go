@@ -16,7 +16,9 @@
 
 package rpc
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // request is for an unknown service
 type methodNotFoundError struct {

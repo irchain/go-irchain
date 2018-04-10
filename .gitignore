@@ -32,7 +32,8 @@ profile.tmp
 profile.cov
 
 # IdeaIDE
-.idea
+.idea/
+debug/
 
 # VS Code
 .vscode

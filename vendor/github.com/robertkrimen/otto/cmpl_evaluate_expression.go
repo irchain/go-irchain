@@ -23,32 +23,24 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 	}
 
 	switch node := node.(type) {
-
 	case *_nodeArrayLiteral:
 		return self.cmpl_evaluate_nodeArrayLiteral(node)
-
 	case *_nodeAssignExpression:
 		return self.cmpl_evaluate_nodeAssignExpression(node)
-
 	case *_nodeBinaryExpression:
 		if node.comparison {
 			return self.cmpl_evaluate_nodeBinaryExpression_comparison(node)
 		} else {
 			return self.cmpl_evaluate_nodeBinaryExpression(node)
 		}
-
 	case *_nodeBracketExpression:
 		return self.cmpl_evaluate_nodeBracketExpression(node)
-
 	case *_nodeCallExpression:
 		return self.cmpl_evaluate_nodeCallExpression(node, nil)
-
 	case *_nodeConditionalExpression:
 		return self.cmpl_evaluate_nodeConditionalExpression(node)
-
 	case *_nodeDotExpression:
 		return self.cmpl_evaluate_nodeDotExpression(node)
-
 	case *_nodeFunctionLiteral:
 		var local = self.scope.lexical
 		if node.name != "" {
@@ -60,7 +52,6 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 			local.createBinding(node.name, false, value)
 		}
 		return value
-
 	case *_nodeIdentifier:
 		name := node.name
 		// TODO Should be true or false (strictness) depending on context
@@ -72,28 +63,20 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 			panic(hereBeDragons("referenceError == nil: " + name))
 		}
 		return toValue(reference)
-
 	case *_nodeLiteral:
 		return node.value
-
 	case *_nodeNewExpression:
 		return self.cmpl_evaluate_nodeNewExpression(node)
-
 	case *_nodeObjectLiteral:
 		return self.cmpl_evaluate_nodeObjectLiteral(node)
-
 	case *_nodeRegExpLiteral:
 		return toValue_object(self._newRegExp(node.pattern, node.flags))
-
 	case *_nodeSequenceExpression:
 		return self.cmpl_evaluate_nodeSequenceExpression(node)
-
 	case *_nodeThisExpression:
 		return toValue_object(self.scope.this)
-
 	case *_nodeUnaryExpression:
 		return self.cmpl_evaluate_nodeUnaryExpression(node)
-
 	case *_nodeVariableExpression:
 		return self.cmpl_evaluate_nodeVariableExpression(node)
 	}
