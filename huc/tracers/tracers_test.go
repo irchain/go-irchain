@@ -36,55 +36,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/tests"
 )
 
-// To generate a new callTracer test, copy paste the makeTest method below into
-// a Ghuc console and call it with a transaction hash you which to export.
-
-/*
-// makeTest generates a callTracer test by running a prestate reassembled and a
-// call trace run, assembling all the gathered information into a test case.
-var makeTest = function(tx, rewind) {
-  // Generate the genesis block from the block, transaction and prestate data
-  var block   = huc.getBlock(huc.getTransaction(tx).blockHash);
-  var genesis = huc.getBlock(block.parentHash);
-
-  delete genesis.gasUsed;
-  delete genesis.logsBloom;
-  delete genesis.parentHash;
-  delete genesis.receiptsRoot;
-  delete genesis.sha3Uncles;
-  delete genesis.size;
-  delete genesis.transactions;
-  delete genesis.transactionsRoot;
-  delete genesis.uncles;
-
-  genesis.gasLimit  = genesis.gasLimit.toString();
-  genesis.number    = genesis.number.toString();
-  genesis.timestamp = genesis.timestamp.toString();
-
-  genesis.alloc = debug.traceTransaction(tx, {tracer: "prestateTracer", rewind: rewind});
-  for (var key in genesis.alloc) {
-    genesis.alloc[key].nonce = genesis.alloc[key].nonce.toString();
-  }
-  genesis.config = admin.nodeInfo.protocols.huc.config;
-
-  // Generate the call trace and produce the test input
-  var result = debug.traceTransaction(tx, {tracer: "callTracer", rewind: rewind});
-  delete result.time;
-
-  console.log(JSON.stringify({
-    genesis: genesis,
-    context: {
-      number:     block.number.toString(),
-      difficulty: block.difficulty,
-      timestamp:  block.timestamp.toString(),
-      gasLimit:   block.gasLimit.toString(),
-      miner:      block.miner,
-    },
-    input:  huc.getRawTransaction(tx),
-    result: result,
-  }, null, 2));
-}
-*/
 
 // callTrace is the result of a callTracer run.
 type callTrace struct {

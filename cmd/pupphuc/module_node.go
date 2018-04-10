@@ -247,7 +247,7 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	stats := &nodeInfos{
 		genesis:    genesis,
 		datadir:    infos.volumes["/root/.happyuc"],
-		huchashdir:  infos.volumes["/root/.huchash"],
+		huchashdir: infos.volumes["/root/.huchash"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,

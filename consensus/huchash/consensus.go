@@ -149,6 +149,7 @@ func (huchash *Huchash) VerifyHeaders(chain consensus.ChainReader, headers []*ty
 	return abort, errorsOut
 }
 
+
 func (huchash *Huchash) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header, seals []bool, index int) error {
 	var parent *types.Header
 	if index == 0 {
@@ -166,7 +167,7 @@ func (huchash *Huchash) verifyHeaderWorker(chain consensus.ChainReader, headers 
 }
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus
-// rules of the stock HappyUC huchash engine.
+// rules of the stock HappyUC huchash engine
 func (huchash *Huchash) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
 	// If we're running a full engine faking, accept any input as valid
 	if huchash.config.PowMode == ModeFullFake {

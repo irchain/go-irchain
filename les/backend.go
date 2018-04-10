@@ -171,8 +171,8 @@ func (s *LightDummyAPI) Mining() bool {
 
 // APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *LightHappyUC) APIs() []rpc.API {
-	return append(hucapi.GetAPIs(s.ApiBackend), []rpc.API{
+func (huc *LightHappyUC) APIs() []rpc.API {
+	return append(hucapi.GetAPIs(huc.ApiBackend), []rpc.API{
 		{
 			Namespace: "huc",
 			Version:   "1.0",
@@ -181,74 +181,74 @@ func (s *LightHappyUC) APIs() []rpc.API {
 		}, {
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
+			Service:   downloader.NewPublicDownloaderAPI(huc.protocolManager.downloader, huc.eventMux),
 			Public:    true,
 		}, {
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
+			Service:   filters.NewPublicFilterAPI(huc.ApiBackend, true),
 			Public:    true,
 		}, {
 			Namespace: "net",
 			Version:   "1.0",
-			Service:   s.netRPCService,
+			Service:   huc.netRPCService,
 			Public:    true,
 		},
 	}...)
 }
 
-func (s *LightHappyUC) ResetWithGenesisBlock(gb *types.Block) {
-	s.blockchain.ResetWithGenesisBlock(gb)
+func (huc *LightHappyUC) ResetWithGenesisBlock(gb *types.Block) {
+	huc.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *LightHappyUC) BlockChain() *light.LightChain      { return s.blockchain }
-func (s *LightHappyUC) TxPool() *light.TxPool              { return s.txPool }
-func (s *LightHappyUC) Engine() consensus.Engine           { return s.engine }
-func (s *LightHappyUC) LesVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *LightHappyUC) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
-func (s *LightHappyUC) EventMux() *event.TypeMux           { return s.eventMux }
+func (huc *LightHappyUC) BlockChain() *light.LightChain      { return huc.blockchain }
+func (huc *LightHappyUC) TxPool() *light.TxPool              { return huc.txPool }
+func (huc *LightHappyUC) Engine() consensus.Engine           { return huc.engine }
+func (huc *LightHappyUC) LesVersion() int                    { return int(huc.protocolManager.SubProtocols[0].Version) }
+func (huc *LightHappyUC) Downloader() *downloader.Downloader { return huc.protocolManager.downloader }
+func (huc *LightHappyUC) EventMux() *event.TypeMux           { return huc.eventMux }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *LightHappyUC) Protocols() []p2p.Protocol {
-	return s.protocolManager.SubProtocols
+func (huc *LightHappyUC) Protocols() []p2p.Protocol {
+	return huc.protocolManager.SubProtocols
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
 // HappyUC protocol implementation.
-func (s *LightHappyUC) Start(srvr *p2p.Server) error {
-	s.startBloomHandlers()
+func (huc *LightHappyUC) Start(srvr *p2p.Server) error {
+	huc.startBloomHandlers()
 	log.Warn("Light client mode is an experimental feature")
-	s.netRPCService = hucapi.NewPublicNetAPI(srvr, s.networkId)
+	huc.netRPCService = hucapi.NewPublicNetAPI(srvr, huc.networkId)
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]
-	s.serverPool.start(srvr, lesTopic(s.blockchain.Genesis().Hash(), protocolVersion))
-	s.protocolManager.Start(s.config.LightPeers)
+	huc.serverPool.start(srvr, lesTopic(huc.blockchain.Genesis().Hash(), protocolVersion))
+	huc.protocolManager.Start(huc.config.LightPeers)
 	return nil
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
 // HappyUC protocol.
-func (s *LightHappyUC) Stop() error {
-	s.odr.Stop()
-	if s.bloomIndexer != nil {
-		s.bloomIndexer.Close()
+func (huc *LightHappyUC) Stop() error {
+	huc.odr.Stop()
+	if huc.bloomIndexer != nil {
+		huc.bloomIndexer.Close()
 	}
-	if s.chtIndexer != nil {
-		s.chtIndexer.Close()
+	if huc.chtIndexer != nil {
+		huc.chtIndexer.Close()
 	}
-	if s.bloomTrieIndexer != nil {
-		s.bloomTrieIndexer.Close()
+	if huc.bloomTrieIndexer != nil {
+		huc.bloomTrieIndexer.Close()
 	}
-	s.blockchain.Stop()
-	s.protocolManager.Stop()
-	s.txPool.Stop()
+	huc.blockchain.Stop()
+	huc.protocolManager.Stop()
+	huc.txPool.Stop()
 
-	s.eventMux.Stop()
+	huc.eventMux.Stop()
 
 	time.Sleep(time.Millisecond * 200)
-	s.chainDb.Close()
-	close(s.shutdownChan)
+	huc.chainDb.Close()
+	close(huc.shutdownChan)
 
 	return nil
 }

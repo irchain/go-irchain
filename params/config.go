@@ -41,7 +41,7 @@ var (
 		EIP158Block:         big.NewInt(2675000),
 		ByzantiumBlock:      big.NewInt(4370000),
 		ConstantinopleBlock: nil,
-		Huchash:              new(HuchashConfig),
+		Huchash:             new(HuchashConfig),
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -56,7 +56,7 @@ var (
 		EIP158Block:         big.NewInt(10),
 		ByzantiumBlock:      big.NewInt(1700000),
 		ConstantinopleBlock: nil,
-		Huchash:              new(HuchashConfig),
+		Huchash:             new(HuchashConfig),
 	}
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.

@@ -66,7 +66,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		SkipBcVersionCheck      *bool `toml:"-"`
 		DatabaseHandles         *int  `toml:"-"`
 		DatabaseCache           *int
-		Coinbase               *common.Address `toml:",omitempty"`
+		Coinbase                *common.Address `toml:",omitempty"`
 		MinerThreads            *int            `toml:",omitempty"`
 		ExtraData               *hexutil.Bytes  `toml:",omitempty"`
 		GasPrice                *big.Int

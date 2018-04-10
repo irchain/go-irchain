@@ -94,9 +94,9 @@ type HappyUC struct {
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and coinbase)
 }
 
-func (s *HappyUC) AddLesServer(ls LesServer) {
-	s.lesServer = ls
-	ls.SetBloomBitsIndexer(s.bloomIndexer)
+func (huc *HappyUC) AddLesServer(ls LesServer) {
+	huc.lesServer = ls
+	ls.SetBloomBitsIndexer(huc.bloomIndexer)
 }
 
 // New creates a new HappyUC object (including the
@@ -243,80 +243,80 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *huchash.Config, cha
 
 // APIs returns the collection of RPC services the happyuc package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
-func (s *HappyUC) APIs() []rpc.API {
-	apis := hucapi.GetAPIs(s.ApiBackend)
+func (huc *HappyUC) APIs() []rpc.API {
+	apis := hucapi.GetAPIs(huc.ApiBackend)
 
 	// Append any APIs exposed explicitly by the consensus engine
-	apis = append(apis, s.engine.APIs(s.BlockChain())...)
+	apis = append(apis, huc.engine.APIs(huc.BlockChain())...)
 
 	// Append all the local APIs and return
 	return append(apis, []rpc.API{
 		{
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   NewPublicHappyUCAPI(s),
+			Service:   NewPublicHappyUCAPI(huc),
 			Public:    true,
 		}, {
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   NewPublicMinerAPI(s),
+			Service:   NewPublicMinerAPI(huc),
 			Public:    true,
 		}, {
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
+			Service:   downloader.NewPublicDownloaderAPI(huc.protocolManager.downloader, huc.eventMux),
 			Public:    true,
 		}, {
 			Namespace: "miner",
 			Version:   "1.0",
-			Service:   NewPrivateMinerAPI(s),
+			Service:   NewPrivateMinerAPI(huc),
 			Public:    false,
 		}, {
 			Namespace: "huc",
 			Version:   "1.0",
-			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
+			Service:   filters.NewPublicFilterAPI(huc.ApiBackend, false),
 			Public:    true,
 		}, {
 			Namespace: "admin",
 			Version:   "1.0",
-			Service:   NewPrivateAdminAPI(s),
+			Service:   NewPrivateAdminAPI(huc),
 		}, {
 			Namespace: "debug",
 			Version:   "1.0",
-			Service:   NewPublicDebugAPI(s),
+			Service:   NewPublicDebugAPI(huc),
 			Public:    true,
 		}, {
 			Namespace: "debug",
 			Version:   "1.0",
-			Service:   NewPrivateDebugAPI(s.chainConfig, s),
+			Service:   NewPrivateDebugAPI(huc.chainConfig, huc),
 		}, {
 			Namespace: "net",
 			Version:   "1.0",
-			Service:   s.netRPCService,
+			Service:   huc.netRPCService,
 			Public:    true,
 		},
 	}...)
 }
 
-func (s *HappyUC) ResetWithGenesisBlock(gb *types.Block) {
-	s.blockchain.ResetWithGenesisBlock(gb)
+func (huc *HappyUC) ResetWithGenesisBlock(gb *types.Block) {
+	huc.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *HappyUC) Coinbase() (eb common.Address, err error) {
-	s.lock.RLock()
-	coinbase := s.coinbase
-	s.lock.RUnlock()
+func (huc *HappyUC) Coinbase() (eb common.Address, err error) {
+	huc.lock.RLock()
+	coinbase := huc.coinbase
+	huc.lock.RUnlock()
 
 	if coinbase != (common.Address{}) {
 		return coinbase, nil
 	}
-	if wallets := s.AccountManager().Wallets(); len(wallets) > 0 {
+	if wallets := huc.AccountManager().Wallets(); len(wallets) > 0 {
 		if accounts := wallets[0].Accounts(); len(accounts) > 0 {
 			coinbase := accounts[0].Address
 
-			s.lock.Lock()
-			s.coinbase = coinbase
-			s.lock.Unlock()
+			huc.lock.Lock()
+			huc.coinbase = coinbase
+			huc.lock.Unlock()
 
 			log.Info("Coinbase automatically configured", "address", coinbase)
 			return coinbase, nil
@@ -326,22 +326,22 @@ func (s *HappyUC) Coinbase() (eb common.Address, err error) {
 }
 
 // set in js console via admin interface or wrapper from cli flags
-func (self *HappyUC) SetCoinbase(coinbase common.Address) {
-	self.lock.Lock()
-	self.coinbase = coinbase
-	self.lock.Unlock()
+func (huc *HappyUC) SetCoinbase(coinbase common.Address) {
+	huc.lock.Lock()
+	huc.coinbase = coinbase
+	huc.lock.Unlock()
 
-	self.miner.SetCoinbase(coinbase)
+	huc.miner.SetCoinbase(coinbase)
 }
 
-func (s *HappyUC) StartMining(local bool) error {
-	eb, err := s.Coinbase()
+func (huc *HappyUC) StartMining(local bool) error {
+	eb, err := huc.Coinbase()
 	if err != nil {
 		log.Error("Cannot start mining without coinbase", "err", err)
 		return fmt.Errorf("coinbase missing: %v", err)
 	}
-	if clique, ok := s.engine.(*clique.Clique); ok {
-		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
+	if clique, ok := huc.engine.(*clique.Clique); ok {
+		wallet, err := huc.accountManager.Find(accounts.Account{Address: eb})
 		if wallet == nil || err != nil {
 			log.Error("Coinbase account unavailable locally", "err", err)
 			return fmt.Errorf("signer missing: %v", err)
@@ -353,79 +353,79 @@ func (s *HappyUC) StartMining(local bool) error {
 		// mechanism introduced to speed sync times. CPU mining on mainnet is ludicrous
 		// so noone will ever hit this path, whereas marking sync done on CPU mining
 		// will ensure that private networks work in single miner mode too.
-		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
+		atomic.StoreUint32(&huc.protocolManager.acceptTxs, 1)
 	}
-	go s.miner.Start(eb)
+	go huc.miner.Start(eb)
 	return nil
 }
 
-func (s *HappyUC) StopMining()         { s.miner.Stop() }
-func (s *HappyUC) IsMining() bool      { return s.miner.Mining() }
-func (s *HappyUC) Miner() *miner.Miner { return s.miner }
+func (huc *HappyUC) StopMining()         { huc.miner.Stop() }
+func (huc *HappyUC) IsMining() bool      { return huc.miner.Mining() }
+func (huc *HappyUC) Miner() *miner.Miner { return huc.miner }
 
-func (s *HappyUC) AccountManager() *accounts.Manager  { return s.accountManager }
-func (s *HappyUC) BlockChain() *core.BlockChain       { return s.blockchain }
-func (s *HappyUC) TxPool() *core.TxPool               { return s.txPool }
-func (s *HappyUC) EventMux() *event.TypeMux           { return s.eventMux }
-func (s *HappyUC) Engine() consensus.Engine           { return s.engine }
-func (s *HappyUC) ChainDb() hucdb.Database            { return s.chainDb }
-func (s *HappyUC) IsListening() bool                  { return true } // Always listening
-func (s *HappyUC) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
-func (s *HappyUC) NetVersion() uint64                 { return s.networkId }
-func (s *HappyUC) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
+func (huc *HappyUC) AccountManager() *accounts.Manager  { return huc.accountManager }
+func (huc *HappyUC) BlockChain() *core.BlockChain       { return huc.blockchain }
+func (huc *HappyUC) TxPool() *core.TxPool               { return huc.txPool }
+func (huc *HappyUC) EventMux() *event.TypeMux           { return huc.eventMux }
+func (huc *HappyUC) Engine() consensus.Engine           { return huc.engine }
+func (huc *HappyUC) ChainDb() hucdb.Database            { return huc.chainDb }
+func (huc *HappyUC) IsListening() bool                  { return true } // Always listening
+func (huc *HappyUC) EthVersion() int                    { return int(huc.protocolManager.SubProtocols[0].Version) }
+func (huc *HappyUC) NetVersion() uint64                 { return huc.networkId }
+func (huc *HappyUC) Downloader() *downloader.Downloader { return huc.protocolManager.downloader }
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
-func (s *HappyUC) Protocols() []p2p.Protocol {
-	if s.lesServer == nil {
-		return s.protocolManager.SubProtocols
+func (huc *HappyUC) Protocols() []p2p.Protocol {
+	if huc.lesServer == nil {
+		return huc.protocolManager.SubProtocols
 	}
-	return append(s.protocolManager.SubProtocols, s.lesServer.Protocols()...)
+	return append(huc.protocolManager.SubProtocols, huc.lesServer.Protocols()...)
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
 // HappyUC protocol implementation.
-func (s *HappyUC) Start(srvr *p2p.Server) error {
+func (huc *HappyUC) Start(srvr *p2p.Server) error {
 	// Start the bloom bits servicing goroutines
-	s.startBloomHandlers()
+	huc.startBloomHandlers()
 
 	// Start the RPC service
-	s.netRPCService = hucapi.NewPublicNetAPI(srvr, s.NetVersion())
+	huc.netRPCService = hucapi.NewPublicNetAPI(srvr, huc.NetVersion())
 
 	// Figure out a max peers count based on the server limits
 	maxPeers := srvr.MaxPeers
-	if s.config.LightServ > 0 {
-		if s.config.LightPeers >= srvr.MaxPeers {
-			return fmt.Errorf("invalid peer config: light peer count (%d) >= total peer count (%d)", s.config.LightPeers, srvr.MaxPeers)
+	if huc.config.LightServ > 0 {
+		if huc.config.LightPeers >= srvr.MaxPeers {
+			return fmt.Errorf("invalid peer config: light peer count (%d) >= total peer count (%d)", huc.config.LightPeers, srvr.MaxPeers)
 		}
-		maxPeers -= s.config.LightPeers
+		maxPeers -= huc.config.LightPeers
 	}
 	// Start the networking layer and the light server if requested
-	s.protocolManager.Start(maxPeers)
-	if s.lesServer != nil {
-		s.lesServer.Start(srvr)
+	huc.protocolManager.Start(maxPeers)
+	if huc.lesServer != nil {
+		huc.lesServer.Start(srvr)
 	}
 	return nil
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
 // HappyUC protocol.
-func (s *HappyUC) Stop() error {
-	if s.stopDbUpgrade != nil {
-		s.stopDbUpgrade()
+func (huc *HappyUC) Stop() error {
+	if huc.stopDbUpgrade != nil {
+		huc.stopDbUpgrade()
 	}
-	s.bloomIndexer.Close()
-	s.blockchain.Stop()
-	s.protocolManager.Stop()
-	if s.lesServer != nil {
-		s.lesServer.Stop()
+	huc.bloomIndexer.Close()
+	huc.blockchain.Stop()
+	huc.protocolManager.Stop()
+	if huc.lesServer != nil {
+		huc.lesServer.Stop()
 	}
-	s.txPool.Stop()
-	s.miner.Stop()
-	s.eventMux.Stop()
+	huc.txPool.Stop()
+	huc.miner.Stop()
+	huc.eventMux.Stop()
 
-	s.chainDb.Close()
-	close(s.shutdownChan)
+	huc.chainDb.Close()
+	close(huc.shutdownChan)
 
 	return nil
 }
