@@ -108,11 +108,11 @@ func New(config Config) (*Console, error) {
 func (c *Console) init(preload []string) error {
 	// Initialize the JavaScript <-> Go RPC bridge
 	bridge := newBridge(c.client, c.prompter, c.printer)
-	c.jsre.Set("jeth", struct{}{})
+	c.jsre.Set("jhuc", struct{}{})
 
-	jethObj, _ := c.jsre.Get("jeth")
-	jethObj.Object().Set("send", bridge.Send)
-	jethObj.Object().Set("sendAsync", bridge.Send)
+	jhucObj, _ := c.jsre.Get("jhuc")
+	jhucObj.Object().Set("send", bridge.Send)
+	jhucObj.Object().Set("sendAsync", bridge.Send)
 
 	consoleObj, _ := c.jsre.Get("console")
 	consoleObj.Object().Set("log", c.consoleOutput)
@@ -128,11 +128,11 @@ func (c *Console) init(preload []string) error {
 	}
 
 	// TODO do require webu
-	if _, err := c.jsre.Run("var Webu = require('web3');"); err != nil {
+	if _, err := c.jsre.Run("var Webu = require('webu');"); err != nil {
 		return fmt.Errorf("webu require: %v", err)
 	}
 
-	if _, err := c.jsre.Run("var webu = new Webu(jeth);"); err != nil {
+	if _, err := c.jsre.Run("var webu = new Webu(jhuc);"); err != nil {
 		return fmt.Errorf("webu provider: %v", err)
 	}
 
@@ -162,7 +162,7 @@ func (c *Console) init(preload []string) error {
 		return fmt.Errorf("namespace flattening: %v", err)
 	}
 	// Initialize the global name register (disabled for now)
-	//c.jsre.Run(`var GlobalRegistrar = eth.contract(` + registrar.GlobalRegistrarAbi + `);   registrar = GlobalRegistrar.at("` + registrar.GlobalRegistrarAddr + `");`)
+	//c.jsre.Run(`var GlobalRegistrar = huc.contract(` + registrar.GlobalRegistrarAbi + `);   registrar = GlobalRegistrar.at("` + registrar.GlobalRegistrarAddr + `");`)
 
 	// If the console is in interactive mode, instrument password related methods to query the user
 	if c.prompter != nil {
@@ -173,20 +173,20 @@ func (c *Console) init(preload []string) error {
 		}
 		// Override the openWallet, unlockAccount, newAccount and sign methods since
 		// these require user interaction. Assign these method in the Console the
-		// original webu callbacks. These will be called by the jeth.* methods after
+		// original webu callbacks. These will be called by the jhuc.* methods after
 		// they got the password from the user and send the original webu request to
 		// the backend.
 		if obj := personal.Object(); obj != nil { // make sure the personal api is enabled over the interface
-			if _, err = c.jsre.Run(`jeth.openWallet = personal.openWallet;`); err != nil {
+			if _, err = c.jsre.Run(`jhuc.openWallet = personal.openWallet;`); err != nil {
 				return fmt.Errorf("personal.openWallet: %v", err)
 			}
-			if _, err = c.jsre.Run(`jeth.unlockAccount = personal.unlockAccount;`); err != nil {
+			if _, err = c.jsre.Run(`jhuc.unlockAccount = personal.unlockAccount;`); err != nil {
 				return fmt.Errorf("personal.unlockAccount: %v", err)
 			}
-			if _, err = c.jsre.Run(`jeth.newAccount = personal.newAccount;`); err != nil {
+			if _, err = c.jsre.Run(`jhuc.newAccount = personal.newAccount;`); err != nil {
 				return fmt.Errorf("personal.newAccount: %v", err)
 			}
-			if _, err = c.jsre.Run(`jeth.sign = personal.sign;`); err != nil {
+			if _, err = c.jsre.Run(`jhuc.sign = personal.sign;`); err != nil {
 				return fmt.Errorf("personal.sign: %v", err)
 			}
 			obj.Set("openWallet", bridge.OpenWallet)
@@ -257,7 +257,7 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 		return "", nil, ""
 	}
 	// Chunck data to relevant part for autocompletion
-	// E.g. in case of nested lines eth.getBalance(eth.coinb<tab><tab>
+	// E.g. in case of nested lines huc.getBalance(huc.coinb<tab><tab>
 	start := pos - 1
 	for ; start > 0; start-- {
 		// Skip all methods and namespaces (i.e. including the dot)
@@ -283,8 +283,8 @@ func (c *Console) Welcome() {
 	fmt.Fprint(c.printer, "Welcome to the Ghuc JavaScript console!\n\n")
 	c.jsre.Run(`
 		console.log("instance: " + webu.version.node);
-		console.log("coinbase: " + eth.coinbase);
-		console.log("at block: " + eth.blockNumber + " (" + new Date(1000 * eth.getBlock(eth.blockNumber).timestamp) + ")");
+		console.log("coinbase: " + huc.coinbase);
+		console.log("at block: " + huc.blockNumber + " (" + new Date(1000 * huc.getBlock(huc.blockNumber).timestamp) + ")");
 		console.log(" datadir: " + admin.datadir);
 	`)
 	// List all the supported modules for the user to call

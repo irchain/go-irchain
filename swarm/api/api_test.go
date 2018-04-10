@@ -241,9 +241,9 @@ func TestAPIResolve(t *testing.T) {
 func TestMultiResolver(t *testing.T) {
 	doesntResolve := newTestResolver("")
 
-	ethAddr := "swarm.eth"
-	ethHash := "0x2222222222222222222222222222222222222222222222222222222222222222"
-	ethResolve := newTestResolver(ethHash)
+	hucAddr := "swarm.eth"
+	hucHash := "0x2222222222222222222222222222222222222222222222222222222222222222"
+	ethResolve := newTestResolver(hucHash)
 
 	testAddr := "swarm.test"
 	testHash := "0x1111111111111111111111111111111111111111111111111111111111111111"
@@ -264,8 +264,8 @@ func TestMultiResolver(t *testing.T) {
 		{
 			desc:   "One default resolver, returns resolved address",
 			r:      NewMultiResolver(MultiResolverOptionWithResolver(ethResolve, "")),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "Two default resolvers, returns resolved address",
@@ -273,8 +273,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(ethResolve, ""),
 				MultiResolverOptionWithResolver(ethResolve, ""),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "Two default resolvers, first doesn't resolve, returns resolved address",
@@ -282,8 +282,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(doesntResolve, ""),
 				MultiResolverOptionWithResolver(ethResolve, ""),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "Default resolver doesn't resolve, tld resolver resolve, returns resolved address",
@@ -291,8 +291,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(doesntResolve, ""),
 				MultiResolverOptionWithResolver(ethResolve, "eth"),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "Three TLD resolvers, third resolves, returns resolved address",
@@ -301,8 +301,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(doesntResolve, "eth"),
 				MultiResolverOptionWithResolver(ethResolve, "eth"),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "One TLD resolver doesn't resolve, returns error",
@@ -310,8 +310,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(doesntResolve, ""),
 				MultiResolverOptionWithResolver(ethResolve, "eth"),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 		},
 		{
 			desc: "One defautl and one TLD resolver, all doesn't resolve, returns error",
@@ -319,8 +319,8 @@ func TestMultiResolver(t *testing.T) {
 				MultiResolverOptionWithResolver(doesntResolve, ""),
 				MultiResolverOptionWithResolver(doesntResolve, "eth"),
 			),
-			addr:   ethAddr,
-			result: ethHash,
+			addr:   hucAddr,
+			result: hucHash,
 			err:    errors.New(`DNS name not found: "swarm.eth"`),
 		},
 		{

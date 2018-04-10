@@ -35,8 +35,8 @@ func (w *wizard) deployExplorer() {
 		log.Error("No hucstats server configured")
 		return
 	}
-	if w.conf.Genesis.Config.Ethash == nil {
-		log.Error("Only ethash network supported")
+	if w.conf.Genesis.Config.Huchash == nil {
+		log.Error("Only huchash network supported")
 		return
 	}
 	// Select the server to interact with

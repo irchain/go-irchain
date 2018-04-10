@@ -201,13 +201,13 @@ func (api *PrivateMinerAPI) GetHashrate() uint64 {
 // PrivateAdminAPI is the collection of HappyUC full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
-	eth *HappyUC
+	huc *HappyUC
 }
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
 // admin methods of the HappyUC service.
 func NewPrivateAdminAPI(eth *HappyUC) *PrivateAdminAPI {
-	return &PrivateAdminAPI{eth: eth}
+	return &PrivateAdminAPI{huc: eth}
 }
 
 // ExportChain exports the current blockchain into a local file.
@@ -226,7 +226,7 @@ func (api *PrivateAdminAPI) ExportChain(file string) (bool, error) {
 	}
 
 	// Export the blockchain
-	if err := api.eth.BlockChain().Export(writer); err != nil {
+	if err := api.huc.BlockChain().Export(writer); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -278,12 +278,12 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 			break
 		}
 
-		if hasAllBlocks(api.eth.BlockChain(), blocks) {
+		if hasAllBlocks(api.huc.BlockChain(), blocks) {
 			blocks = blocks[:0]
 			continue
 		}
 		// Import the batch and reset the buffer
-		if _, err := api.eth.BlockChain().InsertChain(blocks); err != nil {
+		if _, err := api.huc.BlockChain().InsertChain(blocks); err != nil {
 			return false, fmt.Errorf("batch %d: failed to insert: %v", batch, err)
 		}
 		blocks = blocks[:0]
@@ -294,13 +294,13 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 // PublicDebugAPI is the collection of HappyUC full node APIs exposed
 // over the public debugging endpoint.
 type PublicDebugAPI struct {
-	eth *HappyUC
+	huc *HappyUC
 }
 
 // NewPublicDebugAPI creates a new API definition for the full node-
 // related public debug methods of the HappyUC service.
-func NewPublicDebugAPI(eth *HappyUC) *PublicDebugAPI {
-	return &PublicDebugAPI{eth: eth}
+func NewPublicDebugAPI(huc *HappyUC) *PublicDebugAPI {
+	return &PublicDebugAPI{huc: huc}
 }
 
 // DumpBlock retrieves the entire state of the database at a given block.
@@ -309,19 +309,19 @@ func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error
 		// If we're dumping the pending state, we need to request
 		// both the pending block as well as the pending state from
 		// the miner and operate on those
-		_, stateDb := api.eth.miner.Pending()
+		_, stateDb := api.huc.miner.Pending()
 		return stateDb.RawDump(), nil
 	}
 	var block *types.Block
 	if blockNr == rpc.LatestBlockNumber {
-		block = api.eth.blockchain.CurrentBlock()
+		block = api.huc.blockchain.CurrentBlock()
 	} else {
-		block = api.eth.blockchain.GetBlockByNumber(uint64(blockNr))
+		block = api.huc.blockchain.GetBlockByNumber(uint64(blockNr))
 	}
 	if block == nil {
 		return state.Dump{}, fmt.Errorf("block #%d not found", blockNr)
 	}
-	stateDb, err := api.eth.BlockChain().StateAt(block.Root())
+	stateDb, err := api.huc.BlockChain().StateAt(block.Root())
 	if err != nil {
 		return state.Dump{}, err
 	}
@@ -332,25 +332,25 @@ func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig
-	eth    *HappyUC
+	huc    *HappyUC
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
 // private debug methods of the HappyUC service.
-func NewPrivateDebugAPI(config *params.ChainConfig, eth *HappyUC) *PrivateDebugAPI {
-	return &PrivateDebugAPI{config: config, eth: eth}
+func NewPrivateDebugAPI(config *params.ChainConfig, huc *HappyUC) *PrivateDebugAPI {
+	return &PrivateDebugAPI{config: config, huc: huc}
 }
 
 // Preimage is a debug API function that returns the preimage for a sha3 hash, if known.
 func (api *PrivateDebugAPI) Preimage(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
-	db := core.PreimageTable(api.eth.ChainDb())
+	db := core.PreimageTable(api.huc.ChainDb())
 	return db.Get(hash.Bytes())
 }
 
 // GetBadBLocks returns a list of the last 'bad blocks' that the client has seen on the network
 // and returns them as a JSON list of block-hashes
 func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]core.BadBlockArgs, error) {
-	return api.eth.BlockChain().BadBlocks()
+	return api.huc.BlockChain().BadBlocks()
 }
 
 // StorageRangeResult is the result of a debug_storageRangeAt API call.
@@ -410,19 +410,19 @@ func storageRangeAt(st state.Trie, start []byte, maxResult int) (StorageRangeRes
 func (api *PrivateDebugAPI) GetModifiedAccountsByNumber(startNum uint64, endNum *uint64) ([]common.Address, error) {
 	var startBlock, endBlock *types.Block
 
-	startBlock = api.eth.blockchain.GetBlockByNumber(startNum)
+	startBlock = api.huc.blockchain.GetBlockByNumber(startNum)
 	if startBlock == nil {
 		return nil, fmt.Errorf("start block %x not found", startNum)
 	}
 
 	if endNum == nil {
 		endBlock = startBlock
-		startBlock = api.eth.blockchain.GetBlockByHash(startBlock.ParentHash())
+		startBlock = api.huc.blockchain.GetBlockByHash(startBlock.ParentHash())
 		if startBlock == nil {
 			return nil, fmt.Errorf("block %x has no parent", endBlock.Number())
 		}
 	} else {
-		endBlock = api.eth.blockchain.GetBlockByNumber(*endNum)
+		endBlock = api.huc.blockchain.GetBlockByNumber(*endNum)
 		if endBlock == nil {
 			return nil, fmt.Errorf("end block %d not found", *endNum)
 		}
@@ -437,19 +437,19 @@ func (api *PrivateDebugAPI) GetModifiedAccountsByNumber(startNum uint64, endNum 
 // With one parameter, returns the list of accounts modified in the specified block.
 func (api *PrivateDebugAPI) GetModifiedAccountsByHash(startHash common.Hash, endHash *common.Hash) ([]common.Address, error) {
 	var startBlock, endBlock *types.Block
-	startBlock = api.eth.blockchain.GetBlockByHash(startHash)
+	startBlock = api.huc.blockchain.GetBlockByHash(startHash)
 	if startBlock == nil {
 		return nil, fmt.Errorf("start block %x not found", startHash)
 	}
 
 	if endHash == nil {
 		endBlock = startBlock
-		startBlock = api.eth.blockchain.GetBlockByHash(startBlock.ParentHash())
+		startBlock = api.huc.blockchain.GetBlockByHash(startBlock.ParentHash())
 		if startBlock == nil {
 			return nil, fmt.Errorf("block %x has no parent", endBlock.Number())
 		}
 	} else {
-		endBlock = api.eth.blockchain.GetBlockByHash(*endHash)
+		endBlock = api.huc.blockchain.GetBlockByHash(*endHash)
 		if endBlock == nil {
 			return nil, fmt.Errorf("end block %x not found", *endHash)
 		}
@@ -462,11 +462,11 @@ func (api *PrivateDebugAPI) getModifiedAccounts(startBlock, endBlock *types.Bloc
 		return nil, fmt.Errorf("start block height (%d) must be less than end block height (%d)", startBlock.Number().Uint64(), endBlock.Number().Uint64())
 	}
 
-	oldTrie, err := trie.NewSecure(startBlock.Root(), trie.NewDatabase(api.eth.chainDb), 0)
+	oldTrie, err := trie.NewSecure(startBlock.Root(), trie.NewDatabase(api.huc.chainDb), 0)
 	if err != nil {
 		return nil, err
 	}
-	newTrie, err := trie.NewSecure(endBlock.Root(), trie.NewDatabase(api.eth.chainDb), 0)
+	newTrie, err := trie.NewSecure(endBlock.Root(), trie.NewDatabase(api.huc.chainDb), 0)
 	if err != nil {
 		return nil, err
 	}

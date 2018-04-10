@@ -29,7 +29,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/eth"
+	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/internal/jsre"
 	"github.com/happyuc-project/happyuc-go/node"
 )
@@ -75,7 +75,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	happyuc   *eth.HappyUC
+	happyuc   *huc.HappyUC
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -83,7 +83,7 @@ type tester struct {
 
 // newTester creates a test environment based on which the console can operate.
 // Please ensure you call Close() on the returned tester to avoid leaks.
-func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
+func newTester(t *testing.T, confOverride func(*huc.Config)) *tester {
 	// Create a temporary storage for the node keys and initialize it
 	workspace, err := ioutil.TempDir("", "console-tester-")
 	if err != nil {
@@ -95,17 +95,17 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	ethConf := &eth.Config{
+	hucConf := &huc.Config{
 		Genesis:   core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
-		Ethash: huchash.Config{
+		Huchash: huchash.Config{
 			PowMode: huchash.ModeTest,
 		},
 	}
 	if confOverride != nil {
-		confOverride(ethConf)
+		confOverride(hucConf)
 	}
-	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return eth.New(ctx, ethConf) }); err != nil {
+	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return huc.New(ctx, hucConf) }); err != nil {
 		t.Fatalf("failed to register HappyUC protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
@@ -131,7 +131,7 @@ func newTester(t *testing.T, confOverride func(*eth.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var happyuc *eth.HappyUC
+	var happyuc *huc.HappyUC
 	stack.Service(&happyuc)
 
 	return &tester{

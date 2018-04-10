@@ -29,7 +29,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		MinerThreads            int            `toml:",omitempty"`
 		ExtraData               hexutil.Bytes  `toml:",omitempty"`
 		GasPrice                *big.Int
-		Ethash                  huchash.Config
+		Huchash                 huchash.Config
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
@@ -48,7 +48,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.MinerThreads = c.MinerThreads
 	enc.ExtraData = c.ExtraData
 	enc.GasPrice = c.GasPrice
-	enc.Ethash = c.Ethash
+	enc.Huchash = c.Huchash
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
@@ -66,11 +66,11 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		SkipBcVersionCheck      *bool `toml:"-"`
 		DatabaseHandles         *int  `toml:"-"`
 		DatabaseCache           *int
-		Coinbase               *common.Address `toml:",omitempty"`
+		Coinbase                *common.Address `toml:",omitempty"`
 		MinerThreads            *int            `toml:",omitempty"`
 		ExtraData               *hexutil.Bytes  `toml:",omitempty"`
 		GasPrice                *big.Int
-		Ethash                  *huchash.Config
+		Huchash                 *huchash.Config
 		TxPool                  *core.TxPoolConfig
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
@@ -116,8 +116,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.GasPrice != nil {
 		c.GasPrice = dec.GasPrice
 	}
-	if dec.Ethash != nil {
-		c.Ethash = *dec.Ethash
+	if dec.Huchash != nil {
+		c.Huchash = *dec.Huchash
 	}
 	if dec.TxPool != nil {
 		c.TxPool = *dec.TxPool
