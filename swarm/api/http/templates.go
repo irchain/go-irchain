@@ -206,7 +206,7 @@ var landingPageTemplate = template.Must(template.New("landingPage").Parse(`
       <footer>
         <p>
           Swarm: Serverless Hosting Incentivised Peer-To-Peer Storage And Content Distribution<br/>
-          <a href="http://swarm-gateways.net/bzz:/theswarm.eth">Swarm</a>
+          <a href="http://swarm-gateways.net/bzz:/theswarm.huc">Swarm</a>
         </p>
       </footer>
 

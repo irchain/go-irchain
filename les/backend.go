@@ -94,7 +94,7 @@ func New(ctx *node.ServiceContext, config *huc.Config) (*LightHappyUC, error) {
 	peers := newPeerSet()
 	quitSync := make(chan struct{})
 
-	leth := &LightHappyUC{
+	lhuc := &LightHappyUC{
 		config:           config,
 		chainConfig:      chainConfig,
 		chainDb:          chainDb,
@@ -111,32 +111,32 @@ func New(ctx *node.ServiceContext, config *huc.Config) (*LightHappyUC, error) {
 		bloomTrieIndexer: light.NewBloomTrieIndexer(chainDb, true),
 	}
 
-	leth.relay = NewLesTxRelay(peers, leth.reqDist)
-	leth.serverPool = newServerPool(chainDb, quitSync, &leth.wg)
-	leth.retriever = newRetrieveManager(peers, leth.reqDist, leth.serverPool)
-	leth.odr = NewLesOdr(chainDb, leth.chtIndexer, leth.bloomTrieIndexer, leth.bloomIndexer, leth.retriever)
-	if leth.blockchain, err = light.NewLightChain(leth.odr, leth.chainConfig, leth.engine); err != nil {
+	lhuc.relay = NewLesTxRelay(peers, lhuc.reqDist)
+	lhuc.serverPool = newServerPool(chainDb, quitSync, &lhuc.wg)
+	lhuc.retriever = newRetrieveManager(peers, lhuc.reqDist, lhuc.serverPool)
+	lhuc.odr = NewLesOdr(chainDb, lhuc.chtIndexer, lhuc.bloomTrieIndexer, lhuc.bloomIndexer, lhuc.retriever)
+	if lhuc.blockchain, err = light.NewLightChain(lhuc.odr, lhuc.chainConfig, lhuc.engine); err != nil {
 		return nil, err
 	}
-	leth.bloomIndexer.Start(leth.blockchain)
+	lhuc.bloomIndexer.Start(lhuc.blockchain)
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		leth.blockchain.SetHead(compat.RewindTo)
+		lhuc.blockchain.SetHead(compat.RewindTo)
 		core.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	leth.txPool = light.NewTxPool(leth.chainConfig, leth.blockchain, leth.relay)
-	if leth.protocolManager, err = NewProtocolManager(leth.chainConfig, true, ClientProtocolVersions, config.NetworkId, leth.eventMux, leth.engine, leth.peers, leth.blockchain, nil, chainDb, leth.odr, leth.relay, quitSync, &leth.wg); err != nil {
+	lhuc.txPool = light.NewTxPool(lhuc.chainConfig, lhuc.blockchain, lhuc.relay)
+	if lhuc.protocolManager, err = NewProtocolManager(lhuc.chainConfig, true, ClientProtocolVersions, config.NetworkId, lhuc.eventMux, lhuc.engine, lhuc.peers, lhuc.blockchain, nil, chainDb, lhuc.odr, lhuc.relay, quitSync, &lhuc.wg); err != nil {
 		return nil, err
 	}
-	leth.ApiBackend = &LesApiBackend{leth, nil}
+	lhuc.ApiBackend = &LesApiBackend{lhuc, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice
 	}
-	leth.ApiBackend.gpo = gasprice.NewOracle(leth.ApiBackend, gpoParams)
-	return leth, nil
+	lhuc.ApiBackend.gpo = gasprice.NewOracle(lhuc.ApiBackend, gpoParams)
+	return lhuc, nil
 }
 
 func lesTopic(genesisHash common.Hash, protocolVersion uint) discv5.Topic {
@@ -174,17 +174,17 @@ func (s *LightDummyAPI) Mining() bool {
 func (s *LightHappyUC) APIs() []rpc.API {
 	return append(hucapi.GetAPIs(s.ApiBackend), []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   &LightDummyAPI{},
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true),
 			Public:    true,

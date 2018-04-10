@@ -486,11 +486,11 @@ func printMethods(printf printfFunc, node ast.Node, methods []*types.Selection) 
 	if len(methods) > 0 {
 		printf(node, "Methods:")
 	}
-	for _, meth := range methods {
+	for _, mhuc := range methods {
 		// Print the method type relative to the package
 		// in which it was defined, not the query package,
-		printf(meth.Obj(), "\t%s",
-			types.SelectionString(meth, types.RelativeTo(meth.Obj().Pkg())))
+		printf(mhuc.Obj(), "\t%s",
+			types.SelectionString(mhuc, types.RelativeTo(mhuc.Obj().Pkg())))
 	}
 }
 
@@ -652,8 +652,8 @@ func (r *describePackageResult) PrintPlain(printf printfFunc) {
 
 	for _, mem := range r.members {
 		printf(mem.obj, "\t%s", formatMember(mem.obj, maxname))
-		for _, meth := range mem.methods {
-			printf(meth.Obj(), "\t\t%s", types.SelectionString(meth, types.RelativeTo(r.pkg)))
+		for _, mhuc := range mem.methods {
+			printf(mhuc.Obj(), "\t\t%s", types.SelectionString(mhuc, types.RelativeTo(r.pkg)))
 		}
 	}
 }
@@ -815,8 +815,8 @@ func pathToString(path []ast.Node) string {
 
 func accessibleMethods(t types.Type, from *types.Package) []*types.Selection {
 	var methods []*types.Selection
-	for _, meth := range typeutil.IntuitiveMethodSet(t, nil) {
-		if isAccessibleFrom(meth.Obj(), from) {
+	for _, mhuc := range typeutil.IntuitiveMethodSet(t, nil) {
+		if isAccessibleFrom(mhuc.Obj(), from) {
 			methods = append(methods, meth)
 		}
 	}
@@ -885,12 +885,12 @@ func isAccessibleFrom(obj types.Object, pkg *types.Package) bool {
 func methodsToSerial(this *types.Package, methods []*types.Selection, fset *token.FileSet) []serial.DescribeMethod {
 	qualifier := types.RelativeTo(this)
 	var jmethods []serial.DescribeMethod
-	for _, meth := range methods {
+	for _, mhuc := range methods {
 		var ser serial.DescribeMethod
-		if meth != nil { // may contain nils when called by implements (on a method)
+		if mhuc != nil { // may contain nils when called by implements (on a method)
 			ser = serial.DescribeMethod{
-				Name: types.SelectionString(meth, qualifier),
-				Pos:  fset.Position(meth.Obj().Pos()).String(),
+				Name: types.SelectionString(mhuc, qualifier),
+				Pos:  fset.Position(mhuc.Obj().Pos()).String(),
 			}
 		}
 		jmethods = append(jmethods, ser)

@@ -55,8 +55,8 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			if tried[candidateMethod] {
 				continue
 			}
-			for _, meth := range methods {
-				if meth == candidateMethod {
+			for _, mhuc := range methods {
+				if mhuc == candidateMethod {
 					auth = a
 					break findNext
 				}

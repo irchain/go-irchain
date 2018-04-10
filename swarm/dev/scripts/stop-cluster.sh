@@ -84,8 +84,8 @@ stop_node() {
     ip netns delete "${name}"
   fi
 
-  if ip link show "veth${name}0" &>/dev/null; then
-    ip link delete dev "veth${name}0"
+  if ip link show "vhuc${name}0" &>/dev/null; then
+    ip link delete dev "vhuc${name}0"
   fi
 }
 

@@ -144,13 +144,13 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	}
 	// Register the HappyUC protocol if requested
 	if config.HappyUCEnabled {
-		ethConf := huc.DefaultConfig
-		ethConf.Genesis = genesis
-		ethConf.SyncMode = downloader.LightSync
-		ethConf.NetworkId = uint64(config.HappyUCNetworkID)
-		ethConf.DatabaseCache = config.HappyUCDatabaseCache
+		hucConf := huc.DefaultConfig
+		hucConf.Genesis = genesis
+		hucConf.SyncMode = downloader.LightSync
+		hucConf.NetworkId = uint64(config.HappyUCNetworkID)
+		hucConf.DatabaseCache = config.HappyUCDatabaseCache
 		if err := rawStack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, &ethConf)
+			return les.New(ctx, &hucConf)
 		}); err != nil {
 			return nil, fmt.Errorf("happyuc init: %v", err)
 		}

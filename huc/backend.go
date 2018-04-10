@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package eth implements the HappyUC protocol.
+// Package huc implements the HappyUC protocol.
 package huc
 
 import (
@@ -119,7 +119,7 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	eth := &HappyUC{
+	huc := &HappyUC{
 		config:         config,
 		chainDb:        chainDb,
 		chainConfig:    chainConfig,
@@ -148,37 +148,37 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 		cacheConfig = &core.CacheConfig{Disabled: config.NoPruning, TrieNodeLimit: config.TrieCache, TrieTimeLimit: config.TrieTimeout}
 	)
-	eth.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, eth.chainConfig, eth.engine, vmConfig)
+	huc.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, huc.chainConfig, huc.engine, vmConfig)
 	if err != nil {
 		return nil, err
 	}
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		eth.blockchain.SetHead(compat.RewindTo)
+		huc.blockchain.SetHead(compat.RewindTo)
 		core.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
-	eth.bloomIndexer.Start(eth.blockchain)
+	huc.bloomIndexer.Start(huc.blockchain)
 
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
 	}
-	eth.txPool = core.NewTxPool(config.TxPool, eth.chainConfig, eth.blockchain)
+	huc.txPool = core.NewTxPool(config.TxPool, huc.chainConfig, huc.blockchain)
 
-	if eth.protocolManager, err = NewProtocolManager(eth.chainConfig, config.SyncMode, config.NetworkId, eth.eventMux, eth.txPool, eth.engine, eth.blockchain, chainDb); err != nil {
+	if huc.protocolManager, err = NewProtocolManager(huc.chainConfig, config.SyncMode, config.NetworkId, huc.eventMux, huc.txPool, huc.engine, huc.blockchain, chainDb); err != nil {
 		return nil, err
 	}
-	eth.miner = miner.New(eth, eth.chainConfig, eth.EventMux(), eth.engine)
-	eth.miner.SetExtra(makeExtraData(config.ExtraData))
+	huc.miner = miner.New(huc, huc.chainConfig, huc.EventMux(), huc.engine)
+	huc.miner.SetExtra(makeExtraData(config.ExtraData))
 
-	eth.ApiBackend = &EthApiBackend{eth, nil}
+	huc.ApiBackend = &EthApiBackend{huc, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice
 	}
-	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
+	huc.ApiBackend.gpo = gasprice.NewOracle(huc.ApiBackend, gpoParams)
 
-	return eth, nil
+	return huc, nil
 }
 
 func makeExtraData(extra []byte) []byte {
@@ -205,7 +205,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (hucdb.Data
 		return nil, err
 	}
 	if db, ok := db.(*hucdb.LDBDatabase); ok {
-		db.Meter("eth/db/chaindata/")
+		db.Meter("huc/db/chaindata/")
 	}
 	return db, nil
 }
@@ -252,17 +252,17 @@ func (s *HappyUC) APIs() []rpc.API {
 	// Append all the local APIs and return
 	return append(apis, []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   NewPublicHappyUCAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   NewPublicMinerAPI(s),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
 			Public:    true,
@@ -272,7 +272,7 @@ func (s *HappyUC) APIs() []rpc.API {
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
 		}, {
-			Namespace: "eth",
+			Namespace: "huc",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, false),
 			Public:    true,

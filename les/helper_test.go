@@ -82,11 +82,11 @@ func testChainGen(i int, block *core.BlockGen) {
 
 	switch i {
 	case 0:
-		// In block 1, the test bank sends account #1 some ether.
+		// In block 1, the test bank sends account #1 some happyuc.
 		tx, _ := types.SignTx(types.NewTransaction(block.TxNonce(testBankAddress), acc1Addr, big.NewInt(10000), params.TxGas, nil, nil), signer, testBankKey)
 		block.AddTx(tx)
 	case 1:
-		// In block 2, the test bank sends some more ether to account #1.
+		// In block 2, the test bank sends some more happyuc to account #1.
 		// acc1Addr passes it on to account #2.
 		// acc1Addr creates a test contract.
 		// acc1Addr creates a test event.
@@ -161,7 +161,7 @@ func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *cor
 
 		bbtIndexer := light.NewBloomTrieIndexer(db, false)
 
-		bloomIndexer := eth.NewBloomIndexer(db, params.BloomBitsBlocks)
+		bloomIndexer := huc.NewBloomIndexer(db, params.BloomBitsBlocks)
 		bloomIndexer.AddChildIndexer(bbtIndexer)
 		bloomIndexer.Start(blockchain)
 
