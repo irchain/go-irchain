@@ -131,7 +131,7 @@ One of the quickest ways to get HappyUC up and running on your machine is by usi
 
 ```
 docker run -d --name happyuc-node -v /Users/alice/happyuc:/root \
-           -p 8545:8545 -p 30303:30303 \ 
+           -p 8545:8545 -p 50505:50505 \
            happyuc/client-go
 ```
 

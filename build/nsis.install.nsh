@@ -24,14 +24,14 @@ Section "Ghuc" GHUC_IDX
   createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" ""
 
   # Firewall - remove rules (if exists)
-  SimpleFC::AdvRemoveRule "Ghuc incoming peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Ghuc outgoing peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Ghuc UDP discovery (UDP:30303)"
+  SimpleFC::AdvRemoveRule "Ghuc incoming peers (TCP:50505)"
+  SimpleFC::AdvRemoveRule "Ghuc outgoing peers (TCP:50505)"
+  SimpleFC::AdvRemoveRule "Ghuc UDP discovery (UDP:50505)"
 
   # Firewall - add rules
-  SimpleFC::AdvAddRule "Ghuc incoming peers (TCP:30303)" ""  6 1 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" 30303 "" "" ""
-  SimpleFC::AdvAddRule "Ghuc outgoing peers (TCP:30303)" ""  6 2 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" "" 30303 "" ""
-  SimpleFC::AdvAddRule "Ghuc UDP discovery (UDP:30303)" "" 17 2 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" "" 30303 "" ""
+  SimpleFC::AdvAddRule "Ghuc incoming peers (TCP:50505)" ""  6 1 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" 50505 "" "" ""
+  SimpleFC::AdvAddRule "Ghuc outgoing peers (TCP:50505)" ""  6 2 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" "" 50505 "" ""
+  SimpleFC::AdvAddRule "Ghuc UDP discovery (UDP:50505)" "" 17 2 1 2147483647 1 "$INSTDIR\ghuc.exe" "" "" "HappyUC" "" 50505 "" ""
 
   # Set default IPC endpoint (https://github.com/happyuc-project/HIPs/issues/147)
   ${EnvVarUpdate} $0 "HAPPYUC_SOCKET" "R" "HKLM" "\\.\pipe\ghuc.ipc"

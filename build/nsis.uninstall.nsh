@@ -17,9 +17,9 @@ Section "Uninstall"
   rmDir "$SMPROGRAMS\${APPNAME}"
 
   # Firewall - remove rules if exists
-  SimpleFC::AdvRemoveRule "Ghuc incoming peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Ghuc outgoing peers (TCP:30303)"
-  SimpleFC::AdvRemoveRule "Ghuc UDP discovery (UDP:30303)"
+  SimpleFC::AdvRemoveRule "Ghuc incoming peers (TCP:50505)"
+  SimpleFC::AdvRemoveRule "Ghuc outgoing peers (TCP:50505)"
+  SimpleFC::AdvRemoveRule "Ghuc UDP discovery (UDP:50505)"
 
   # Remove IPC endpoint (https://github.com/happyuc-project/EIPs/issues/147)
   ${un.EnvVarUpdate} $0 "HAPPYUC_SOCKET" "R" "HKLM" "\\.\pipe\ghuc.ipc"

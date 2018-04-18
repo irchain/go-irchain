@@ -12,5 +12,5 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /happyuc-go/build/bin/ghuc /usr/local/bin/
 
-EXPOSE 8545 8546 30303 30303/udp 30304/udp
+EXPOSE 8545 8546 50505 50505/udp 30304/udp
 ENTRYPOINT ["ghuc"]

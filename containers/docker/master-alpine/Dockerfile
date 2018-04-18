@@ -9,6 +9,6 @@ RUN \
   rm -rf /happyuc-go && rm -rf /var/cache/apk/*
 
 EXPOSE 8545
-EXPOSE 30303
+EXPOSE 50505
 
 ENTRYPOINT ["/ghuc"]
