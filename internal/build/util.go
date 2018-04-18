@@ -19,7 +19,6 @@ package build
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -37,7 +36,7 @@ var DryRunFlag = flag.Bool("n", false, "dry run, don't execute commands")
 // MustRun executes the given command and exits the host process for
 // any error.
 func MustRun(cmd *exec.Cmd) {
-	fmt.Println(">>>", strings.Join(cmd.Args, " "))
+	//fmt.Println(">>>", strings.Join(cmd.Args, " "))
 	if !*DryRunFlag {
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
@@ -177,9 +176,11 @@ func ExpandPackagesNoVendor(patterns []string) []string {
 			log.Fatalf("package listing failed: %v\n%s", err, string(out))
 		}
 		var packages []string
-		for _, line := range strings.Split(string(out), "\n") {
+		var prefix = "github.com/happyuc-project"
+		index := strings.Index(string(out), prefix)
+		for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
 			if !strings.Contains(line, "/vendor/") {
-				packages = append(packages, strings.TrimSpace(line))
+				packages = append(packages, string(line[index:]))
 			}
 		}
 		return packages
