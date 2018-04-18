@@ -32,7 +32,7 @@ import (
 // C++ HappyUC implementation.
 type cppHappyUCGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
-	Params     struct {
+	Params struct {
 		AccountStartNonce       hexutil.Uint64 `json:"accountStartNonce"`
 		HomesteadForkBlock      hexutil.Uint64 `json:"homesteadForkBlock"`
 		EIP150ForkBlock         hexutil.Uint64 `json:"EIP150ForkBlock"`
@@ -68,15 +68,15 @@ type cppHappyUCGenesisSpec struct {
 // cppHappyUCGenesisSpecAccount is the prefunded genesis account and/or precompiled
 // contract definition.
 type cppHappyUCGenesisSpecAccount struct {
-	Balance     *hexutil.Big                   `json:"balance"`
-	Nonce       uint64                         `json:"nonce,omitempty"`
+	Balance     *hexutil.Big                  `json:"balance"`
+	Nonce       uint64                        `json:"nonce,omitempty"`
 	Precompiled *cppHappyUCGenesisSpecBuiltin `json:"precompiled,omitempty"`
 }
 
 // cppHappyUCGenesisSpecBuiltin is the precompiled contract definition.
 type cppHappyUCGenesisSpecBuiltin struct {
-	Name          string                               `json:"name,omitempty"`
-	StartingBlock hexutil.Uint64                       `json:"startingBlock,omitempty"`
+	Name          string                              `json:"name,omitempty"`
+	StartingBlock hexutil.Uint64                      `json:"startingBlock,omitempty"`
 	Linear        *cppHappyUCGenesisSpecLinearPricing `json:"linear,omitempty"`
 }
 
@@ -164,7 +164,7 @@ func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyU
 
 // parityChainSpec is the chain specification format used by Parity.
 type parityChainSpec struct {
-	Name   string `json:"name"`
+	Name string `json:"name"`
 	Engine struct {
 		Huchash struct {
 			Params struct {
