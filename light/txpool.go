@@ -290,7 +290,7 @@ func (pool *TxPool) eventLoop() {
 			// be replaced by a subsequent PR.
 			time.Sleep(time.Millisecond)
 
-		// System stopped
+			// System stopped
 		case <-pool.chainHeadSub.Err():
 			return
 		}
@@ -434,7 +434,6 @@ func (self *TxPool) Add(ctx context.Context, tx *types.Transaction) error {
 	if err := self.add(ctx, tx); err != nil {
 		return err
 	}
-	//fmt.Println("Send", tx.Hash())
 	self.relay.Send(types.Transactions{tx})
 
 	self.chainDb.Put(tx.Hash().Bytes(), data)
@@ -506,7 +505,7 @@ func (self *TxPool) RemoveTransactions(txs types.Transactions) {
 	defer self.mu.Unlock()
 	var hashes []common.Hash
 	for _, tx := range txs {
-		//self.RemoveTx(tx.Hash())
+		// self.RemoveTx(tx.Hash())
 		hash := tx.Hash()
 		delete(self.pending, hash)
 		self.chainDb.Delete(hash[:])

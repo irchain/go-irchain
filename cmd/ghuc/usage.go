@@ -100,16 +100,16 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.HuchashDatasetsOnDiskFlag,
 		},
 	},
-	//{
-	//	Name: "DASHBOARD",
-	//	Flags: []cli.Flag{
-	//		utils.DashboardEnabledFlag,
-	//		utils.DashboardAddrFlag,
-	//		utils.DashboardPortFlag,
-	//		utils.DashboardRefreshFlag,
-	//		utils.DashboardAssetsFlag,
-	//	},
-	//},
+	// {
+	// 	Name: "DASHBOARD",
+	// 	Flags: []cli.Flag{
+	// 		utils.DashboardEnabledFlag,
+	// 		utils.DashboardAddrFlag,
+	// 		utils.DashboardPortFlag,
+	// 		utils.DashboardRefreshFlag,
+	// 		utils.DashboardAssetsFlag,
+	// 	},
+	// },
 	{
 		Name: "TRANSACTION POOL",
 		Flags: []cli.Flag{

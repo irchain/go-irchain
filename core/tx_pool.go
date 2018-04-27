@@ -107,7 +107,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown TxStatus = iota
+	TxStatusUnknown  TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -184,33 +184,28 @@ func (config *TxPoolConfig) sanitize() TxPoolConfig {
 // current state) and future transactions. Transactions move between those
 // two states over time as they are received and processed.
 type TxPool struct {
-	config       TxPoolConfig
-	chainconfig  *params.ChainConfig
-	chain        blockChain
-	gasPrice     *big.Int
-	txFeed       event.Feed
-	scope        event.SubscriptionScope
-	chainHeadCh  chan ChainHeadEvent
-	chainHeadSub event.Subscription
-	signer       types.Signer
-	mu           sync.RWMutex
-
-	currentState  *state.StateDB      // Current state in the blockchain head
-	pendingState  *state.ManagedState // Pending state tracking virtual nonces
-	currentMaxGas uint64              // Current gas limit for transaction caps
-
-	locals  *accountSet // Set of local transaction to exempt from eviction rules
-	journal *txJournal  // Journal of local transaction to back up to disk
-
-	pending map[common.Address]*txList         // All currently processable transactions
-	queue   map[common.Address]*txList         // Queued but non-processable transactions
-	beats   map[common.Address]time.Time       // Last heartbeat from each known account
-	all     map[common.Hash]*types.Transaction // All transactions to allow lookups
-	priced  *txPricedList                      // All transactions sorted by price
-
-	wg sync.WaitGroup // for shutdown sync
-
-	homestead bool
+	config        TxPoolConfig
+	chainconfig   *params.ChainConfig
+	chain         blockChain
+	gasPrice      *big.Int
+	txFeed        event.Feed
+	scope         event.SubscriptionScope
+	chainHeadCh   chan ChainHeadEvent
+	chainHeadSub  event.Subscription
+	signer        types.Signer
+	mu            sync.RWMutex
+	currentState  *state.StateDB                     // Current state in the blockchain head
+	pendingState  *state.ManagedState                // Pending state tracking virtual nonces
+	currentMaxGas uint64                             // Current gas limit for transaction caps
+	locals        *accountSet                        // Set of local transaction to exempt from eviction rules
+	journal       *txJournal                         // Journal of local transaction to back up to disk
+	pending       map[common.Address]*txList         // All currently processable transactions
+	queue         map[common.Address]*txList         // Queued but non-processable transactions
+	beats         map[common.Address]time.Time       // Last heartbeat from each known account
+	all           map[common.Hash]*types.Transaction // All transactions to allow lookups
+	priced        *txPricedList                      // All transactions sorted by price
+	wg            sync.WaitGroup                     // for shutdown sync
+	homestead     bool
 }
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
@@ -293,11 +288,11 @@ func (pool *TxPool) loop() {
 
 				pool.mu.Unlock()
 			}
-		// Be unsubscribed due to system stopped
+			// Be unsubscribed due to system stopped
 		case <-pool.chainHeadSub.Err():
 			return
 
-		// Handle stats reporting ticks
+			// Handle stats reporting ticks
 		case <-report.C:
 			pool.mu.RLock()
 			pending, queued := pool.stats()
@@ -309,7 +304,7 @@ func (pool *TxPool) loop() {
 				prevPending, prevQueued, prevStales = pending, queued, stales
 			}
 
-		// Handle inactive account transaction eviction
+			// Handle inactive account transaction eviction
 		case <-evict.C:
 			pool.mu.Lock()
 			for addr := range pool.queue {
@@ -326,7 +321,7 @@ func (pool *TxPool) loop() {
 			}
 			pool.mu.Unlock()
 
-		// Handle local transaction journal rotation
+			// Handle local transaction journal rotation
 		case <-journal.C:
 			if pool.journal != nil {
 				pool.mu.Lock()

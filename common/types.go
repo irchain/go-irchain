@@ -133,7 +133,7 @@ func (h UnprefixedHash) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(h[:])), nil
 }
 
-/////////// Address
+// ///////// Address
 
 // Address represents the 20 byte address of an HappyUC account.
 type Address [AddressLength]byte

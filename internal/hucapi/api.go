@@ -1137,7 +1137,7 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 		args.Nonce = (*hexutil.Uint64)(&nonce)
 	}
 	if args.Data != nil && args.Input != nil && !bytes.Equal(*args.Data, *args.Input) {
-		return errors.New(`Both "data" and "input" are set and not equal. Please use "input" to pass transaction call data.`)
+		return errors.New(`both "data" and "input" are set and not equal. please use "input" to pass transaction call data`)
 	}
 	if args.To == nil {
 		// Contract creation

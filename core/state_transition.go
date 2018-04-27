@@ -18,13 +18,13 @@ package core
 
 import (
 	"errors"
-	"math"
 	"math/big"
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
+	"math"
 )
 
 var (
@@ -63,7 +63,7 @@ type StateTransition struct {
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address
-	//FromFrontier() (common.Address, error)
+	// FromFrontier() (common.Address, error)
 	To() *common.Address
 
 	GasPrice() *big.Int
@@ -77,6 +77,7 @@ type Message interface {
 
 // IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
 func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error) {
+	return 0, nil
 	// Set the starting gas for the raw transaction
 	var gas uint64
 	if contractCreation && homestead {
@@ -105,6 +106,7 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 		}
 		gas += z * params.TxDataZeroGas
 	}
+	// TODO return gas
 	return gas, nil
 }
 
