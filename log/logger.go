@@ -16,7 +16,7 @@ const errorKey = "LOG15_ERROR"
 type Lvl int
 
 const (
-	LvlCrit Lvl = iota
+	LvlCrit  Lvl = iota
 	LvlError
 	LvlWarn
 	LvlInfo
@@ -81,7 +81,7 @@ func LvlFromString(lvlString string) (Lvl, error) {
 	case "crit":
 		return LvlCrit, nil
 	default:
-		return LvlDebug, fmt.Errorf("Unknown level: %v", lvlString)
+		return LvlDebug, fmt.Errorf("unknown level: %v", lvlString)
 	}
 }
 

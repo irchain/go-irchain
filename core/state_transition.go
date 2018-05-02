@@ -77,7 +77,6 @@ type Message interface {
 
 // IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
 func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error) {
-	return 0, nil
 	// Set the starting gas for the raw transaction
 	var gas uint64
 	if contractCreation && homestead {
@@ -106,7 +105,6 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 		}
 		gas += z * params.TxDataZeroGas
 	}
-	// TODO return gas
 	return gas, nil
 }
 
@@ -224,19 +222,18 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		return nil, 0, false, err
 	}
 
-	var (
-		evm = st.evm
-		// vm errors do not effect consensus and are therefor
-		// not assigned to err, except for insufficient balance
-		// error.
-		vmerr error
-	)
+	// vm errors do not effect consensus and are therefor not
+	// assigned to err, except for insufficient balance error.
+	var vmerr error
 	if contractCreation {
-		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)
+		ret, _, st.gas, vmerr = st.evm.Create(sender, st.data, st.gas, st.value)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(sender.Address(), st.state.GetNonce(sender.Address())+1)
-		ret, st.gas, vmerr = evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
+		ret, st.gas, vmerr = st.evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
+		if len(st.evm.StateDB.GetCode(st.to().Address())) > 0 {
+			st.gas = st.initialGas
+		}
 	}
 	if vmerr != nil {
 		log.Debug("VM returned with error", "err", vmerr)

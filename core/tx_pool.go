@@ -576,18 +576,25 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
 	}
+
+	var contractCreation = tx.To() == nil
+	if intrGas, err := IntrinsicGas(tx.Data(), contractCreation, pool.homestead); err != nil {
+		return err
+	} else if tx.Gas() < intrGas {
+		return ErrIntrinsicGas
+	}
+
+	if !contractCreation && len(tx.Data()) > 0 {
+		// TODO check token tx validate
+		return nil
+	}
+
 	// Transactor should have enough funds to cover the costs
 	// cost == V + GP * GL
 	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
 		return ErrInsufficientFunds
 	}
-	intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, pool.homestead)
-	if err != nil {
-		return err
-	}
-	if tx.Gas() < intrGas {
-		return ErrIntrinsicGas
-	}
+
 	return nil
 }
 
