@@ -577,6 +577,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrNonceTooLow
 	}
 
+	// Should supply enough intrinsic gas
 	var contractCreation = tx.To() == nil
 	if intrGas, err := IntrinsicGas(tx.Data(), contractCreation, pool.homestead); err != nil {
 		return err
@@ -596,6 +597,18 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 
 	return nil
+}
+
+// journalTx adds the specified transaction to the local disk journal if it is
+// deemed to have been sent from a local account.
+func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
+	// Only journal if it's enabled and the transaction is local
+	if pool.journal == nil || !pool.locals.contains(from) {
+		return
+	}
+	if err := pool.journal.insert(tx); err != nil {
+		log.Warn("Failed to journal local transaction", "err", err)
+	}
 }
 
 // add validates a transaction and inserts it into the non-executable queue for
@@ -700,18 +713,6 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction) (bool, er
 	pool.all[hash] = tx
 	pool.priced.Put(tx)
 	return old != nil, nil
-}
-
-// journalTx adds the specified transaction to the local disk journal if it is
-// deemed to have been sent from a local account.
-func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
-	// Only journal if it's enabled and the transaction is local
-	if pool.journal == nil || !pool.locals.contains(from) {
-		return
-	}
-	if err := pool.journal.insert(tx); err != nil {
-		log.Warn("Failed to journal local transaction", "err", err)
-	}
 }
 
 // promoteTx adds a transaction to the pending (processable) list of transactions.

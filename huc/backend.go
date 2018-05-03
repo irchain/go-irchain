@@ -82,7 +82,7 @@ type HappyUC struct {
 	bloomRequests chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer  *core.ChainIndexer             // Bloom indexer operating during block imports
 
-	ApiBackend *EthApiBackend
+	ApiBackend *HucApiBackend
 
 	miner     *miner.Miner
 	gasPrice  *big.Int
@@ -171,7 +171,7 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	huc.miner = miner.New(huc, huc.chainConfig, huc.EventMux(), huc.engine)
 	huc.miner.SetExtra(makeExtraData(config.ExtraData))
 
-	huc.ApiBackend = &EthApiBackend{huc, nil}
+	huc.ApiBackend = &HucApiBackend{huc, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice

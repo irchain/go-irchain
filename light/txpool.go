@@ -369,20 +369,25 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrNegativeValue
 	}
 
+	// Should supply enough intrinsic gas
+	var contractCreation = tx.To() == nil
+	if gas, err := core.IntrinsicGas(tx.Data(), contractCreation, pool.homestead); err != nil {
+		return err
+	} else if tx.Gas() < gas {
+		return core.ErrIntrinsicGas
+	}
+
+	if !contractCreation && len(tx.Data()) > 0 {
+		// TODO check token tx validate
+		return nil
+	}
+
 	// Transactor should have enough funds to cover the costs
 	// cost == V + GP * GL
 	if b := currentState.GetBalance(from); b.Cmp(tx.Cost()) < 0 {
 		return core.ErrInsufficientFunds
 	}
 
-	// Should supply enough intrinsic gas
-	gas, err := core.IntrinsicGas(tx.Data(), tx.To() == nil, pool.homestead)
-	if err != nil {
-		return err
-	}
-	if tx.Gas() < gas {
-		return core.ErrIntrinsicGas
-	}
 	return currentState.Error()
 }
 

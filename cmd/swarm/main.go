@@ -143,7 +143,7 @@ var (
 	}
 
 	// the following flags are deprecated and should be removed in the future
-	DeprecatedEthAPIFlag = cli.StringFlag{
+	DeprecatedHucAPIFlag = cli.StringFlag{
 		Name:  "hucapi",
 		Usage: "DEPRECATED: please use --ens-api and --swap-api",
 	}
@@ -153,7 +153,7 @@ var (
 	}
 )
 
-//declare a few constant error messages, useful for later error check comparisons in test
+// declare a few constant error messages, useful for later error check comparisons in test
 var (
 	SWARM_ERR_NO_BZZACCOUNT   = "bzzaccount option is required but not set; check your config file, command line or environment variables"
 	SWARM_ERR_SWAP_SET_NO_API = "SWAP is enabled but --swap-api is not set"
@@ -355,8 +355,8 @@ DEPRECATED: use 'swarm db clean'.
 		SwarmUploadDefaultPath,
 		SwarmUpFromStdinFlag,
 		SwarmUploadMimeType,
-		//deprecated flags
-		DeprecatedEthAPIFlag,
+		// deprecated flags
+		DeprecatedHucAPIFlag,
 		DeprecatedEnsAddrFlag,
 	}
 	app.Flags = append(app.Flags, debug.Flags...)
@@ -397,32 +397,32 @@ func version(ctx *cli.Context) error {
 }
 
 func bzzd(ctx *cli.Context) error {
-	//build a valid bzzapi.Config from all available sources:
-	//default config, file config, command line and env vars
+	// build a valid bzzapi.Config from all available sources:
+	// default config, file config, command line and env vars
 	bzzconfig, err := buildConfig(ctx)
 	if err != nil {
 		utils.Fatalf("unable to configure swarm: %v", err)
 	}
 
 	cfg := defaultNodeConfig
-	//ghuc only supports --datadir via command line
-	//in order to be consistent within swarm, if we pass --datadir via environment variable
-	//or via config file, we get the same directory for ghuc and swarm
+	// ghuc only supports --datadir via command line
+	// in order to be consistent within swarm, if we pass --datadir via environment variable
+	// or via config file, we get the same directory for ghuc and swarm
 	if _, err := os.Stat(bzzconfig.Path); err == nil {
 		cfg.DataDir = bzzconfig.Path
 	}
-	//setup the happyuc node
+	// setup the happyuc node
 	utils.SetNodeConfig(ctx, &cfg)
 	stack, err := node.New(&cfg)
 	if err != nil {
 		utils.Fatalf("can't create node: %v", err)
 	}
-	//a few steps need to be done after the config phase is completed,
-	//due to overriding behavior
+	// a few steps need to be done after the config phase is completed,
+	// due to overriding behavior
 	initSwarmNode(bzzconfig, stack, ctx)
-	//register BZZ as node.Service in the happyuc node
+	// register BZZ as node.Service in the happyuc node
 	registerBzzService(bzzconfig, ctx, stack)
-	//start the node
+	// start the node
 	utils.StartNode(stack)
 
 	go func() {
@@ -450,7 +450,7 @@ func bzzd(ctx *cli.Context) error {
 
 func registerBzzService(bzzconfig *bzzapi.Config, ctx *cli.Context, stack *node.Node) {
 
-	//define the swarm service boot function
+	// define the swarm service boot function
 	boot := func(ctx *node.ServiceContext) (node.Service, error) {
 		var swapClient *hucclient.Client
 		var err error
@@ -464,14 +464,14 @@ func registerBzzService(bzzconfig *bzzapi.Config, ctx *cli.Context, stack *node.
 
 		return swarm.NewSwarm(ctx, swapClient, bzzconfig)
 	}
-	//register within the happyuc node
+	// register within the happyuc node
 	if err := stack.Register(boot); err != nil {
 		utils.Fatalf("Failed to register the Swarm service: %v", err)
 	}
 }
 
 func getAccount(bzzaccount string, ctx *cli.Context, stack *node.Node) *ecdsa.PrivateKey {
-	//an account is mandatory
+	// an account is mandatory
 	if bzzaccount == "" {
 		utils.Fatalf(SWARM_ERR_NO_BZZACCOUNT)
 	}

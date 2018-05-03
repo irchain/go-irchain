@@ -409,6 +409,11 @@ func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transa
 	}
 }
 
+// Len returns the length of the heads.
+func (t *TransactionsByPriceAndNonce) Len() int {
+	return len(t.heads)
+}
+
 // Peek returns the next transaction by price.
 func (t *TransactionsByPriceAndNonce) Peek() *Transaction {
 	if len(t.heads) == 0 {
