@@ -31,15 +31,15 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/params"
-	set "gopkg.in/fatih/set.v0"
+	"gopkg.in/fatih/set.v0"
 )
 
 // Huchash proof-of-work protocol constants.
 var (
-	FrontierBlockReward    *big.Int = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
-	ByzantiumBlockReward   *big.Int = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
-	maxUncles                       = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTime          = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+	FrontierBlockReward    = big.NewInt(8e+18) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward   = big.NewInt(4e+18) // Block reward in wei for successfully mining a block upward from Byzantium
+	maxUncles              = 2                 // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTime = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -525,19 +525,36 @@ func (huchash *Huchash) Finalize(chain consensus.ChainReader, header *types.Head
 
 // Some weird constants to avoid constant memory allocs for them.
 var (
-	big8  = big.NewInt(8)
-	big32 = big.NewInt(32)
+	big8        = big.NewInt(8)
+	big32       = big.NewInt(32)
+	expBase     = big.NewInt(2)
+	limitEpoch  = big.NewInt(10)
+	rewardEpoch = big.NewInt(20)
 )
 
 // AccumulateRewards credits the coinbase of the given block with the mining
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
 func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+	var (
+		blockReward  = new(big.Int).Set(FrontierBlockReward)
+		currBlockNum = new(big.Int).Sub(header.Number, big.NewInt(1))
+		epoch        = new(big.Int).Div(currBlockNum, rewardEpoch)
+		exponent     = new(big.Int)
+	)
+
 	// Select the correct block reward based on chain progression
-	blockReward := FrontierBlockReward
 	if config.IsByzantium(header.Number) {
 		blockReward = ByzantiumBlockReward
 	}
+
+	if epoch.Cmp(limitEpoch) >= 0 {
+		blockReward = new(big.Int)
+	} else {
+		exponent.Exp(expBase, epoch, nil)
+		blockReward.Div(blockReward, exponent)
+	}
+
 	// Accumulate the rewards for the miner and any included uncles
 	reward := new(big.Int).Set(blockReward)
 	r := new(big.Int)
