@@ -529,7 +529,7 @@ var (
 	big32       = big.NewInt(32)
 	expBase     = big.NewInt(2)
 	limitEpoch  = big.NewInt(10)
-	rewardEpoch = big.NewInt(20)
+	rewardEpoch = big.NewInt(8409600)
 )
 
 // AccumulateRewards credits the coinbase of the given block with the mining
