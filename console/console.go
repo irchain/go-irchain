@@ -24,7 +24,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"syscall"
 
@@ -281,20 +280,20 @@ func (c *Console) Welcome() {
 	// Print some generic Ghuc metadata
 	fmt.Fprint(c.printer, "Welcome to the Ghuc JavaScript console(webu.js)!\n\n")
 	c.jsre.Run(`
-		console.log("instance: " + webu.version.node);
-		console.log("coinbase: " + huc.coinbase);
-		console.log("at block: " + huc.blockNumber + " (" + new Date(1000 * huc.getBlock(huc.blockNumber).timestamp) + ")");
-		console.log(" datadir: " + admin.datadir);
+		console.log("Instance: " + webu.version.node);
+		console.log("Coinbase: " + huc.coinbase);
+		console.log("At block: " + huc.blockNumber + " (" + new Date(1000 * huc.getBlock(huc.blockNumber).timestamp) + ")");
+		console.log("Datadir : " + admin.datadir);
 	`)
 	// List all the supported modules for the user to call
-	if apis, err := c.client.SupportedModules(); err == nil {
-		modules := make([]string, 0, len(apis))
-		for api, version := range apis {
-			modules = append(modules, fmt.Sprintf("%s:%s", api, version))
-		}
-		sort.Strings(modules)
-		fmt.Fprintln(c.printer, " modules:", strings.Join(modules, " "))
-	}
+	// if apis, err := c.client.SupportedModules(); err == nil {
+	// 	modules := make([]string, 0, len(apis))
+	// 	for api, version := range apis {
+	// 		modules = append(modules, fmt.Sprintf("%s:%s", api, version))
+	// 	}
+	// 	sort.Strings(modules)
+	// 	fmt.Fprintln(c.printer, " modules:", strings.Join(modules, " "))
+	// }
 	fmt.Fprintln(c.printer)
 }
 

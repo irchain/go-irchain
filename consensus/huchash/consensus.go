@@ -149,7 +149,6 @@ func (huchash *Huchash) VerifyHeaders(chain consensus.ChainReader, headers []*ty
 	return abort, errorsOut
 }
 
-
 func (huchash *Huchash) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header, seals []bool, index int) error {
 	var parent *types.Header
 	if index == 0 {
@@ -543,11 +542,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		exponent     = new(big.Int)
 	)
 
-	// Select the correct block reward based on chain progression
-	if config.IsByzantium(header.Number) {
-		blockReward = ByzantiumBlockReward
-	}
-
+	// Compute currently epoch corresponding rewards
 	if epoch.Cmp(limitEpoch) >= 0 {
 		blockReward = new(big.Int)
 	} else {
