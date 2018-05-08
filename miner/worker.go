@@ -464,7 +464,7 @@ func (self *worker) commitNewWork() {
 			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
 			return
 		} else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-			log.Trace("Sleep mining, waiting for transactions", "mining", atomic.LoadInt32(&self.mining))
+			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
 			self.mu.Unlock()
 			time.Sleep(txsRefreshSec * time.Second)
 			self.mu.Lock()
@@ -508,7 +508,7 @@ func (self *worker) commitNewWork() {
 
 	// We only care about logging if we're actually mining.
 	if atomic.LoadInt32(&self.mining) == 1 {
-		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles))
+		log.Info("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
 
