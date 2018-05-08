@@ -456,25 +456,25 @@ func (self *worker) commitNewWork() {
 	}
 
 	// Waiting for transaction, until any transactions found
-	for {
+	// for {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
 			log.Error("Failed to fetch pending transactions", "err", err)
 			return
-		} else if atomic.LoadInt32(&self.mining) == 0 {
-			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
-			return
-		} else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
-			self.mu.Unlock()
-			time.Sleep(txsRefreshSec * time.Second)
-			self.mu.Lock()
-			continue
+		// } else if atomic.LoadInt32(&self.mining) == 0 {
+		// 	log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
+		// 	return
+		// } else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
+		// 	log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
+		// 	self.mu.Unlock()
+		// 	time.Sleep(txsRefreshSec * time.Second)
+		// 	self.mu.Lock()
+		// 	continue
 		} else {
 			txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
 			work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-			break
+			// break
 		}
-	}
+	// }
 
 	// compute uncles for the new block.
 	var (
@@ -511,8 +511,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-
-	self.push(self.current)
+	self.push(work)
 }
 
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
