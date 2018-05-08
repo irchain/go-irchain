@@ -397,8 +397,8 @@ func (self *worker) commitNewWork() {
 
 	var (
 		tstart = time.Now()
-		parent = self.chain.CurrentBlock()
 		tstamp = tstart.Unix()
+		parent = self.chain.CurrentBlock()
 	)
 	if parent.Time().Cmp(new(big.Int).SetInt64(tstamp)) >= 0 {
 		tstamp = parent.Time().Int64() + 1
@@ -443,7 +443,7 @@ func (self *worker) commitNewWork() {
 	}
 
 	// Could potentially happen if starting to mine in an odd state.
-	if err := self.makeCurrent(self.chain.CurrentBlock(), header); err != nil {
+	if err := self.makeCurrent(parent, header); err != nil {
 		log.Error("Failed to create mining context", "err", err)
 		return
 	}
@@ -460,8 +460,14 @@ func (self *worker) commitNewWork() {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
 			log.Error("Failed to fetch pending transactions", "err", err)
 			return
+		} else if atomic.LoadInt32(&self.mining) == 0 {
+			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
+			return
 		} else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
+			log.Trace("Sleep mining, waiting for transactions", "mining", atomic.LoadInt32(&self.mining))
+			self.mu.Unlock()
 			time.Sleep(txsRefreshSec * time.Second)
+			self.mu.Lock()
 			continue
 		} else {
 			txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
