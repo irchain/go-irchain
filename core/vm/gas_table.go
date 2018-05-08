@@ -394,7 +394,6 @@ func gasSuicide(gt params.GasTable, evm *EVM, contract *Contract, stack *Stack, 
 
 		if eip158 {
 			// if empty and transfers value
-			// if evm.StateDB.Empty(address) && evm.StateDB.GetBalance(contract.Address()).Sign() != 0 {
 			if evm.StateDB.Empty(address) {
 				gas += gt.CreateBySuicide
 			}

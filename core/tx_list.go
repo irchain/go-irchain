@@ -301,7 +301,6 @@ func (l *txList) Filter(costLimit *big.Int, gasLimit uint64) (types.Transactions
 
 	// If the list was strict, filter anything above the lowest nonce
 	var invalids types.Transactions
-
 	if l.strict && len(removed) > 0 {
 		lowest := uint64(math.MaxUint64)
 		for _, tx := range removed {
