@@ -67,23 +67,22 @@ func (huchash *Huchash) Author(header *types.Header) (common.Address, error) {
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock HappyUC huchash engine.
 func (huchash *Huchash) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
-	fmt.Println("verify header begin")
 	// If we're running a full engine faking, accept any input as valid
 	if huchash.config.PowMode == ModeFullFake {
 		return nil
 	}
-	fmt.Println("here")
+
 	// Short circuit if the header is known, or it's parent not
 	number := header.Number.Uint64()
 	if chain.GetHeader(header.Hash(), number) != nil {
 		return nil
 	}
-	fmt.Println("there")
+
 	parent := chain.GetHeader(header.ParentHash, number-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
-	fmt.Println("?????????????")
+
 	// Sanity checks passed, do a proper verification
 	return huchash.verifyHeader(chain, header, parent, false, seal)
 }
@@ -225,7 +224,7 @@ func (huchash *Huchash) VerifyUncles(chain consensus.ChainReader, block *types.B
 // stock HappyUC huchash engine.
 // See YP section 4.3.4. "Block Header Validity"
 func (huchash *Huchash) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
-	fmt.Println("verify header sec begin")
+	fmt.Println("verify header begin")
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(header.Extra), params.MaximumExtraDataSize)
