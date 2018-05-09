@@ -499,7 +499,7 @@ func (self *worker) commitNewWork() {
 	for _, hash := range badUncles {
 		delete(self.possibleUncles, hash)
 	}
-
+	fmt.Println("1", header.GasUsed)
 	// Create the new block to seal with the consensus engine
 	if workBlock, err := self.engine.Finalize(self.chain, header, work.state, work.txs, uncles, work.receipts); err != nil {
 		log.Error("Failed to finalize block for sealing", "err", err)
@@ -513,6 +513,7 @@ func (self *worker) commitNewWork() {
 		log.Trace("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+	fmt.Println("2", header.GasUsed)
 	self.push(work)
 }
 
