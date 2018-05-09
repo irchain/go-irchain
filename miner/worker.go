@@ -442,13 +442,15 @@ func (self *worker) commitNewWork() {
 		}
 	}
 
+	var work *Work
+
 	// Could potentially happen if starting to mine in an odd state.
 	if err := self.makeCurrent(parent, header); err != nil {
 		log.Error("Failed to create mining context", "err", err)
 		return
+	} else {
+		work = self.current
 	}
-
-	var work = self.current
 
 	// Create the current work task and check any fork transitions needed
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
@@ -456,25 +458,25 @@ func (self *worker) commitNewWork() {
 	}
 
 	// Waiting for transaction, until any transactions found
-	// for {
+	for {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
 			log.Error("Failed to fetch pending transactions", "err", err)
 			return
-		// } else if atomic.LoadInt32(&self.mining) == 0 {
-		// 	log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
-		// 	return
-		// } else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-		// 	log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
-		// 	self.mu.Unlock()
-		// 	time.Sleep(txsRefreshSec * time.Second)
-		// 	self.mu.Lock()
-		// 	continue
+		} else if atomic.LoadInt32(&self.mining) == 0 {
+			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
+			return
+		} else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
+			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
+			self.mu.Unlock()
+			time.Sleep(txsRefreshSec * time.Second)
+			self.mu.Lock()
+			continue
 		} else {
 			txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
 			work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-			// break
+			break
 		}
-	// }
+	}
 
 	// compute uncles for the new block.
 	var (

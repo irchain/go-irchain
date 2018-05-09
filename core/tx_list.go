@@ -289,7 +289,6 @@ func (l *txList) Forward(threshold uint64) types.Transactions {
 // the newly invalidated transactions.
 func (l *txList) Filter(costLimit *big.Int, gasLimit uint64) (types.Transactions, types.Transactions) {
 	// If all transactions are below the threshold, short circuit
-	// if l.costcap.Cmp(costLimit) < 0 && l.gascap <= gasLimit {
 	if l.gascap <= gasLimit {
 		return nil, nil
 	}
