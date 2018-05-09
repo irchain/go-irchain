@@ -154,7 +154,7 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	go worker.update()
 
 	go worker.wait()
-	worker.commitNewWork()
+	worker.commitNewWork(true)
 
 	return worker
 }
@@ -251,7 +251,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			self.commitNewWork()
+			self.commitNewWork(false)
 
 			// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
@@ -273,7 +273,7 @@ func (self *worker) update() {
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
-					self.commitNewWork()
+					self.commitNewWork(false)
 				}
 			}
 
@@ -336,7 +336,7 @@ func (self *worker) wait() {
 			self.unconfirmed.Insert(block.NumberU64(), block.Hash())
 
 			if mustCommitNewWork {
-				self.commitNewWork()
+				self.commitNewWork(false)
 			}
 		}
 	}
@@ -387,7 +387,7 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 	return nil
 }
 
-func (self *worker) commitNewWork() {
+func (self *worker) commitNewWork(isFirstWork bool) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.uncleMu.Lock()
@@ -465,7 +465,7 @@ func (self *worker) commitNewWork() {
 		} else if atomic.LoadInt32(&self.mining) == 0 {
 			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
 			return
-		} else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
+		} else if isFirstWork && len(pending) == 0 && num.Cmp(common.Big1) == 1 {
 			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
 			self.mu.Unlock()
 			time.Sleep(txsRefreshSec * time.Second)

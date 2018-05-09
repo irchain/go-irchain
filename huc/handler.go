@@ -40,7 +40,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/p2p/discover"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rlp"
-	"github.com/go-stack/stack"
 )
 
 const (
@@ -171,7 +170,6 @@ func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, ne
 	inserter := func(blocks types.Blocks) (int, error) {
 		// If fast sync is running, deny importing weird blocks
 		if atomic.LoadUint32(&manager.fastSync) == 1 {
-			fmt.Println(stack.Trace())
 			log.Warn("Discarded bad propagated block", "number", blocks[0].Number(), "hash", blocks[0].Hash())
 			return 0, nil
 		}
