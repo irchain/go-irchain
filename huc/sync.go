@@ -26,6 +26,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"fmt"
 )
 
 const (
@@ -185,6 +186,11 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		// The only scenario where this can happen is if the user manually (or via a
 		// bad block) rolled back a fast sync node below the sync point. In this case
 		// however it's safe to reenable fast sync.
+
+		log.Info("Fast sync complete, auto disabling")
+
+		fmt.Println(currentBlock.Hash())
+
 		atomic.StoreUint32(&pm.fastSync, 1)
 		mode = downloader.FastSync
 	}
