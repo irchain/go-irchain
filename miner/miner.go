@@ -116,7 +116,7 @@ func (self *Miner) Start(coinbase common.Address) {
 
 	log.Info("Starting mining operation")
 	self.worker.start()
-	self.worker.commitNewWork()
+	self.worker.commitNewWork(false)
 }
 
 func (self *Miner) Stop() {
