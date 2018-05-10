@@ -71,15 +71,18 @@ func (huchash *Huchash) VerifyHeader(chain consensus.ChainReader, header *types.
 	if huchash.config.PowMode == ModeFullFake {
 		return nil
 	}
+
 	// Short circuit if the header is known, or it's parent not
 	number := header.Number.Uint64()
 	if chain.GetHeader(header.Hash(), number) != nil {
 		return nil
 	}
+
 	parent := chain.GetHeader(header.ParentHash, number-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
+
 	// Sanity checks passed, do a proper verification
 	return huchash.verifyHeader(chain, header, parent, false, seal)
 }
@@ -517,7 +520,6 @@ func (huchash *Huchash) Finalize(chain consensus.ChainReader, header *types.Head
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(chain.Config(), state, header, uncles)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
-
 	// Header seems complete, assemble into a block and return
 	return types.NewBlock(header, txs, uncles, receipts), nil
 }
