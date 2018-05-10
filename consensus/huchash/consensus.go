@@ -224,7 +224,6 @@ func (huchash *Huchash) VerifyUncles(chain consensus.ChainReader, block *types.B
 // stock HappyUC huchash engine.
 // See YP section 4.3.4. "Block Header Validity"
 func (huchash *Huchash) verifyHeader(chain consensus.ChainReader, header, parent *types.Header, uncle bool, seal bool) error {
-	fmt.Println("verify header begin")
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(header.Extra), params.MaximumExtraDataSize)
@@ -519,11 +518,8 @@ func (huchash *Huchash) Prepare(chain consensus.ChainReader, header *types.Heade
 // setting the final state and assembling the block.
 func (huchash *Huchash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
-	fmt.Println("1.1", header.GasUsed)
 	accumulateRewards(chain.Config(), state, header, uncles)
-	fmt.Println("1.2", header.GasUsed)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
-	fmt.Println("1.3", header.GasUsed)
 	// Header seems complete, assemble into a block and return
 	return types.NewBlock(header, txs, uncles, receipts), nil
 }
