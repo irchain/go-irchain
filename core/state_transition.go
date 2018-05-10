@@ -220,7 +220,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		}
 
 		// do transaction
-		ret, _, failed, err = st.transitionDb()
+		ret, failed, err = st.transitionDb()
 		if err == vm.ErrInsufficientBalance {
 			return nil, 0, false, err
 		}
@@ -231,13 +231,14 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		return ret, st.gasUsed(), failed, err
 	} else {
 		st.gas = st.msg.Gas()
-		return st.transitionDb()
+		ret, failed, err = st.transitionDb()
+		return ret, 0, false, err
 	}
 }
 
 // vm errors do not effect consensus and are therefor not
 // assigned to err, except for insufficient balance error.
-func (st *StateTransition) transitionDb() (ret []byte, gasUsed uint64, failed bool, err error) {
+func (st *StateTransition) transitionDb() (ret []byte, failed bool, err error) {
 	sender := st.from()
 	if st.msg.To() == nil {
 		ret, _, st.gas, err = st.evm.Create(sender, st.data, st.gas, st.value)
@@ -252,10 +253,10 @@ func (st *StateTransition) transitionDb() (ret []byte, gasUsed uint64, failed bo
 		// sufficient balance to make the transfer happen. The first
 		// balance transfer may never fail.
 		if err == vm.ErrInsufficientBalance {
-			return nil, 0, false, err
+			return nil, false, err
 		}
 	}
-	return ret, st.gasUsed(), err != nil, err
+	return ret, err != nil, err
 }
 
 func (st *StateTransition) refundGas() {

@@ -152,9 +152,8 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	worker.chainHeadSub = huc.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
 	worker.chainSideSub = huc.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
 	go worker.update()
-
 	go worker.wait()
-	worker.commitNewWork()
+	worker.commitNewWork(true)
 
 	return worker
 }
@@ -249,36 +248,32 @@ func (self *worker) update() {
 	for {
 		// A real event arrived, process interesting content
 		select {
-		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			self.commitNewWork()
-
-			// Handle ChainSideEvent
+			// Handle ChainHeadEvent
+			self.commitNewWork(false)
 		case ev := <-self.chainSideCh:
+			// Handle ChainSideEvent
 			self.uncleMu.Lock()
 			self.possibleUncles[ev.Block.Hash()] = ev.Block
 			self.uncleMu.Unlock()
-
-			// Handle TxPreEvent
 		case ev := <-self.txCh:
-			// Apply transaction to the pending state if we're not mining
+			// Handle TxPreEvent
 			if atomic.LoadInt32(&self.mining) == 0 {
+				// Apply transaction to the pending state if we're not mining
 				self.currentMu.Lock()
 				acc, _ := types.Sender(self.current.signer, ev.Tx)
 				txs := map[common.Address]types.Transactions{acc: {ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
-
 				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.currentMu.Unlock()
 			} else {
-				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
-					self.commitNewWork()
+					// If we're mining, but nothing is being processed, wake on new transactions
+					self.commitNewWork(true)
 				}
 			}
-
-			// System stopped
 		case <-self.txSub.Err():
+			// System stopped
 			return
 		case <-self.chainHeadSub.Err():
 			return
@@ -336,21 +331,8 @@ func (self *worker) wait() {
 			self.unconfirmed.Insert(block.NumberU64(), block.Hash())
 
 			if mustCommitNewWork {
-				self.commitNewWork()
+				self.commitNewWork(true)
 			}
-		}
-	}
-}
-
-// push sends a new work task to currently live miner agents.
-func (self *worker) push(work *Work) {
-	if atomic.LoadInt32(&self.mining) != 1 {
-		return
-	}
-	for agent := range self.agents {
-		atomic.AddInt32(&self.atWork, 1)
-		if ch := agent.Work(); ch != nil {
-			ch <- work
 		}
 	}
 }
@@ -387,7 +369,20 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 	return nil
 }
 
-func (self *worker) commitNewWork() {
+// push sends a new work task to currently live miner agents.
+func (self *worker) push(work *Work) {
+	if atomic.LoadInt32(&self.mining) != 1 {
+		return
+	}
+	for agent := range self.agents {
+		atomic.AddInt32(&self.atWork, 1)
+		if ch := agent.Work(); ch != nil {
+			ch <- work
+		}
+	}
+}
+
+func (self *worker) commitNewWork(isSyncing bool) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.uncleMu.Lock()
@@ -427,7 +422,6 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to prepare header for mining", "err", err)
 		return
 	}
-
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
 	if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
 		// Check whether the block is among the fork extra-override range
@@ -442,13 +436,15 @@ func (self *worker) commitNewWork() {
 		}
 	}
 
+	var work *Work
+
 	// Could potentially happen if starting to mine in an odd state.
 	if err := self.makeCurrent(parent, header); err != nil {
 		log.Error("Failed to create mining context", "err", err)
 		return
+	} else {
+		work = self.current
 	}
-
-	var work = self.current
 
 	// Create the current work task and check any fork transitions needed
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
@@ -456,25 +452,24 @@ func (self *worker) commitNewWork() {
 	}
 
 	// Waiting for transaction, until any transactions found
-	// for {
+	for {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
 			log.Error("Failed to fetch pending transactions", "err", err)
 			return
-		// } else if atomic.LoadInt32(&self.mining) == 0 {
-		// 	log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
-		// 	return
-		// } else if len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-		// 	log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
-		// 	self.mu.Unlock()
-		// 	time.Sleep(txsRefreshSec * time.Second)
-		// 	self.mu.Lock()
-		// 	continue
+		} else if !isSyncing && atomic.LoadInt32(&self.mining) == 0 {
+			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
+			return
+		} else if !isSyncing && len(pending) == 0 && num.Cmp(common.Big1) == 1 {
+			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
+			self.mu.Unlock()
+			time.Sleep(txsRefreshSec * time.Second)
+			self.mu.Lock()
 		} else {
 			txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
 			work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-			// break
+			break
 		}
-	// }
+	}
 
 	// compute uncles for the new block.
 	var (
@@ -508,9 +503,10 @@ func (self *worker) commitNewWork() {
 
 	// We only care about logging if we're actually mining.
 	if atomic.LoadInt32(&self.mining) == 1 {
-		log.Info("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
+		log.Trace("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+
 	self.push(work)
 }
 
