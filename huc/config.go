@@ -35,7 +35,7 @@ import (
 
 // DefaultConfig contains default settings for use on the HappyUC main net.
 var DefaultConfig = Config{
-	SyncMode: downloader.FastSync,
+	SyncMode: downloader.FullSync,
 	Huchash: huchash.Config{
 		CacheDir:       "huchash",
 		CachesInMem:    2,
