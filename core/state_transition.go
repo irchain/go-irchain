@@ -25,7 +25,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"math"
-	"fmt"
 )
 
 var (
@@ -206,7 +205,6 @@ func (st *StateTransition) preCheck() error {
 // failed. An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
 	if len(st.state.GetCode(st.to().Address())) == 0 {
-		fmt.Println("here")
 		// pre check and pay deposit
 		if err = st.preCheck(); err != nil {
 			return
@@ -232,7 +230,6 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 		return ret, st.gasUsed(), failed, err
 	} else {
-		fmt.Println("there")
 		st.gas = st.msg.Gas()
 		return st.transitionDb()
 	}
