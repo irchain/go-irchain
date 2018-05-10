@@ -36,6 +36,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"gopkg.in/fatih/set.v0"
+	"github.com/go-stack/stack"
 )
 
 const (
@@ -248,36 +249,32 @@ func (self *worker) update() {
 	for {
 		// A real event arrived, process interesting content
 		select {
-		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
+			// Handle ChainHeadEvent
 			self.commitNewWork(false)
-
-			// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
+			// Handle ChainSideEvent
 			self.uncleMu.Lock()
 			self.possibleUncles[ev.Block.Hash()] = ev.Block
 			self.uncleMu.Unlock()
-
-			// Handle TxPreEvent
 		case ev := <-self.txCh:
-			// Apply transaction to the pending state if we're not mining
+			// Handle TxPreEvent
 			if atomic.LoadInt32(&self.mining) == 0 {
+				// Apply transaction to the pending state if we're not mining
 				self.currentMu.Lock()
 				acc, _ := types.Sender(self.current.signer, ev.Tx)
 				txs := map[common.Address]types.Transactions{acc: {ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
-
 				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.currentMu.Unlock()
 			} else {
-				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
-					self.commitNewWork(false)
+					// If we're mining, but nothing is being processed, wake on new transactions
+					self.commitNewWork(true)
 				}
 			}
-
-			// System stopped
 		case <-self.txSub.Err():
+			// System stopped
 			return
 		case <-self.chainHeadSub.Err():
 			return
@@ -335,7 +332,7 @@ func (self *worker) wait() {
 			self.unconfirmed.Insert(block.NumberU64(), block.Hash())
 
 			if mustCommitNewWork {
-				self.commitNewWork(false)
+				self.commitNewWork(true)
 			}
 		}
 	}
@@ -426,7 +423,6 @@ func (self *worker) commitNewWork(isSyncing bool) {
 		log.Error("Failed to prepare header for mining", "err", err)
 		return
 	}
-
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
 	if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
 		// Check whether the block is among the fork extra-override range
@@ -456,6 +452,8 @@ func (self *worker) commitNewWork(isSyncing bool) {
 		misc.ApplyDAOHardFork(work.state)
 	}
 
+	fmt.Println(stack.Trace())
+
 	// Waiting for transaction, until any transactions found
 	for {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
@@ -465,7 +463,7 @@ func (self *worker) commitNewWork(isSyncing bool) {
 			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
 			return
 		} else if !isSyncing && len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
+			log.Info("Sleep mining, waiting for transactions", "pending num", len(pending))
 			self.mu.Unlock()
 			time.Sleep(txsRefreshSec * time.Second)
 			self.mu.Lock()
