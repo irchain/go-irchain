@@ -36,7 +36,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"gopkg.in/fatih/set.v0"
-	"github.com/go-stack/stack"
 )
 
 const (
@@ -452,8 +451,6 @@ func (self *worker) commitNewWork(isSyncing bool) {
 		misc.ApplyDAOHardFork(work.state)
 	}
 
-	fmt.Println(stack.Trace())
-
 	// Waiting for transaction, until any transactions found
 	for {
 		if pending, err := self.huc.TxPool().Pending(); err != nil {
@@ -463,7 +460,7 @@ func (self *worker) commitNewWork(isSyncing bool) {
 			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
 			return
 		} else if !isSyncing && len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-			log.Info("Sleep mining, waiting for transactions", "pending num", len(pending))
+			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
 			self.mu.Unlock()
 			time.Sleep(txsRefreshSec * time.Second)
 			self.mu.Lock()
