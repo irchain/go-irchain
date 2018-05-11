@@ -153,7 +153,7 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	worker.chainSideSub = huc.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
 	go worker.update()
 	go worker.wait()
-	worker.commitNewWork(true)
+	worker.commitNewWork()
 
 	return worker
 }
@@ -250,7 +250,7 @@ func (self *worker) update() {
 		select {
 		case <-self.chainHeadCh:
 			// Handle ChainHeadEvent
-			self.commitNewWork(false)
+			self.commitNewWork()
 		case ev := <-self.chainSideCh:
 			// Handle ChainSideEvent
 			self.uncleMu.Lock()
@@ -269,7 +269,7 @@ func (self *worker) update() {
 			} else {
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
 					// If we're mining, but nothing is being processed, wake on new transactions
-					self.commitNewWork(true)
+					self.commitNewWork()
 				}
 			}
 		case <-self.txSub.Err():
@@ -331,7 +331,7 @@ func (self *worker) wait() {
 			self.unconfirmed.Insert(block.NumberU64(), block.Hash())
 
 			if mustCommitNewWork {
-				self.commitNewWork(true)
+				self.commitNewWork()
 			}
 		}
 	}
@@ -371,9 +371,7 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 
 // push sends a new work task to currently live miner agents.
 func (self *worker) push(work *Work) {
-	if atomic.LoadInt32(&self.mining) != 1 {
-		return
-	}
+
 	for agent := range self.agents {
 		atomic.AddInt32(&self.atWork, 1)
 		if ch := agent.Work(); ch != nil {
@@ -382,7 +380,14 @@ func (self *worker) push(work *Work) {
 	}
 }
 
-func (self *worker) commitNewWork(isSyncing bool) {
+func (self *worker) commitNewWork() {
+	defer func() {
+		if hasTx := recover(); hasTx != nil && !hasTx.(bool) {
+			time.Sleep(txsRefreshSec * time.Second)
+			self.commitNewWork()
+		}
+	}()
+
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.uncleMu.Lock()
@@ -451,24 +456,13 @@ func (self *worker) commitNewWork(isSyncing bool) {
 		misc.ApplyDAOHardFork(work.state)
 	}
 
-	// Waiting for transaction, until any transactions found
-	for {
-		if pending, err := self.huc.TxPool().Pending(); err != nil {
-			log.Error("Failed to fetch pending transactions", "err", err)
-			return
-		} else if !isSyncing && atomic.LoadInt32(&self.mining) == 0 {
-			log.Trace("Stop mining, interrupt the loops", "block num", num.Int64())
-			return
-		} else if !isSyncing && len(pending) == 0 && num.Cmp(common.Big1) == 1 {
-			log.Trace("Sleep mining, waiting for transactions", "pending num", len(pending))
-			self.mu.Unlock()
-			time.Sleep(txsRefreshSec * time.Second)
-			self.mu.Lock()
-		} else {
-			txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
-			work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-			break
-		}
+	// Loops until any transactions found
+	if pending, err := self.huc.TxPool().Pending(); err != nil {
+		log.Error("Failed to fetch pending transactions", "err", err)
+		return
+	} else {
+		txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
+		work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 	}
 
 	// compute uncles for the new block.
@@ -501,12 +495,15 @@ func (self *worker) commitNewWork(isSyncing bool) {
 		work.Block = workBlock
 	}
 
-	// We only care about logging if we're actually mining.
-	if atomic.LoadInt32(&self.mining) == 1 {
-		log.Trace("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
-		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
+	if atomic.LoadInt32(&self.mining) != 1 {
+		return
+	}
+	if work.tcount == 0 {
+		panic(false)
 	}
 
+	log.Trace("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
+	self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	self.push(work)
 }
 
