@@ -165,26 +165,28 @@ func (st *StateTransition) useGas(amount uint64) error {
 	return nil
 }
 
-func (st *StateTransition) buyGas() error {
+func (st *StateTransition) buyGas(isHucTx bool) error {
 	var (
 		state = st.state
 		from  = st.from().Address()
 	)
 	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
-	if state.GetBalance(from).Cmp(mgval) <= 0 {
+	if state.GetBalance(from).Cmp(mgval) == -1 && isHucTx {
 		return errInsufficientBalanceForGas
 	}
 	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
 		return err
 	}
 	st.gas += st.msg.Gas()
-
 	st.initialGas = st.msg.Gas()
-	state.SubBalance(from, mgval)
+
+	if isHucTx {
+		state.SubBalance(from, mgval)
+	}
 	return nil
 }
 
-func (st *StateTransition) preCheck() error {
+func (st *StateTransition) preCheck(isHucTx bool) error {
 	msg := st.msg
 	sender := st.from()
 
@@ -197,43 +199,43 @@ func (st *StateTransition) preCheck() error {
 			return ErrNonceTooLow
 		}
 	}
-	return st.buyGas()
+	return st.buyGas(isHucTx)
 }
 
 // TransitionDb will transition the state by applying the current message and
 // returning the result including the the used gas. It returns an error if it
 // failed. An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
-	if len(st.state.GetCode(st.to().Address())) == 0 {
-		// pre check and pay deposit
-		if err = st.preCheck(); err != nil {
-			return
-		}
+	isHucTx := len(st.state.GetCode(st.to().Address())) == 0
 
-		// Pay intrinsic gas
-		homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
-		contractCreation := st.msg.To() == nil
-		if gas, err := IntrinsicGas(st.data, contractCreation, homestead); err != nil {
-			return nil, 0, false, err
-		} else if err = st.useGas(gas); err != nil {
-			return nil, 0, false, err
-		}
-
-		// do transaction
-		ret, failed, err = st.transitionDb()
-		if err == vm.ErrInsufficientBalance {
-			return nil, 0, false, err
-		}
-
-		// refund deposit
-		st.refundGas()
-		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
-		return ret, st.gasUsed(), failed, err
-	} else {
-		st.gas = st.msg.Gas()
-		ret, failed, err = st.transitionDb()
-		return ret, 0, false, err
+	// pre check and pay deposit
+	if err = st.preCheck(isHucTx); err != nil {
+		return nil, 0, false, err
 	}
+
+	// Pay intrinsic gas
+	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
+	contractCreation := st.msg.To() == nil
+	if gas, err := IntrinsicGas(st.data, contractCreation, homestead); err != nil {
+		return nil, 0, false, err
+	} else if err = st.useGas(gas); err != nil {
+		return nil, 0, false, err
+	}
+
+	// do transaction
+	ret, failed, err = st.transitionDb()
+	if err == vm.ErrInsufficientBalance {
+		return nil, 0, false, err
+	}
+
+	// refund deposit
+	st.refundGas(isHucTx)
+
+	if isHucTx {
+		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	}
+
+	return ret, st.gasUsed(), failed, err
 }
 
 // vm errors do not effect consensus and are therefor not
@@ -259,7 +261,7 @@ func (st *StateTransition) transitionDb() (ret []byte, failed bool, err error) {
 	return ret, err != nil, err
 }
 
-func (st *StateTransition) refundGas() {
+func (st *StateTransition) refundGas(isHucTx bool) {
 	// Apply refund counter, capped to half of the used gas.
 	refund := st.gasUsed() / 2
 	if refund > st.state.GetRefund() {
@@ -268,10 +270,10 @@ func (st *StateTransition) refundGas() {
 	st.gas += refund
 
 	// Return HUC for remaining gas, exchanged at the original rate.
-	sender := st.from()
-
-	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
-	st.state.AddBalance(sender.Address(), remaining)
+	if isHucTx {
+		remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+		st.state.AddBalance(st.from().Address(), remaining)
+	}
 
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.
