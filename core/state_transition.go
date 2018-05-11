@@ -165,13 +165,13 @@ func (st *StateTransition) useGas(amount uint64) error {
 	return nil
 }
 
-func (st *StateTransition) buyGas(isTokenTx bool) error {
+func (st *StateTransition) buyGas(isHucTx bool) error {
 	var (
 		state = st.state
 		from  = st.from().Address()
 	)
 	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
-	if state.GetBalance(from).Cmp(mgval) <= 0 {
+	if state.GetBalance(from).Cmp(mgval) == -1 && isHucTx {
 		return errInsufficientBalanceForGas
 	}
 	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
@@ -180,13 +180,13 @@ func (st *StateTransition) buyGas(isTokenTx bool) error {
 	st.gas += st.msg.Gas()
 	st.initialGas = st.msg.Gas()
 
-	if isTokenTx {
+	if isHucTx {
 		state.SubBalance(from, mgval)
 	}
 	return nil
 }
 
-func (st *StateTransition) preCheck(isTokenTx bool) error {
+func (st *StateTransition) preCheck(isHucTx bool) error {
 	msg := st.msg
 	sender := st.from()
 
@@ -199,18 +199,18 @@ func (st *StateTransition) preCheck(isTokenTx bool) error {
 			return ErrNonceTooLow
 		}
 	}
-	return st.buyGas(isTokenTx)
+	return st.buyGas(isHucTx)
 }
 
 // TransitionDb will transition the state by applying the current message and
 // returning the result including the the used gas. It returns an error if it
 // failed. An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
-	isTokenTx := len(st.state.GetCode(st.to().Address())) == 0
+	isHucTx := len(st.state.GetCode(st.to().Address())) == 0
 
 	// pre check and pay deposit
-	if err = st.preCheck(isTokenTx); err != nil {
-		return
+	if err = st.preCheck(isHucTx); err != nil {
+		return nil, 0, false, err
 	}
 
 	// Pay intrinsic gas
@@ -229,10 +229,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 
 	// refund deposit
-	st.refundGas(isTokenTx)
-	if isTokenTx {
+	st.refundGas(isHucTx)
+
+	if isHucTx {
 		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 	}
+
 	return ret, st.gasUsed(), failed, err
 }
 
@@ -259,7 +261,7 @@ func (st *StateTransition) transitionDb() (ret []byte, failed bool, err error) {
 	return ret, err != nil, err
 }
 
-func (st *StateTransition) refundGas(isTokenTx bool) {
+func (st *StateTransition) refundGas(isHucTx bool) {
 	// Apply refund counter, capped to half of the used gas.
 	refund := st.gasUsed() / 2
 	if refund > st.state.GetRefund() {
@@ -268,7 +270,7 @@ func (st *StateTransition) refundGas(isTokenTx bool) {
 	st.gas += refund
 
 	// Return HUC for remaining gas, exchanged at the original rate.
-	if isTokenTx {
+	if isHucTx {
 		remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 		st.state.AddBalance(st.from().Address(), remaining)
 	}

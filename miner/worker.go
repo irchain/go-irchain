@@ -456,7 +456,7 @@ func (self *worker) commitNewWork() {
 		misc.ApplyDAOHardFork(work.state)
 	}
 
-	// Loops until any transactions found
+	// Commit pending txs
 	if pending, err := self.huc.TxPool().Pending(); err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
