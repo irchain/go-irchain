@@ -258,7 +258,6 @@ func (c *stateObject) AddBalance(amount *big.Int) {
 		if c.empty() {
 			c.touch()
 		}
-
 		return
 	}
 	c.SetBalance(new(big.Int).Add(c.Balance(), amount))

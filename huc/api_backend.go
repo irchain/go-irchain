@@ -189,7 +189,7 @@ func (b *HucApiBackend) Downloader() *downloader.Downloader {
 }
 
 func (b *HucApiBackend) ProtocolVersion() int {
-	return b.huc.EthVersion()
+	return b.huc.HucVersion()
 }
 
 func (b *HucApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {

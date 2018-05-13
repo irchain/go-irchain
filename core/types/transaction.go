@@ -282,22 +282,21 @@ func (tx *Transaction) String() string {
 	} else {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
-	enc, _ := rlp.EncodeToBytes(&tx.data)
-	return fmt.Sprintf(`
-	TX(%x)
-	Contract: %v
-	From:     %s
-	To:       %s
-	Nonce:    %v
-	GasPrice: %#x
-	GasLimit  %#x
-	Value:    %#x
-	Data:     0x%x
-	V:        %#x
-	R:        %#x
-	S:        %#x
-	Hex:      %x
-`,
+	return fmt.Sprintf(
+		`
+         TX(%x)
+	     Contract: %v
+	     From:     %s
+	     To:       %s
+	     Nonce:    %v
+	     GasPrice: %#x
+	     GasLimit  %#x
+	     Value:    %#x
+	     Data:     0x%x
+	     V:        %#x
+	     R:        %#x
+	     S:        %#x
+         `,
 		tx.Hash(),
 		tx.data.Recipient == nil,
 		from,
@@ -310,7 +309,6 @@ func (tx *Transaction) String() string {
 		tx.data.V,
 		tx.data.R,
 		tx.data.S,
-		enc,
 	)
 }
 
@@ -396,8 +394,8 @@ func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transa
 	for _, accTxs := range txs {
 		heads = append(heads, accTxs[0])
 		// Ensure the sender address is from the signer
-		acc, _ := Sender(signer, accTxs[0])
-		txs[acc] = accTxs[1:]
+		sender, _ := Sender(signer, accTxs[0])
+		txs[sender] = accTxs[1:]
 	}
 	heap.Init(&heads)
 
