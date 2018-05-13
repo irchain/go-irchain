@@ -370,7 +370,7 @@ func (huc *HappyUC) EventMux() *event.TypeMux           { return huc.eventMux }
 func (huc *HappyUC) Engine() consensus.Engine           { return huc.engine }
 func (huc *HappyUC) ChainDb() hucdb.Database            { return huc.chainDb }
 func (huc *HappyUC) IsListening() bool                  { return true } // Always listening
-func (huc *HappyUC) EthVersion() int                    { return int(huc.protocolManager.SubProtocols[0].Version) }
+func (huc *HappyUC) HucVersion() int                    { return int(huc.protocolManager.SubProtocols[0].Version) }
 func (huc *HappyUC) NetVersion() uint64                 { return huc.networkId }
 func (huc *HappyUC) Downloader() *downloader.Downloader { return huc.protocolManager.downloader }
 

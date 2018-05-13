@@ -331,9 +331,8 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	case msg.Code == StatusMsg:
 		// Status messages should never arrive after the handshake
 		return errResp(ErrExtraStatusMsg, "uncontrolled status message")
-
-	// Block header query, collect the requested headers and reply
 	case msg.Code == GetBlockHeadersMsg:
+		// Block header query, collect the requested headers and reply
 		// Decode the complex header query
 		var query getBlockHeadersData
 		if err := msg.Decode(&query); err != nil {
@@ -717,7 +716,7 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 func (pm *ProtocolManager) BroadcastTx(hash common.Hash, tx *types.Transaction) {
 	// Broadcast transaction to a batch of peers not knowing about it
 	peers := pm.peers.PeersWithoutTx(hash)
-	//FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
+	// FIXME include this again: peers = peers[:int(math.Sqrt(float64(len(peers))))]
 	for _, peer := range peers {
 		peer.SendTransactions(types.Transactions{tx})
 	}
@@ -741,9 +740,8 @@ func (self *ProtocolManager) txBroadcastLoop() {
 		select {
 		case event := <-self.txCh:
 			self.BroadcastTx(event.Tx.Hash(), event.Tx)
-
-		// Err() channel will be closed when unsubscribing.
 		case <-self.txSub.Err():
+			// Err() channel will be closed when unsubscribing.
 			return
 		}
 	}
