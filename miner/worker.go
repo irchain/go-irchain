@@ -382,9 +382,16 @@ func (self *worker) push(work *Work) {
 
 func (self *worker) commitNewWork() {
 	defer func() {
-		if hasTx := recover(); hasTx != nil && !hasTx.(bool) {
-			time.Sleep(txsRefreshSec * time.Second)
-			self.commitNewWork()
+		if cover := recover(); cover != nil {
+			switch cover.(type) {
+			case bool:
+				if !cover.(bool) {
+					time.Sleep(txsRefreshSec * time.Second)
+					self.commitNewWork()
+				}
+			case error:
+				log.Error("Failed to commit new work", "err", cover)
+			}
 		}
 	}()
 

@@ -117,6 +117,7 @@ func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition 
 		msg:      msg,
 		gasPrice: msg.GasPrice(),
 		value:    msg.Value(),
+		actValue: msg.Value(),
 		data:     msg.Data(),
 		state:    evm.StateDB,
 	}
@@ -186,9 +187,7 @@ func (st *StateTransition) buyGas() error {
 
 	if hucTx {
 		state.SubBalance(from, mgval)
-		if st.msg.To() == nil {
-			st.actValue = st.value
-		} else {
+		if st.msg.To() != nil {
 			st.actValue = new(big.Int).Sub(st.value, mgval)
 		}
 	}
