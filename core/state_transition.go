@@ -74,6 +74,8 @@ type Message interface {
 	Nonce() uint64
 	CheckNonce() bool
 	Data() []byte
+	// TODO support remark
+	// Remark() []byte
 }
 
 // IntrinsicGas computes the 'intrinsic gas' for a message with the given data.

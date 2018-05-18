@@ -61,14 +61,11 @@ type txdata struct {
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
-
-	// Signature values
-	V *big.Int `json:"v" gencodec:"required"`
-	R *big.Int `json:"r" gencodec:"required"`
-	S *big.Int `json:"s" gencodec:"required"`
-
-	// This is only used when marshaling to JSON.
-	Hash *common.Hash `json:"hash" rlp:"-"`
+	// Remark       []byte          `json:"remark"   gencodec:"required"` // TODO support remark
+	V    *big.Int     `json:"v"        gencodec:"required"` // Signature values
+	R    *big.Int     `json:"r"        gencodec:"required"` // Signature values
+	S    *big.Int     `json:"s"        gencodec:"required"` // Signature values
+	Hash *common.Hash `json:"hash"     rlp:"-"`             // This is only used when marshaling to JSON.
 }
 
 type txdataMarshaling struct {
@@ -77,9 +74,10 @@ type txdataMarshaling struct {
 	GasLimit     hexutil.Uint64
 	Amount       *hexutil.Big
 	Payload      hexutil.Bytes
-	V            *hexutil.Big
-	R            *hexutil.Big
-	S            *hexutil.Big
+	// Remark       hexutil.Bytes // TODO support remark
+	V *hexutil.Big
+	R *hexutil.Big
+	S *hexutil.Big
 }
 
 func NewTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
@@ -98,12 +96,13 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		AccountNonce: nonce,
 		Recipient:    to,
 		Payload:      data,
-		Amount:       new(big.Int),
-		GasLimit:     gasLimit,
-		Price:        new(big.Int),
-		V:            new(big.Int),
-		R:            new(big.Int),
-		S:            new(big.Int),
+		// Remark:       []byte{}, // TODO support remark
+		Amount:   new(big.Int),
+		GasLimit: gasLimit,
+		Price:    new(big.Int),
+		V:        new(big.Int),
+		R:        new(big.Int),
+		S:        new(big.Int),
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -225,12 +224,13 @@ func (tx *Transaction) Size() common.StorageSize {
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 	msg := Message{
-		nonce:      tx.data.AccountNonce,
-		gasLimit:   tx.data.GasLimit,
-		gasPrice:   new(big.Int).Set(tx.data.Price),
-		to:         tx.data.Recipient,
-		amount:     tx.data.Amount,
-		data:       tx.data.Payload,
+		nonce:    tx.data.AccountNonce,
+		gasLimit: tx.data.GasLimit,
+		gasPrice: new(big.Int).Set(tx.data.Price),
+		to:       tx.data.Recipient,
+		amount:   tx.data.Amount,
+		data:     tx.data.Payload,
+		// remark:     tx.data.Remark, // TODO support remark
 		checkNonce: true,
 	}
 
@@ -284,19 +284,18 @@ func (tx *Transaction) String() string {
 	}
 	return fmt.Sprintf(
 		`
-         TX(%x)
-	     Contract: %v
-	     From:     %s
-	     To:       %s
-	     Nonce:    %v
-	     GasPrice: %#x
-	     GasLimit  %#x
-	     Value:    %#x
-	     Data:     0x%x
-	     V:        %#x
-	     R:        %#x
-	     S:        %#x
-         `,
+		 TX(%x)		
+		 Contract: %v
+		 From:     %s
+		 To:       %s
+		 Nonce:    %v
+		 GasPrice: %#x
+		 GasLimit  %#x
+		 Value:    %#x
+		 V:        %#x
+		 R:        %#x
+		 S:        %#x
+`,
 		tx.Hash(),
 		tx.data.Recipient == nil,
 		from,
@@ -305,7 +304,7 @@ func (tx *Transaction) String() string {
 		tx.data.Price,
 		tx.data.GasLimit,
 		tx.data.Amount,
-		tx.data.Payload,
+		// tx.data.Remark,
 		tx.data.V,
 		tx.data.R,
 		tx.data.S,
@@ -442,25 +441,27 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 //
 // NOTE: In a future PR this will be removed.
 type Message struct {
-	to         *common.Address
-	from       common.Address
-	nonce      uint64
-	amount     *big.Int
-	gasLimit   uint64
-	gasPrice   *big.Int
-	data       []byte
+	to       *common.Address
+	from     common.Address
+	nonce    uint64
+	amount   *big.Int
+	gasLimit uint64
+	gasPrice *big.Int
+	data     []byte
+	// remark     []byte, // TODO support remark
 	checkNonce bool
 }
 
 func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
-		from:       from,
-		to:         to,
-		nonce:      nonce,
-		amount:     amount,
-		gasLimit:   gasLimit,
-		gasPrice:   gasPrice,
-		data:       data,
+		from:     from,
+		to:       to,
+		nonce:    nonce,
+		amount:   amount,
+		gasLimit: gasLimit,
+		gasPrice: gasPrice,
+		data:     data,
+		// remark:     remark, // TODO support remark
 		checkNonce: checkNonce,
 	}
 }
