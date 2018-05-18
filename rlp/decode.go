@@ -96,8 +96,8 @@ type Decoder interface {
 // To decode into an interface value, Decode stores one of these
 // in the value:
 //
-//	  []interface{}, for RLP lists
-//	  []byte, for RLP strings
+// 	  []interface{}, for RLP lists
+// 	  []byte, for RLP strings
 //
 // Non-empty interface types are not supported, nor are booleans,
 // signed integers, floating point numbers, maps, channels and
@@ -414,6 +414,7 @@ func decodeByteArray(s *Stream, val reflect.Value) error {
 }
 
 func makeStructDecoder(typ reflect.Type) (decoder, error) {
+	// defer fmt.Println("finish makeStructDecoder")
 	fields, err := structFields(typ)
 	if err != nil {
 		return nil, err
@@ -425,6 +426,7 @@ func makeStructDecoder(typ reflect.Type) (decoder, error) {
 		for _, f := range fields {
 			err := f.info.decoder(s, val.Field(f.index))
 			if err == EOL {
+				// fmt.Println(runtime.FuncForPC(reflect.ValueOf(f.info.decoder).Pointer()).Name())
 				return &decodeError{msg: "too few elements", typ: typ}
 			} else if err != nil {
 				return addErrorContext(err, "."+typ.Field(f.index).Name)
@@ -537,7 +539,7 @@ func decodeDecoder(s *Stream, val reflect.Value) error {
 type Kind int
 
 const (
-	Byte Kind = iota
+	Byte   Kind = iota
 	String
 	List
 )
@@ -880,8 +882,7 @@ func (s *Stream) Kind() (kind Kind, size uint64, err error) {
 	}
 	if s.kind < 0 {
 		s.kinderr = nil
-		// Don't read further if we're at the end of the
-		// innermost list.
+		// Don't read further if we're at the end of the innermost list.
 		if tos != nil && tos.pos == tos.size {
 			return 0, 0, EOL
 		}
