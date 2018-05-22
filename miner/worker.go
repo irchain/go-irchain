@@ -581,6 +581,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			env.tcount++
 			txs.Shift()
 		default:
+			fmt.Println(tx)
 			// Strange error, discard the transaction and get the next in line (note, the
 			// nonce-too-high clause will prevent us from executing in vain).
 			log.Warn("Transaction failed, account skipped", "hash", tx.Hash(), "err", err)

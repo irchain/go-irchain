@@ -386,7 +386,7 @@ func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
 	// https://github.com/happyuc-project/HIPs/blob/master/EIPS/eip-2.md
 	// algorithm:
 	// diff = (parent_diff +
-	//         (parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) // 10, -99))
+	//         (parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) / 10, -99))
 	//        ) + 2^(periodCount - 2)
 
 	bigTime := new(big.Int).SetUint64(time)
@@ -396,16 +396,16 @@ func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
 	x := new(big.Int)
 	y := new(big.Int)
 
-	// 1 - (block_timestamp - parent_timestamp) // 10
+	// 1 - (block_timestamp - parent_timestamp) / 10
 	x.Sub(bigTime, bigParentTime)
 	x.Div(x, big10)
 	x.Sub(big1, x)
 
-	// max(1 - (block_timestamp - parent_timestamp) // 10, -99)
+	// max(1 - (block_timestamp - parent_timestamp) / 10, -99)
 	if x.Cmp(bigMinus99) < 0 {
 		x.Set(bigMinus99)
 	}
-	// (parent_diff + parent_diff // 2048 * max(1 - (block_timestamp - parent_timestamp) // 10, -99))
+	// (parent_diff + parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) / 10, -99))
 	y.Div(parent.Difficulty, params.DifficultyBoundDivisor)
 	x.Mul(y, x)
 	x.Add(parent.Difficulty, x)

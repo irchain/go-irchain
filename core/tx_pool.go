@@ -522,13 +522,10 @@ func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common
 func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
-
-	fmt.Println(" ------------------------", pool.pending)
 	pending := make(map[common.Address]types.Transactions)
 	for addr, list := range pool.pending {
 		pending[addr] = list.Flatten()
 	}
-	fmt.Println(" ------------------------", pool.pending)
 	return pending, nil
 }
 
