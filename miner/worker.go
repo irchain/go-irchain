@@ -371,7 +371,6 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 
 // push sends a new work task to currently live miner agents.
 func (self *worker) push(work *Work) {
-
 	for agent := range self.agents {
 		atomic.AddInt32(&self.atWork, 1)
 		if ch := agent.Work(); ch != nil {
