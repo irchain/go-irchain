@@ -371,7 +371,6 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 
 // push sends a new work task to currently live miner agents.
 func (self *worker) push(work *Work) {
-
 	for agent := range self.agents {
 		atomic.AddInt32(&self.atWork, 1)
 		if ch := agent.Work(); ch != nil {
@@ -553,7 +552,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		// Check whether the tx is replay protected. If we're not in the EIP155 hf
 		// phase, start ignoring the sender until we do.
 		if tx.Protected() && !env.config.IsEIP155(env.header.Number) {
-			log.Crit("Ignoring reply protected transaction", "hash", tx.Hash(), "eip155", env.config.EIP155Block)
+			log.Trace("Ignoring reply protected transaction", "hash", tx.Hash(), "eip155", env.config.EIP155Block)
 
 			txs.Pop()
 			continue
@@ -583,8 +582,8 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		default:
 			// Strange error, discard the transaction and get the next in line (note, the
 			// nonce-too-high clause will prevent us from executing in vain).
-			log.Warn("Transaction failed, account skipped", "hash", tx.Hash(), "err", err)
-			txs.Pop()
+			log.Debug("Transaction failed, account skipped", "hash", tx.Hash(), "err", err)
+			txs.Shift()
 		}
 	}
 
