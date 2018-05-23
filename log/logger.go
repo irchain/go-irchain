@@ -16,7 +16,7 @@ const errorKey = "LOG15_ERROR"
 type Lvl int
 
 const (
-	LvlCrit  Lvl = iota
+	LvlCrit Lvl = iota
 	LvlError
 	LvlWarn
 	LvlInfo

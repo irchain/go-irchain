@@ -38,8 +38,8 @@ type testghuc struct {
 	*cmdtest.TestCmd
 
 	// template variables for expect
-	Datadir   string
-	Coinbase  string
+	Datadir  string
+	Coinbase string
 }
 
 func init() {

@@ -292,9 +292,6 @@ func (tx *Transaction) String() string {
 		 GasPrice: %#x
 		 GasLimit  %#x
 		 Value:    %#x
-		 V:        %#x
-		 R:        %#x
-		 S:        %#x
 `,
 		tx.Hash(),
 		tx.data.Recipient == nil,
@@ -305,9 +302,9 @@ func (tx *Transaction) String() string {
 		tx.data.GasLimit,
 		tx.data.Amount,
 		// tx.data.Remark,
-		tx.data.V,
-		tx.data.R,
-		tx.data.S,
+		// tx.data.V,
+		// tx.data.R,
+		// tx.data.S,
 	)
 }
 

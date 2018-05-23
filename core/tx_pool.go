@@ -107,7 +107,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown  TxStatus = iota
+	TxStatusUnknown TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded

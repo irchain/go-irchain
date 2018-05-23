@@ -539,7 +539,7 @@ func decodeDecoder(s *Stream, val reflect.Value) error {
 type Kind int
 
 const (
-	Byte   Kind = iota
+	Byte Kind = iota
 	String
 	List
 )

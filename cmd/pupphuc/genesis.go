@@ -32,7 +32,7 @@ import (
 // C++ HappyUC implementation.
 type cppHappyUCGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
-	Params struct {
+	Params     struct {
 		AccountStartNonce       hexutil.Uint64 `json:"accountStartNonce"`
 		HomesteadForkBlock      hexutil.Uint64 `json:"homesteadForkBlock"`
 		EIP150ForkBlock         hexutil.Uint64 `json:"EIP150ForkBlock"`
@@ -164,7 +164,7 @@ func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyU
 
 // parityChainSpec is the chain specification format used by Parity.
 type parityChainSpec struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Engine struct {
 		Huchash struct {
 			Params struct {

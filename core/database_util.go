@@ -59,7 +59,7 @@ var (
 	lookupPrefix        = []byte("l") // lookupPrefix + hash -> transaction/receipt lookup metadata
 	bloomBitsPrefix     = []byte("B") // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
 
-	preimagePrefix = "secure-key-"              // preimagePrefix + hash -> preimage
+	preimagePrefix = "secure-key-"             // preimagePrefix + hash -> preimage
 	configPrefix   = []byte("happyuc-config-") // config prefix for the db
 
 	// Chain index prefixes (use `i` + single byte to avoid mixing data types).
