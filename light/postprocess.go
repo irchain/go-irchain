@@ -27,7 +27,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log" 
+	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rlp"
 	"github.com/happyuc-project/happyuc-go/trie"

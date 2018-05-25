@@ -383,7 +383,7 @@ func testGetCHTProofs(t *testing.T, protocol int) {
 		frequency = uint64(light.CHTFrequencyServer)
 	}
 	// Assemble the test environment
-	db, _ :=hucdb.NewMemDatabase()
+	db, _ := hucdb.NewMemDatabase()
 	pm := newTestProtocolManagerMust(t, false, int(frequency)+light.HelperTrieProcessConfirmations, testChainGen, nil, nil, db)
 	bc := pm.blockchain.(*core.BlockChain)
 	peer, _ := newTestPeer(t, "peer", protocol, pm, true)

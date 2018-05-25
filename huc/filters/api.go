@@ -29,8 +29,8 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/rpc"
 )
 

@@ -137,5 +137,5 @@ func TestLoadScript(t *testing.T) {
 }
 
 func TestBin2String() {
-	
+
 }

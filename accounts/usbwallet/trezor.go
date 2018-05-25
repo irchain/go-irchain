@@ -27,13 +27,13 @@ import (
 	"io"
 	"math/big"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/happyuc-project/happyuc-go/accounts"
 	"github.com/happyuc-project/happyuc-go/accounts/usbwallet/internal/trezor"
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/golang/protobuf/proto"
 )
 
 // ErrTrezorPINNeeded is returned if opening the trezor requires a PIN code. In

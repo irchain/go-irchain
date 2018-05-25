@@ -18,6 +18,7 @@ package main
 
 import (
 	"crypto/rand"
+	"github.com/happyuc-project/happyuc-go/params"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -26,7 +27,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"github.com/happyuc-project/happyuc-go/params"
 )
 
 const (

@@ -77,7 +77,7 @@ func New(assetPath string, output io.Writer) *JSRE {
 	}
 	go re.runEventLoop()
 	re.Set("loadScript", re.loadScript)
-	re.Set("inspect"   , re.prettyPrintJS)
+	re.Set("inspect", re.prettyPrintJS)
 	return re
 }
 
@@ -225,7 +225,7 @@ loop:
 // Do executes the given function on the JS event loop.
 func (self *JSRE) Do(fn func(*otto.Otto)) {
 	done := make(chan bool)
-	req  := &evalReq{fn, done}
+	req := &evalReq{fn, done}
 	self.evalQueue <- req
 	<-done
 }

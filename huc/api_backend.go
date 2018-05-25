@@ -28,10 +28,10 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/huc/gasprice"
 	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
 )

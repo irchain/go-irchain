@@ -1,5 +1,3 @@
-
-
 // Copyright 2016 The happyuc-go Authors
 // This file is part of the happyuc-go library.
 //

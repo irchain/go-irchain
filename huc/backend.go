@@ -35,11 +35,11 @@ import (
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/huc/filters"
 	"github.com/happyuc-project/happyuc-go/huc/gasprice"
 	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/miner"
@@ -84,8 +84,8 @@ type HappyUC struct {
 
 	ApiBackend *HucApiBackend
 
-	miner     *miner.Miner
-	gasPrice  *big.Int
+	miner    *miner.Miner
+	gasPrice *big.Int
 	coinbase common.Address
 
 	networkId     uint64
