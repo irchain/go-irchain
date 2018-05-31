@@ -58,9 +58,13 @@ var (
 	// with a different one without the required price bump.
 	ErrReplaceUnderpriced = errors.New("replacement transaction underpriced")
 
-	// ErrInsufficientFunds is returned if the total cost of executing a transaction
+	// ErrInsufficientCosts is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
-	ErrInsufficientFunds = errors.New("insufficient funds for gas * price + value")
+	ErrInsufficientCosts = errors.New("insufficient funds for value")
+
+	// ErrInsufficientFees is returned if the total cost of executing a transaction
+	// is higher than the balance of the user's account.
+	ErrInsufficientFees = errors.New("insufficient funds for gas * price")
 
 	// ErrIntrinsicGas is returned if the transaction is specified to use less gas
 	// than required to start the invocation.
@@ -107,7 +111,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown TxStatus = iota
+	TxStatusUnknown  TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -584,15 +588,22 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrIntrinsicGas
 	}
 
-	if !contractCreation && len(tx.Data()) > 0 {
+	var hucTx = len(tx.Data()) > 0
+	if !contractCreation && hucTx {
 		// TODO check token tx validate
 		return nil
 	}
 
-	// Transactor should have enough funds to cover the costs
-	// cost == V + GP * GL
+	// Transactor should have enough funds to cover the costs,
+	// cost == tx.data.Amount
 	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
-		return ErrInsufficientFunds
+		return ErrInsufficientCosts
+	}
+
+	// Transaction value should have enough funds to cover the fees,
+	// fee == gasPrice * gasLimit
+	if tx.Value().Cmp(tx.Fee()) < 0 {
+		return ErrInsufficientFees
 	}
 
 	return nil

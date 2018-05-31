@@ -221,14 +221,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		return nil, 0, false, err
 	}
 
-	// Pay intrinsic gas
+	// pay intrinsic gas
 	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
 	contractCreation := st.msg.To() == nil
-	gas, err := IntrinsicGas(st.data, contractCreation, homestead)
-	if err != nil {
+	if gas, err := IntrinsicGas(st.data, contractCreation, homestead); err != nil {
 		return nil, 0, false, err
-	}
-	if err = st.useGas(gas); err != nil {
+	} else if err = st.useGas(gas); err != nil {
 		return nil, 0, false, err
 	}
 

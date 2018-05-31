@@ -251,11 +251,14 @@ func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, e
 	return cpy, nil
 }
 
-// Cost returns amount + gasprice * gaslimit.
+// Transaction fee will pay from recipient, not no need cost anymore.
+// Cost will returns tx.data.Amount directly.
 func (tx *Transaction) Cost() *big.Int {
-	total := new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
-	total.Add(total, tx.data.Amount)
-	return total
+	return tx.Value()
+}
+
+func (tx *Transaction) Fee() *big.Int {
+	return new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
 }
 
 func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {

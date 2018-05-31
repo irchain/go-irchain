@@ -377,15 +377,22 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrIntrinsicGas
 	}
 
-	if !contractCreation && len(tx.Data()) > 0 {
+	var hucTx = len(tx.Data()) > 0
+	if !contractCreation && hucTx {
 		// TODO check token tx validate
 		return nil
 	}
 
-	// Transactor should have enough funds to cover the costs
-	// cost == V + GP * GL
+	// Transactor should have enough funds to cover the costs,
+	// cost == tx.data.Amount
 	if b := currentState.GetBalance(from); b.Cmp(tx.Cost()) < 0 {
-		return core.ErrInsufficientFunds
+		return core.ErrInsufficientCosts
+	}
+
+	// Transaction value should have enough funds to cover the fees,
+	// fee == gasPrice * gasLimit
+	if tx.Value().Cmp(tx.Fee()) < 0 {
+		return core.ErrInsufficientFees
 	}
 
 	return currentState.Error()
@@ -397,7 +404,7 @@ func (self *TxPool) add(ctx context.Context, tx *types.Transaction) error {
 	hash := tx.Hash()
 
 	if self.pending[hash] != nil {
-		return fmt.Errorf("Known transaction (%x)", hash[:4])
+		return fmt.Errorf("known transaction (%x)", hash[:4])
 	}
 	err := self.validateTx(ctx, tx)
 	if err != nil {
