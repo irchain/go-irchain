@@ -243,7 +243,9 @@ func (ac *accountCache) scanAccounts() error {
 	// Create a helper method to scan the contents of the key files
 	var (
 		buf = new(bufio.Reader)
-		key struct{ Address string `json:"address"` }
+		key struct {
+			Address string `json:"address"`
+		}
 	)
 	readAccount := func(path string) *accounts.Account {
 		fd, err := os.Open(path)

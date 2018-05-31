@@ -28,6 +28,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/accounts"
 	"github.com/happyuc-project/happyuc-go/accounts/keystore"
 	"github.com/happyuc-project/happyuc-go/cmd/utils"
+	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/console"
 	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/hucclient"
@@ -36,7 +37,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/metrics"
 	"github.com/happyuc-project/happyuc-go/node"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/happyuc-project/happyuc-go/common"
 )
 
 const (

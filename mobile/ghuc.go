@@ -77,8 +77,8 @@ type NodeConfig struct {
 // defaultNodeConfig contains the default node configuration values to use if all
 // or some fields are missing from the user's specified list.
 var defaultNodeConfig = &NodeConfig{
-	BootstrapNodes:        FoundationBootnodes(),
-	MaxPeers:              25,
+	BootstrapNodes:       FoundationBootnodes(),
+	MaxPeers:             25,
 	HappyUCEnabled:       true,
 	HappyUCNetworkID:     1,
 	HappyUCDatabaseCache: 16,
