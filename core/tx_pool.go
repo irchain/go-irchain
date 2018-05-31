@@ -589,8 +589,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return nil
 	}
 
-	// Transactor should have enough funds to cover the costs
-	// cost == V + GP * GL
+	// Transactor should have enough funds to cover the costs,
+	// cost == tx.data.Amount
 	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
 		return ErrInsufficientFunds
 	}
@@ -619,7 +619,7 @@ func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
-	// fmt.Println("add tx:", tx)
+	fmt.Println("add tx:", tx)
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	if pool.all[hash] != nil {
