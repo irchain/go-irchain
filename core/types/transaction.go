@@ -254,7 +254,8 @@ func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, e
 // Transaction fee will pay from recipient, not no need cost anymore.
 // Cost will returns tx.data.Amount directly.
 func (tx *Transaction) Cost() *big.Int {
-	return tx.Value()
+	fee := new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
+	return new(big.Int).Add(tx.data.Amount, fee)
 }
 
 func (tx *Transaction) Fee() *big.Int {
