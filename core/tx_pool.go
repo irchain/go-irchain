@@ -58,9 +58,13 @@ var (
 	// with a different one without the required price bump.
 	ErrReplaceUnderpriced = errors.New("replacement transaction underpriced")
 
-	// ErrInsufficientCosts is returned if the total cost of executing a transaction
+	// ErrContractCreation is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
-	ErrInsufficientCosts = errors.New("insufficient funds for value")
+	ErrContractCreation = errors.New("can not create contract and transfer in same tx")
+
+	// ErrInsufficientValues is returned if the total cost of executing a transaction
+	// is higher than the balance of the user's account.
+	ErrInsufficientValues = errors.New("insufficient funds for value")
 
 	// ErrInsufficientFees is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
@@ -566,7 +570,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrGasLimit
 	}
 	// Make sure the transaction is signed properly
-	from, err := types.Sender(pool.signer, tx)
+	var from, err = types.Sender(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
 	}
@@ -588,24 +592,26 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrIntrinsicGas
 	}
 
-	var hucTx = len(tx.Data()) > 0
-	if !contractCreation && hucTx {
-		// TODO check token tx validate
-		return nil
-	}
-
 	// Transactor should have enough funds to cover the costs,
 	// cost == tx.data.Amount
-	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
-		return ErrInsufficientCosts
+	var balance = pool.currentState.GetBalance(from)
+	if balance.Cmp(tx.Value()) < 0 {
+		return ErrInsufficientValues
+	}
+
+	// Transfer and ContractCreation can not do with same tx
+	var hucTx = tx.Value().Cmp(big.NewInt(0)) > 0
+	if hucTx && contractCreation {
+		return ErrContractCreation
 	}
 
 	// Transaction value should have enough funds to cover the fees,
 	// fee == gasPrice * gasLimit
-	if tx.Value().Cmp(tx.Fee()) < 0 {
+	if fee := tx.Fee(); hucTx && tx.Value().Cmp(fee) < 0 {
+		return ErrInsufficientFees
+	} else if contractCreation && balance.Cmp(fee) < 0 {
 		return ErrInsufficientFees
 	}
-
 	return nil
 }
 

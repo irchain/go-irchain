@@ -31,6 +31,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rlp"
+	"math/big"
 )
 
 const (
@@ -377,24 +378,26 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrIntrinsicGas
 	}
 
-	var hucTx = len(tx.Data()) > 0
-	if !contractCreation && hucTx {
-		// TODO check token tx validate
-		return nil
-	}
-
 	// Transactor should have enough funds to cover the costs,
 	// cost == tx.data.Amount
-	if b := currentState.GetBalance(from); b.Cmp(tx.Cost()) < 0 {
-		return core.ErrInsufficientCosts
+	var balance = currentState.GetBalance(from)
+	if balance.Cmp(tx.Value()) < 0 {
+		return core.ErrInsufficientValues
+	}
+
+	// Transfer and ContractCreation can not do with same tx
+	var hucTx = tx.Value().Cmp(big.NewInt(0)) > 0
+	if hucTx && contractCreation {
+		return core.ErrContractCreation
 	}
 
 	// Transaction value should have enough funds to cover the fees,
 	// fee == gasPrice * gasLimit
-	if tx.Value().Cmp(tx.Fee()) < 0 {
+	if fee := tx.Fee(); hucTx && tx.Value().Cmp(fee) < 0 {
+		return core.ErrInsufficientFees
+	} else if contractCreation && balance.Cmp(fee) < 0 {
 		return core.ErrInsufficientFees
 	}
-
 	return currentState.Error()
 }
 

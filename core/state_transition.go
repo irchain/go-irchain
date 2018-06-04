@@ -175,23 +175,26 @@ func (st *StateTransition) buyGas() error {
 	var (
 		state = st.state
 		from  = st.from().Address()
-		hucTx = len(st.state.GetCode(st.to().Address())) == 0
+		hucTx = st.value.Cmp(big.NewInt(0)) > 0
+		mgval = new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
 	)
-	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
-	if state.GetBalance(from).Cmp(mgval) == -1 && st.value.Cmp(mgval) <= 0 && hucTx {
+
+	if hucTx && st.value.Cmp(mgval) < 0 {
 		return errInsufficientBalanceForGas
-	}
-	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
+	} else if st.msg.To() == nil && state.GetBalance(from).Cmp(mgval) < 0 {
+		return errInsufficientBalanceForGas
+	} else if err := st.gp.SubGas(st.msg.Gas()); err != nil {
 		return err
 	}
+
 	st.gas += st.msg.Gas()
 	st.initialGas = st.msg.Gas()
 
 	if hucTx {
 		state.SubBalance(from, mgval)
-		if st.msg.To() != nil {
-			st.actValue = new(big.Int).Sub(st.value, mgval)
-		}
+		st.actValue = new(big.Int).Sub(st.value, mgval)
+	} else if st.msg.To() == nil {
+		state.SubBalance(from, mgval)
 	}
 	return nil
 }
@@ -238,9 +241,8 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 
 	// refund deposit
 	st.refundGas()
-	if len(st.state.GetCode(st.to().Address())) == 0 {
-		// If just normal tx, like transfer, contract creation etc...
-		// We need to pay processing fees to miners.
+	// If that tx changing the hucer for any account, pay gas for miner
+	if st.value.Cmp(big.NewInt(0)) > 0 || st.msg.To() == nil {
 		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 	}
 
@@ -269,25 +271,20 @@ func (st *StateTransition) transitionDb() (ret []byte, failed bool, err error) {
 
 func (st *StateTransition) refundGas() {
 	// Apply refund counter, capped to half of the used gas.
-	refund := st.gasUsed() / 2
+	var refund = st.gasUsed() / 2
 	if refund > st.state.GetRefund() {
 		refund = st.state.GetRefund()
 	}
 	st.gas += refund
 
-	// Return HUC for remaining gas, exchanged at the original rate.
-	if len(st.state.GetCode(st.to().Address())) == 0 {
-		// If just normal tx, like transfer, contract creation etc...
-		remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
-		var refundee common.Address
-		if st.msg.To() == nil {
-			refundee = st.from().Address()
-		} else {
-			refundee = st.to().Address()
-		}
-		st.state.AddBalance(refundee, remaining)
+	// If that tx is contain about transfer or spend out hucer,
+	// Return hucer for remaining gas, exchanged at the original rate.
+	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+	if st.msg.To() == nil {
+		st.state.AddBalance(st.from().Address(), remaining)
+	} else if st.value.Cmp(big.NewInt(0)) > 0 {
+		st.state.AddBalance(st.to().Address(), remaining)
 	}
-
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.
 	st.gp.AddGas(st.gas)
