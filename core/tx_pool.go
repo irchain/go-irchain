@@ -35,11 +35,14 @@ import (
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 
+// Per transaction that creates a contract minimum amount you need to store in.
+var (
+	TxContractCreationDeposit, _ = new(big.Int).SetString("100000000000000000000", 10)
+)
+
 const (
-	// chainHeadChanSize is the size of channel listening to ChainHeadEvent.
-	chainHeadChanSize = 10
-	// rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
-	rmTxChanSize = 10
+	chainHeadChanSize = 10 // chainHeadChanSize is the size of channel listening to ChainHeadEvent.
+	rmTxChanSize      = 10 // rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
 )
 
 var (
@@ -60,7 +63,7 @@ var (
 
 	// ErrContractCreation is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
-	ErrContractCreation = errors.New("can not create contract and transfer in same tx")
+	ErrContractCreation = errors.New("insufficient funds for create, minimum store 100 hucer into contract")
 
 	// ErrInsufficientValues is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
@@ -127,42 +130,35 @@ type blockChain interface {
 	CurrentBlock() *types.Block
 	GetBlock(hash common.Hash, number uint64) *types.Block
 	StateAt(root common.Hash) (*state.StateDB, error)
-
 	SubscribeChainHeadEvent(ch chan<- ChainHeadEvent) event.Subscription
 }
 
 // TxPoolConfig are the configuration parameters of the transaction pool.
 type TxPoolConfig struct {
-	NoLocals  bool          // Whether local transaction handling should be disabled
-	Journal   string        // Journal of local transactions to survive node restarts
-	Rejournal time.Duration // Time interval to regenerate the local transaction journal
-
-	PriceLimit uint64 // Minimum gas price to enforce for acceptance into the pool
-	PriceBump  uint64 // Minimum price bump percentage to replace an already existing transaction (nonce)
-
-	AccountSlots uint64 // Minimum number of executable transaction slots guaranteed per account
-	GlobalSlots  uint64 // Maximum number of executable transaction slots for all accounts
-	AccountQueue uint64 // Maximum number of non-executable transaction slots permitted per account
-	GlobalQueue  uint64 // Maximum number of non-executable transaction slots for all accounts
-
-	Lifetime time.Duration // Maximum amount of time non-executable transaction are queued
+	NoLocals     bool          // Whether local transaction handling should be disabled
+	Journal      string        // Journal of local transactions to survive node restarts
+	Rejournal    time.Duration // Time interval to regenerate the local transaction journal
+	PriceLimit   uint64        // Minimum gas price to enforce for acceptance into the pool
+	PriceBump    uint64        // Minimum price bump percentage to replace an already existing transaction (nonce)
+	AccountSlots uint64        // Minimum number of executable transaction slots guaranteed per account
+	GlobalSlots  uint64        // Maximum number of executable transaction slots for all accounts
+	AccountQueue uint64        // Maximum number of non-executable transaction slots permitted per account
+	GlobalQueue  uint64        // Maximum number of non-executable transaction slots for all accounts
+	Lifetime     time.Duration // Maximum amount of time non-executable transaction are queued
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
 // pool.
 var DefaultTxPoolConfig = TxPoolConfig{
-	Journal:   "transactions.rlp",
-	Rejournal: time.Hour,
-
-	PriceLimit: 1,
-	PriceBump:  10,
-
+	Journal:      "transactions.rlp",
+	Rejournal:    time.Hour,
+	PriceLimit:   1,
+	PriceBump:    10,
 	AccountSlots: 16,
 	GlobalSlots:  4096,
 	AccountQueue: 64,
 	GlobalQueue:  1024,
-
-	Lifetime: 3 * time.Hour,
+	Lifetime:     3 * time.Hour,
 }
 
 // sanitize checks the provided user configurations and changes anything that's
@@ -562,7 +558,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Transactions can't be negative. This may never happen using RLP decoded
 	// transactions but may occur if you create a transaction using the RPC.
-	if tx.Value().Sign() < 0 {
+	var val = tx.Value()
+	if val.Sign() < 0 {
 		return ErrNegativeValue
 	}
 	// Ensure the transaction doesn't exceed the current block limit gas.
@@ -594,24 +591,25 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 
 	// Transactor should have enough funds to cover the costs,
 	// cost == tx.data.Amount
-	var balance = pool.currentState.GetBalance(from)
-	if balance.Cmp(tx.Value()) < 0 {
+	if pool.currentState.GetBalance(from).Cmp(val) < 0 {
 		return ErrInsufficientValues
 	}
 
-	// Transfer and ContractCreation can not do with same tx
-	var hucTx = tx.Value().Cmp(big.NewInt(0)) > 0
-	if hucTx && contractCreation {
+	// Creating contract need to store a certain amount of hucer
+	if contractCreation && val.Cmp(TxContractCreationDeposit) < 0 {
 		return ErrContractCreation
 	}
 
 	// Transaction value should have enough funds to cover the fees,
-	// fee == gasPrice * gasLimit
-	if fee := tx.Fee(); hucTx && tx.Value().Cmp(fee) < 0 {
-		return ErrInsufficientFees
-	} else if contractCreation && balance.Cmp(fee) < 0 {
+	// fees == gasPrice * gasLimit
+	if fees := tx.Fee(); len(tx.Data()) > 0 {
+		if pool.currentState.GetBalance(*tx.To()).Cmp(fees) < 0 {
+			return ErrInsufficientFees
+		}
+	} else if val.Cmp(big.NewInt(0)) > 0 && val.Cmp(fees) < 0 {
 		return ErrInsufficientFees
 	}
+
 	return nil
 }
 

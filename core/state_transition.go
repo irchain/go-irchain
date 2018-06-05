@@ -25,6 +25,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"math"
+	"github.com/happyuc-project/happyuc-go/crypto"
 )
 
 var (
@@ -55,7 +56,6 @@ type StateTransition struct {
 	gasPrice   *big.Int
 	initialGas uint64
 	value      *big.Int
-	actValue   *big.Int
 	data       []byte
 	state      vm.StateDB
 	evm        *vm.EVM
@@ -119,7 +119,6 @@ func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition 
 		msg:      msg,
 		gasPrice: msg.GasPrice(),
 		value:    msg.Value(),
-		actValue: msg.Value(),
 		data:     msg.Data(),
 		state:    evm.StateDB,
 	}
@@ -175,27 +174,26 @@ func (st *StateTransition) buyGas() error {
 	var (
 		state = st.state
 		from  = st.from().Address()
-		hucTx = st.value.Cmp(big.NewInt(0)) > 0
+		hucTx = len(st.data) == 0
 		mgval = new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+		recip = crypto.CreateAddress(from, st.msg.Nonce())
 	)
 
-	if hucTx && st.value.Cmp(mgval) < 0 {
+	if hucTx {
+		if st.value.Cmp(mgval) < 0 {
+			return errInsufficientBalanceForGas
+		}
+	} else if state.GetBalance(recip).Cmp(mgval) < 0 {
 		return errInsufficientBalanceForGas
-	} else if st.msg.To() == nil && state.GetBalance(from).Cmp(mgval) < 0 {
-		return errInsufficientBalanceForGas
-	} else if err := st.gp.SubGas(st.msg.Gas()); err != nil {
+	}
+
+	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
 		return err
 	}
 
 	st.gas += st.msg.Gas()
 	st.initialGas = st.msg.Gas()
 
-	if hucTx {
-		state.SubBalance(from, mgval)
-		st.actValue = new(big.Int).Sub(st.value, mgval)
-	} else if st.msg.To() == nil {
-		state.SubBalance(from, mgval)
-	}
 	return nil
 }
 
@@ -220,7 +218,7 @@ func (st *StateTransition) preCheck() error {
 // failed. An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
 	// pre check and pay deposit
-	if err = st.preCheck(); err != nil {
+	if err := st.preCheck(); err != nil {
 		return nil, 0, false, err
 	}
 
@@ -234,39 +232,38 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 
 	// do transaction
-	ret, failed, err = st.transitionDb()
+	ret, recipient, failed, err := st.transitionDb()
 	if err == vm.ErrInsufficientBalance {
 		return nil, 0, false, err
 	}
 
 	// refund deposit
 	st.refundGas()
-	// If that tx changing the hucer for any account, pay gas for miner
-	if st.value.Cmp(big.NewInt(0)) > 0 || st.msg.To() == nil {
-		st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
-	}
+	st.state.SubBalance(recipient, new(big.Int).Mul(st.gasPrice, new(big.Int).SetUint64(st.gasUsed())))
+	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(st.gasPrice, new(big.Int).SetUint64(st.gasUsed())))
 
 	return ret, st.gasUsed(), failed, err
 }
 
 // vm errors do not effect consensus and are therefor not
 // assigned to err, except for insufficient balance error.
-func (st *StateTransition) transitionDb() (ret []byte, failed bool, err error) {
+func (st *StateTransition) transitionDb() (ret []byte, recipient common.Address, failed bool, err error) {
 	sender := st.from()
 	if st.msg.To() == nil {
-		ret, _, st.gas, err = st.evm.Create(sender, st.data, st.gas, st.actValue)
+		ret, recipient, st.gas, err = st.evm.Create(sender, st.data, st.gas, st.value)
 	} else {
 		// Increment the nonce for the next transaction
+		recipient = *st.msg.To()
 		st.state.SetNonce(sender.Address(), st.state.GetNonce(sender.Address())+1)
-		ret, st.gas, err = st.evm.Call(sender, st.to().Address(), st.data, st.gas, st.actValue)
+		ret, st.gas, err = st.evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
 	}
 	if err != nil {
 		log.Debug("VM returned with error", "err", err)
 		if err == vm.ErrInsufficientBalance {
-			return nil, false, err
+			return nil, common.Address{}, false, err
 		}
 	}
-	return ret, err != nil, err
+	return ret, recipient, err != nil, err
 }
 
 func (st *StateTransition) refundGas() {
@@ -277,16 +274,7 @@ func (st *StateTransition) refundGas() {
 	}
 	st.gas += refund
 
-	// If that tx is contain about transfer or spend out hucer,
-	// Return hucer for remaining gas, exchanged at the original rate.
-	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
-	if st.msg.To() == nil {
-		st.state.AddBalance(st.from().Address(), remaining)
-	} else if st.value.Cmp(big.NewInt(0)) > 0 {
-		st.state.AddBalance(st.to().Address(), remaining)
-	}
-	// Also return remaining gas to the block gas counter so it is
-	// available for the next transaction.
+	// Retaining gas to the block gas counter so it is available for the next transaction.
 	st.gp.AddGas(st.gas)
 }
 
