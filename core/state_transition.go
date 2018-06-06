@@ -25,7 +25,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/params"
 	"math"
-	"github.com/happyuc-project/happyuc-go/crypto"
 )
 
 var (
@@ -171,22 +170,15 @@ func (st *StateTransition) useGas(amount uint64) error {
 // Transactions fee will be deducted from the recipient. Consider the recipient may
 // not have hucer balance, fee will deducted from this transfer.
 func (st *StateTransition) buyGas() error {
-	var (
-		state = st.state
-		from  = st.from().Address()
-		hucTx = len(st.data) == 0
-		mgval = new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
-		recip = crypto.CreateAddress(from, st.msg.Nonce())
-	)
-
-	if hucTx {
-		if st.value.Cmp(mgval) < 0 {
-			return errInsufficientBalanceForGas
-		}
-	} else if state.GetBalance(recip).Cmp(mgval) < 0 {
+	var assert *big.Int
+	if len(st.data) == 0 || st.msg.To() == nil {
+		assert = st.value
+	} else {
+		assert = st.state.GetBalance(*st.msg.To())
+	}
+	if assert.Cmp(new(big.Int).Mul(st.gasPrice, new(big.Int).SetUint64(st.msg.Gas()))) < 0 {
 		return errInsufficientBalanceForGas
 	}
-
 	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
 		return err
 	}
@@ -224,8 +216,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 
 	// pay intrinsic gas
 	homestead := st.evm.ChainConfig().IsHomestead(st.evm.BlockNumber)
-	contractCreation := st.msg.To() == nil
-	if gas, err := IntrinsicGas(st.data, contractCreation, homestead); err != nil {
+	if gas, err := IntrinsicGas(st.data, st.msg.To() == nil, homestead); err != nil {
 		return nil, 0, false, err
 	} else if err = st.useGas(gas); err != nil {
 		return nil, 0, false, err

@@ -392,11 +392,13 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 
 	// Transaction value should have enough funds to cover the fees,
 	// fees == gasPrice * gasLimit
-	if fees := tx.Fee(); len(tx.Data()) > 0 {
-		if currentState.GetBalance(*tx.To()).Cmp(fees) < 0 {
-			return core.ErrInsufficientFees
-		}
-	} else if val.Cmp(big.NewInt(0)) > 0 && val.Cmp(fees) < 0 {
+	var assert *big.Int
+	if len(tx.Data()) == 0 || contractCreation {
+		assert = tx.Value()
+	} else {
+		assert = currentState.GetBalance(*tx.To())
+	}
+	if assert.Cmp(tx.Fee()) < 0 {
 		return core.ErrInsufficientFees
 	}
 

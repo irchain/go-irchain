@@ -121,9 +121,8 @@ func (b *HucApiBackend) GetTd(blockHash common.Hash) *big.Int {
 }
 
 func (b *HucApiBackend) GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmCfg vm.Config) (*vm.EVM, func() error, error) {
-	state.SetBalance(msg.From(), math.MaxBig256)
+	state.SetBalance(*msg.To(), math.MaxBig256)
 	vmError := func() error { return nil }
-
 	context := core.NewEVMContext(msg, header, b.huc.BlockChain(), nil)
 	return vm.NewEVM(context, state, b.huc.chainConfig, vmCfg), vmError, nil
 }

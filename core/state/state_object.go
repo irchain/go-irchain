@@ -384,3 +384,16 @@ func (self *stateObject) Nonce() uint64 {
 func (self *stateObject) Value() *big.Int {
 	panic("Value on stateObject should never be called")
 }
+
+func (account *Account) String() string {
+	return fmt.Sprintf(`
+        Nonce: %v
+        Balance: %v
+        Root: %x
+        CodeHash: %s
+`,
+		account.Nonce,
+		account.Balance,
+		account.Root,
+		common.ToHex(account.CodeHash))
+}

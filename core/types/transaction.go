@@ -286,8 +286,7 @@ func (tx *Transaction) String() string {
 	} else {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
-	return fmt.Sprintf(
-		`
+	return fmt.Sprintf(`
 		 TX(%x)		
 		 Contract: %v
 		 From:     %s
