@@ -366,7 +366,8 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	// Transactions can't be negative. This may never happen
 	// using RLP decoded transactions but may occur if you create
 	// a transaction using the RPC for example.
-	if tx.Value().Sign() < 0 {
+	var val = tx.Value()
+	if val.Sign() < 0 {
 		return core.ErrNegativeValue
 	}
 
@@ -380,24 +381,27 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 
 	// Transactor should have enough funds to cover the costs,
 	// cost == tx.data.Amount
-	var balance = currentState.GetBalance(from)
-	if balance.Cmp(tx.Value()) < 0 {
+	if currentState.GetBalance(from).Cmp(val) < 0 {
 		return core.ErrInsufficientValues
 	}
 
-	// Transfer and ContractCreation can not do with same tx
-	var hucTx = tx.Value().Cmp(big.NewInt(0)) > 0
-	if hucTx && contractCreation {
+	// Creating contract need to store a certain amount of hucer
+	if contractCreation && val.Cmp(core.TxContractCreationDeposit) < 0 {
 		return core.ErrContractCreation
 	}
 
 	// Transaction value should have enough funds to cover the fees,
-	// fee == gasPrice * gasLimit
-	if fee := tx.Fee(); hucTx && tx.Value().Cmp(fee) < 0 {
-		return core.ErrInsufficientFees
-	} else if contractCreation && balance.Cmp(fee) < 0 {
+	// fees == gasPrice * gasLimit
+	var assert *big.Int
+	if len(tx.Data()) == 0 || contractCreation {
+		assert = tx.Value()
+	} else {
+		assert = currentState.GetBalance(*tx.To())
+	}
+	if assert.Cmp(tx.Fee()) < 0 {
 		return core.ErrInsufficientFees
 	}
+
 	return currentState.Error()
 }
 

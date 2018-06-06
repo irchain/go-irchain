@@ -250,7 +250,7 @@ func GetBlockReceipts(db DatabaseReader, hash common.Hash, number uint64) types.
 	if len(data) == 0 {
 		return nil
 	}
-	storageReceipts := []*types.ReceiptForStorage{}
+	var storageReceipts []*types.ReceiptForStorage
 	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
 		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
 		return nil

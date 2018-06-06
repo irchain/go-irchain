@@ -537,6 +537,8 @@ var (
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
 func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+	// when PendingBlock < 10, reward = FrontierBlockReward / 2 ^ (blockNum + 1 / rewardEpoch)
+	// when PendingBlock >= 10, reward = 0
 	var (
 		blockReward  = new(big.Int).Set(FrontierBlockReward)
 		currBlockNum = new(big.Int).Sub(header.Number, big.NewInt(1))
@@ -546,7 +548,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 
 	// Compute currently epoch corresponding rewards
 	if epoch.Cmp(limitEpoch) >= 0 {
-		blockReward = new(big.Int)
+		blockReward = big.NewInt(0)
 	} else {
 		exponent.Exp(expBase, epoch, nil)
 		blockReward.Div(blockReward, exponent)

@@ -16,7 +16,9 @@
 
 package params
 
-import "math/big"
+import (
+	"math/big"
+)
 
 var (
 	TargetGasLimit uint64 = GenesisGasLimit // The artificial target
