@@ -1,20 +1,20 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2014 The go-ethereum Authors
+// This file is part of go-ethereum.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-ethereum is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-ethereum is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-// Package utils contains internal helper functions for happyuc-go commands.
+// Package utils contains internal helper functions for go-ethereum commands.
 package utils
 
 import (
@@ -27,8 +27,12 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/internal/debug"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/node"
@@ -105,6 +109,8 @@ func ImportChain(chain *core.BlockChain, fn string) error {
 	}
 
 	log.Info("Importing blockchain", "file", fn)
+
+	// Open the file handle and potentially unwrap the gzip stream
 	fh, err := os.Open(fn)
 	if err != nil {
 		return err
@@ -163,6 +169,7 @@ func ImportChain(chain *core.BlockChain, fn string) error {
 }
 
 func missingBlocks(chain *core.BlockChain, blocks []*types.Block) []*types.Block {
+
 	head := chain.CurrentBlock()
 	for i, block := range blocks {
 		// If we're behind the chain head, only check block, state is available at head
@@ -180,8 +187,12 @@ func missingBlocks(chain *core.BlockChain, blocks []*types.Block) []*types.Block
 	return nil
 }
 
+// ExportChain exports a blockchain into the specified file, truncating any data
+// already present in the file.
 func ExportChain(blockchain *core.BlockChain, fn string) error {
 	log.Info("Exporting blockchain", "file", fn)
+
+	// Open the file handle and potentially wrap with a gzip stream
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return err
@@ -193,7 +204,7 @@ func ExportChain(blockchain *core.BlockChain, fn string) error {
 		writer = gzip.NewWriter(writer)
 		defer writer.(*gzip.Writer).Close()
 	}
-
+	// Iterate over the blocks and export them
 	if err := blockchain.Export(writer); err != nil {
 		return err
 	}
@@ -202,9 +213,12 @@ func ExportChain(blockchain *core.BlockChain, fn string) error {
 	return nil
 }
 
+// ExportAppendChain exports a blockchain into the specified file, appending to
+// the file if data already exists in it.
 func ExportAppendChain(blockchain *core.BlockChain, fn string, first uint64, last uint64) error {
 	log.Info("Exporting blockchain", "file", fn)
-	// TODO verify mode perms
+
+	// Open the file handle and potentially wrap with a gzip stream
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
@@ -221,5 +235,79 @@ func ExportAppendChain(blockchain *core.BlockChain, fn string, first uint64, las
 		return err
 	}
 	log.Info("Exported blockchain to", "file", fn)
+	return nil
+}
+
+// ImportPreimages imports a batch of exported hash preimages into the database.
+func ImportPreimages(db *hucdb.LDBDatabase, fn string) error {
+	log.Info("Importing preimages", "file", fn)
+
+	// Open the file handle and potentially unwrap the gzip stream
+	fh, err := os.Open(fn)
+	if err != nil {
+		return err
+	}
+	defer fh.Close()
+
+	var reader io.Reader = fh
+	if strings.HasSuffix(fn, ".gz") {
+		if reader, err = gzip.NewReader(reader); err != nil {
+			return err
+		}
+	}
+	stream := rlp.NewStream(reader, 0)
+
+	// Import the preimages in batches to prevent disk trashing
+	preimages := make(map[common.Hash][]byte)
+
+	for {
+		// Read the next entry and ensure it's not junk
+		var blob []byte
+
+		if err := stream.Decode(&blob); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		// Accumulate the preimages and flush when enough ws gathered
+		preimages[crypto.Keccak256Hash(blob)] = common.CopyBytes(blob)
+		if len(preimages) > 1024 {
+			rawdb.WritePreimages(db, 0, preimages)
+			preimages = make(map[common.Hash][]byte)
+		}
+	}
+	// Flush the last batch preimage data
+	if len(preimages) > 0 {
+		rawdb.WritePreimages(db, 0, preimages)
+	}
+	return nil
+}
+
+// ExportPreimages exports all known hash preimages into the specified file,
+// truncating any data already present in the file.
+func ExportPreimages(db *hucdb.LDBDatabase, fn string) error {
+	log.Info("Exporting preimages", "file", fn)
+
+	// Open the file handle and potentially wrap with a gzip stream
+	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer fh.Close()
+
+	var writer io.Writer = fh
+	if strings.HasSuffix(fn, ".gz") {
+		writer = gzip.NewWriter(writer)
+		defer writer.(*gzip.Writer).Close()
+	}
+	// Iterate over the preimages and export them
+	it := db.NewIteratorWithPrefix([]byte("secure-key-"))
+	for it.Next() {
+		if err := rlp.Encode(writer, it.Value()); err != nil {
+			return err
+		}
+	}
+	log.Info("Exported preimages", "file", fn)
 	return nil
 }

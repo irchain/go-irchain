@@ -53,8 +53,7 @@ func TestLDB_PutGet(t *testing.T) {
 }
 
 func TestMemoryDB_PutGet(t *testing.T) {
-	db, _ := hucdb.NewMemDatabase()
-	testPutGet(db, t)
+	testPutGet(hucdb.NewMemDatabase(), t)
 }
 
 func testPutGet(db hucdb.Database, t *testing.T) {
@@ -131,8 +130,7 @@ func TestLDB_ParallelPutGet(t *testing.T) {
 }
 
 func TestMemoryDB_ParallelPutGet(t *testing.T) {
-	db, _ := hucdb.NewMemDatabase()
-	testParallelPutGet(db, t)
+	testParallelPutGet(hucdb.NewMemDatabase(), t)
 }
 
 func testParallelPutGet(db hucdb.Database, t *testing.T) {

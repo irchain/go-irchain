@@ -19,6 +19,7 @@ package huc
 import (
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -28,8 +29,10 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/hexutil"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/internal/hucapi"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/miner"
 	"github.com/happyuc-project/happyuc-go/params"
@@ -55,9 +58,9 @@ func (api *PublicHappyUCAPI) Coinbase() (common.Address, error) {
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for Coinbase)
-//func (api *PublicHappyUCAPI) Coinbase2() (common.Address, error) {
+// func (api *PublicHappyUCAPI) Coinbase2() (common.Address, error) {
 //	return api.Coinbase()
-//}
+// }
 
 // Hashrate returns the POW hashrate
 func (api *PublicHappyUCAPI) Hashrate() hexutil.Uint64 {
@@ -343,14 +346,40 @@ func NewPrivateDebugAPI(config *params.ChainConfig, huc *HappyUC) *PrivateDebugA
 
 // Preimage is a debug API function that returns the preimage for a sha3 hash, if known.
 func (api *PrivateDebugAPI) Preimage(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
-	db := core.PreimageTable(api.huc.ChainDb())
-	return db.Get(hash.Bytes())
+	if preimage := rawdb.ReadPreimage(api.huc.ChainDb(), hash); preimage != nil {
+		return preimage, nil
+	}
+	return nil, errors.New("unknown preimage")
+}
+
+// BadBlockArgs represents the entries in the list returned when bad blocks are queried.
+type BadBlockArgs struct {
+	Hash  common.Hash            `json:"hash"`
+	Block map[string]interface{} `json:"block"`
+	RLP   string                 `json:"rlp"`
 }
 
 // GetBadBLocks returns a list of the last 'bad blocks' that the client has seen on the network
 // and returns them as a JSON list of block-hashes
-func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]core.BadBlockArgs, error) {
-	return api.huc.BlockChain().BadBlocks()
+func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]*BadBlockArgs, error) {
+	blocks := api.huc.BlockChain().BadBlocks()
+	results := make([]*BadBlockArgs, len(blocks))
+
+	var err error
+	for i, block := range blocks {
+		results[i] = &BadBlockArgs{
+			Hash: block.Hash(),
+		}
+		if rlpBytes, err := rlp.EncodeToBytes(block); err != nil {
+			results[i].RLP = err.Error() // Hacky, but hey, it works
+		} else {
+			results[i].RLP = fmt.Sprintf("0x%x", rlpBytes)
+		}
+		if results[i].Block, err = hucapi.RPCMarshalBlock(block, true, true); err != nil {
+			results[i].Block = map[string]interface{}{"error": err.Error()}
+		}
+	}
+	return results, nil
 }
 
 // StorageRangeResult is the result of a debug_storageRangeAt API call.

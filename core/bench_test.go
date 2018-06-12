@@ -26,6 +26,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/crypto"
@@ -148,7 +149,7 @@ func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 	// Create the database in memory or in a temporary directory.
 	var db hucdb.Database
 	if !disk {
-		db, _ = hucdb.NewMemDatabase()
+		db = hucdb.NewMemDatabase()
 	} else {
 		dir, err := ioutil.TempDir("", "eth-core-bench")
 		if err != nil {
@@ -234,13 +235,15 @@ func makeChainForBench(db hucdb.Database, full bool, count uint64) {
 			ReceiptHash: types.EmptyRootHash,
 		}
 		hash = header.Hash()
-		WriteHeader(db, header)
-		WriteCanonicalHash(db, hash, n)
-		WriteTd(db, hash, n, big.NewInt(int64(n+1)))
+
+		rawdb.WriteHeader(db, header)
+		rawdb.WriteCanonicalHash(db, hash, n)
+		rawdb.WriteTd(db, hash, n, big.NewInt(int64(n+1)))
+
 		if full || n == 0 {
 			block := types.NewBlockWithHeader(header)
-			WriteBody(db, hash, n, block.Body())
-			WriteBlockReceipts(db, hash, n, nil)
+			rawdb.WriteBody(db, hash, n, block.Body())
+			rawdb.WriteReceipts(db, hash, n, nil)
 		}
 	}
 }
@@ -292,11 +295,10 @@ func benchReadChain(b *testing.B, full bool, count uint64) {
 			header := chain.GetHeaderByNumber(n)
 			if full {
 				hash := header.Hash()
-				GetBody(db, hash, n)
-				GetBlockReceipts(db, hash, n)
+				rawdb.ReadBody(db, hash, n)
+				rawdb.ReadReceipts(db, hash, n)
 			}
 		}
-
 		chain.Stop()
 		db.Close()
 	}

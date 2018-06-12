@@ -34,6 +34,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 )
 
 // HucApiBackend implements hucapi.Backend for full nodes
@@ -100,12 +101,19 @@ func (b *HucApiBackend) GetBlock(ctx context.Context, blockHash common.Hash) (*t
 	return b.huc.blockchain.GetBlockByHash(blockHash), nil
 }
 
-func (b *HucApiBackend) GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error) {
-	return core.GetBlockReceipts(b.huc.chainDb, blockHash, core.GetBlockNumber(b.huc.chainDb, blockHash)), nil
+func (b *HucApiBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
+	if number := rawdb.ReadHeaderNumber(b.huc.chainDb, hash); number != nil {
+		return rawdb.ReadReceipts(b.huc.chainDb, hash, *number), nil
+	}
+	return nil, nil
 }
 
-func (b *HucApiBackend) GetLogs(ctx context.Context, blockHash common.Hash) ([][]*types.Log, error) {
-	receipts := core.GetBlockReceipts(b.huc.chainDb, blockHash, core.GetBlockNumber(b.huc.chainDb, blockHash))
+func (b *HucApiBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*types.Log, error) {
+	number := rawdb.ReadHeaderNumber(b.huc.chainDb, hash)
+	if number == nil {
+		return nil, nil
+	}
+	receipts := rawdb.ReadReceipts(b.huc.chainDb, hash, *number)
 	if receipts == nil {
 		return nil, nil
 	}
@@ -179,8 +187,8 @@ func (b *HucApiBackend) TxPoolContent() (map[common.Address]types.Transactions, 
 	return b.huc.TxPool().Content()
 }
 
-func (b *HucApiBackend) SubscribeTxPreEvent(ch chan<- core.TxPreEvent) event.Subscription {
-	return b.huc.TxPool().SubscribeTxPreEvent(ch)
+func (b *HucApiBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subscription {
+	return b.huc.TxPool().SubscribeNewTxsEvent(ch)
 }
 
 func (b *HucApiBackend) Downloader() *downloader.Downloader {

@@ -37,7 +37,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'node server.js &'                     > wallet.sh && \
 	echo 'ghuc --cache 512 init /genesis.json' >> wallet.sh && \
-	echo $'ghuc --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --hucstats \'{{.Hucstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*"' >> wallet.sh
+	echo $'ghuc --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --hucstats \'{{.Hucstats}}\' --cache=512 --rpc --rpcaddr=0.0.0.0 --rpccorsdomain "*" --rpcvhosts "*"' >> wallet.sh
 
 RUN \
 	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/happyucwallet-master.js && \

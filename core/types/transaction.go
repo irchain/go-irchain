@@ -19,7 +19,6 @@ package types
 import (
 	"container/heap"
 	"errors"
-	"fmt"
 	"io"
 	"math/big"
 	"sync/atomic"
@@ -263,51 +262,6 @@ func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 	return tx.data.V, tx.data.R, tx.data.S
 }
 
-func (tx *Transaction) String() string {
-	var from, to string
-	if tx.data.V != nil {
-		// make a best guess about the signer and use that to derive
-		// the sender.
-		signer := deriveSigner(tx.data.V)
-		if f, err := Sender(signer, tx); err != nil { // derive but don't cache
-			from = "[invalid sender: invalid sig]"
-		} else {
-			from = fmt.Sprintf("%x", f[:])
-		}
-	} else {
-		from = "[invalid sender: nil V field]"
-	}
-
-	if tx.data.Recipient == nil {
-		to = "[contract creation]"
-	} else {
-		to = fmt.Sprintf("%x", tx.data.Recipient[:])
-	}
-	return fmt.Sprintf(`
-		 TX(%x)		
-		 Contract: %v
-		 From:     %s
-		 To:       %s
-		 Nonce:    %v
-		 GasPrice: %#x
-		 GasLimit  %#x
-		 Value:    %#x
-`,
-		tx.Hash(),
-		tx.data.Recipient == nil,
-		from,
-		to,
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.GasLimit,
-		tx.data.Amount,
-		// tx.data.Remark,
-		// tx.data.V,
-		// tx.data.R,
-		// tx.data.S,
-	)
-}
-
 // Transactions is a Transaction slice type for basic sorting.
 type Transactions []*Transaction
 
@@ -387,11 +341,14 @@ type TransactionsByPriceAndNonce struct {
 func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transactions) *TransactionsByPriceAndNonce {
 	// Initialize a price based heap with the head transactions
 	heads := make(TxByPrice, 0, len(txs))
-	for _, accTxs := range txs {
+	for from, accTxs := range txs {
 		heads = append(heads, accTxs[0])
 		// Ensure the sender address is from the signer
 		sender, _ := Sender(signer, accTxs[0])
 		txs[sender] = accTxs[1:]
+		if from != sender {
+			delete(txs, from)
+		}
 	}
 	heap.Init(&heads)
 

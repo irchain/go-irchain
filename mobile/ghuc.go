@@ -29,12 +29,13 @@ import (
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/hucclient"
 	"github.com/happyuc-project/happyuc-go/hucstats"
+	"github.com/happyuc-project/happyuc-go/internal/debug"
 	"github.com/happyuc-project/happyuc-go/les"
 	"github.com/happyuc-project/happyuc-go/node"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/p2p/nat"
 	"github.com/happyuc-project/happyuc-go/params"
-	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv5"
+	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv6"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Ghuc
@@ -72,6 +73,9 @@ type NodeConfig struct {
 
 	// WhisperEnabled specifies whether the node should run the Whisper protocol.
 	WhisperEnabled bool
+
+	// Listening address of pprof server.
+	PprofAddress string
 }
 
 // defaultNodeConfig contains the default node configuration values to use if all
@@ -107,6 +111,11 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	if config.BootstrapNodes == nil || config.BootstrapNodes.Size() == 0 {
 		config.BootstrapNodes = defaultNodeConfig.BootstrapNodes
 	}
+
+	if config.PprofAddress != "" {
+		debug.StartPProf(config.PprofAddress)
+	}
+
 	// Create the empty networking stack
 	nodeConf := &node.Config{
 		Name:        clientIdentifier,
@@ -126,6 +135,8 @@ func NewNode(datadir string, config *NodeConfig) (stack *Node, _ error) {
 	if err != nil {
 		return nil, err
 	}
+
+	debug.Memsize.Add("node", rawStack)
 
 	var genesis *core.Genesis
 	if config.HappyUCGenesis != "" {

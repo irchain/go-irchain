@@ -17,9 +17,10 @@
 package fuse
 
 import (
-	"github.com/happyuc-project/happyuc-go/swarm/api"
 	"sync"
 	"time"
+
+	"github.com/happyuc-project/happyuc-go/swarm/api"
 )
 
 const (

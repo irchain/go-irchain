@@ -32,7 +32,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/huc"
 	"github.com/happyuc-project/happyuc-go/node"
 	"github.com/happyuc-project/happyuc-go/params"
-	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv5"
+	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv6"
 	"github.com/naoina/toml"
 )
 

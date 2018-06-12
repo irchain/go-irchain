@@ -28,6 +28,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/consensus"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/huc"
@@ -123,7 +124,7 @@ func New(ctx *node.ServiceContext, config *huc.Config) (*LightHappyUC, error) {
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
 		lhuc.blockchain.SetHead(compat.RewindTo)
-		core.WriteChainConfig(chainDb, genesisHash, chainConfig)
+		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
 	lhuc.txPool = light.NewTxPool(lhuc.chainConfig, lhuc.blockchain, lhuc.relay)
