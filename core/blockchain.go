@@ -897,7 +897,8 @@ func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.
 	if err := WriteBlock(batch, block); err != nil {
 		return NonStatTy, err
 	}
-	root, err := state.Commit(bc.chainConfig.IsEIP158(block.Number()))
+	// TODO State Serenity Commit
+	root, err := state.Commit(true)
 	if err != nil {
 		return NonStatTy, err
 	}

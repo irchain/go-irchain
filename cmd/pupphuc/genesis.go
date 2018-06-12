@@ -34,9 +34,6 @@ type cppHappyUCGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
 	Params     struct {
 		AccountStartNonce       hexutil.Uint64 `json:"accountStartNonce"`
-		HomesteadForkBlock      hexutil.Uint64 `json:"homesteadForkBlock"`
-		EIP150ForkBlock         hexutil.Uint64 `json:"EIP150ForkBlock"`
-		EIP158ForkBlock         hexutil.Uint64 `json:"EIP158ForkBlock"`
 		ByzantiumForkBlock      hexutil.Uint64 `json:"byzantiumForkBlock"`
 		ConstantinopleForkBlock hexutil.Uint64 `json:"constantinopleForkBlock"`
 		NetworkID               hexutil.Uint64 `json:"networkID"`
@@ -97,9 +94,6 @@ func newCppHappyUCGenesisSpec(network string, genesis *core.Genesis) (*cppHappyU
 		SealEngine: "Huchash",
 	}
 	spec.Params.AccountStartNonce = 0
-	spec.Params.HomesteadForkBlock = (hexutil.Uint64)(genesis.Config.HomesteadBlock.Uint64())
-	spec.Params.EIP150ForkBlock = (hexutil.Uint64)(genesis.Config.EIP150Block.Uint64())
-	spec.Params.EIP158ForkBlock = (hexutil.Uint64)(genesis.Config.EIP158Block.Uint64())
 	spec.Params.ByzantiumForkBlock = (hexutil.Uint64)(genesis.Config.ByzantiumBlock.Uint64())
 	spec.Params.ConstantinopleForkBlock = (hexutil.Uint64)(math.MaxUint64)
 
@@ -272,11 +266,6 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Engine.Huchash.Params.DifficultyBoundDivisor = (*hexutil.Big)(params.DifficultyBoundDivisor)
 	spec.Engine.Huchash.Params.DurationLimit = (*hexutil.Big)(params.DurationLimit)
 	spec.Engine.Huchash.Params.BlockReward = (*hexutil.Big)(huchash.FrontierBlockReward)
-	spec.Engine.Huchash.Params.HomesteadTransition = genesis.Config.HomesteadBlock.Uint64()
-	spec.Engine.Huchash.Params.EIP150Transition = genesis.Config.EIP150Block.Uint64()
-	spec.Engine.Huchash.Params.EIP160Transition = genesis.Config.EIP155Block.Uint64()
-	spec.Engine.Huchash.Params.EIP161abcTransition = genesis.Config.EIP158Block.Uint64()
-	spec.Engine.Huchash.Params.EIP161dTransition = genesis.Config.EIP158Block.Uint64()
 	spec.Engine.Huchash.Params.EIP649Reward = (*hexutil.Big)(huchash.ByzantiumBlockReward)
 	spec.Engine.Huchash.Params.EIP100bTransition = genesis.Config.ByzantiumBlock.Uint64()
 	spec.Engine.Huchash.Params.EIP649Transition = genesis.Config.ByzantiumBlock.Uint64()
@@ -286,7 +275,6 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Params.GasLimitBoundDivisor = (hexutil.Uint64)(params.GasLimitBoundDivisor)
 	spec.Params.NetworkID = (hexutil.Uint64)(genesis.Config.ChainId.Uint64())
 	spec.Params.MaxCodeSize = params.MaxCodeSize
-	spec.Params.EIP155Transition = genesis.Config.EIP155Block.Uint64()
 	spec.Params.EIP98Transition = math.MaxUint64
 	spec.Params.EIP86Transition = math.MaxUint64
 	spec.Params.EIP140Transition = genesis.Config.ByzantiumBlock.Uint64()

@@ -27,11 +27,11 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/consensus/misc"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/params"
 	"gopkg.in/fatih/set.v0"
+	"github.com/happyuc-project/happyuc-go/consensus/misc"
 )
 
 // Huchash proof-of-work protocol constants.
@@ -277,10 +277,6 @@ func (huchash *Huchash) verifyHeader(chain consensus.ChainReader, header, parent
 			return err
 		}
 	}
-	// If all checks passed, validate any special fields for hard forks
-	if err := misc.VerifyDAOHeaderExtraData(chain.Config(), header); err != nil {
-		return err
-	}
 	if err := misc.VerifyForkHashes(chain.Config(), header, uncle); err != nil {
 		return err
 	}
@@ -294,41 +290,21 @@ func (huchash *Huchash) CalcDifficulty(chain consensus.ChainReader, time uint64,
 	return CalcDifficulty(chain.Config(), time, parent)
 }
 
+// Some weird constants to avoid constant memory allocs for them.
+var (
+	big1   = big.NewInt(1)
+	big2   = big.NewInt(2)
+	big3   = big.NewInt(3)
+	big10  = big.NewInt(10)
+	bigM99 = big.NewInt(-99)
+)
+
 // CalcDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
 func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
-	next := new(big.Int).Add(parent.Number, big1)
-	switch {
-	case config.IsByzantium(next):
-		return calcDifficultyByzantium(time, parent)
-	case config.IsHomestead(next):
-		return calcDifficultyHomestead(time, parent)
-	default:
-		return calcDifficultyFrontier(time, parent)
-	}
-}
-
-// Some weird constants to avoid constant memory allocs for them.
-var (
-	expDiffPeriod = big.NewInt(100000)
-	big1          = big.NewInt(1)
-	big2          = big.NewInt(2)
-	big9          = big.NewInt(9)
-	big10         = big.NewInt(10)
-	bigMinus99    = big.NewInt(-99)
-	big2999999    = big.NewInt(2999999)
-)
-
-// calcDifficultyByzantium is the difficulty adjustment algorithm. It returns
-// the difficulty that a new block should have when created at time given the
-// parent block's time and difficulty. The calculation uses the Byzantium rules.
-func calcDifficultyByzantium(time uint64, parent *types.Header) *big.Int {
-	// https://github.com/happyuc-project/HIPs/issues/100.
 	// algorithm:
-	// diff = (parent_diff +
-	//         (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
-	//        ) + 2^(periodCount - 2)
+	// diff = parent_diff + parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - (timestamp - parent_timestamp) / 3, -99)
 
 	bigTime := new(big.Int).SetUint64(time)
 	bigParentTime := new(big.Int).Set(parent.Time)
@@ -337,128 +313,28 @@ func calcDifficultyByzantium(time uint64, parent *types.Header) *big.Int {
 	x := new(big.Int)
 	y := new(big.Int)
 
-	// (2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9
+	// v1 = (2 if len(parent_uncles) else 1) - (timestamp - parent_timestamp) / 3
 	x.Sub(bigTime, bigParentTime)
-	x.Div(x, big9)
+	x.Div(x, big3)
 	if parent.UncleHash == types.EmptyUncleHash {
 		x.Sub(big1, x)
 	} else {
 		x.Sub(big2, x)
 	}
-	// max((2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9, -99)
-	if x.Cmp(bigMinus99) < 0 {
-		x.Set(bigMinus99)
+	// v2 = max(v1, -99)
+	if x.Cmp(bigM99) < 0 {
+		x.Set(bigM99)
 	}
-	// parent_diff + (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
+	// v3 = parent_diff + (parent_diff / 2048 * v2)
 	y.Div(parent.Difficulty, params.DifficultyBoundDivisor)
 	x.Mul(y, x)
 	x.Add(parent.Difficulty, x)
-
-	// minimum difficulty can ever be (before exponential factor)
+	// v4 = min(v3, MinimumDifficulty)
 	if x.Cmp(params.MinimumDifficulty) < 0 {
 		x.Set(params.MinimumDifficulty)
 	}
-	// calculate a fake block number for the ice-age delay:
-	//   https://github.com/happyuc-project/HIPs/pull/669
-	//   fake_block_number = min(0, block.number - 3_000_000
-	fakeBlockNumber := new(big.Int)
-	if parent.Number.Cmp(big2999999) >= 0 {
-		fakeBlockNumber = fakeBlockNumber.Sub(parent.Number, big2999999) // Note, parent is 1 less than the actual block number
-	}
-	// for the exponential factor
-	periodCount := fakeBlockNumber
-	periodCount.Div(periodCount, expDiffPeriod)
 
-	// the exponential factor, commonly referred to as "the bomb"
-	// diff = diff + 2^(periodCount - 2)
-	if periodCount.Cmp(big1) > 0 {
-		y.Sub(periodCount, big2)
-		y.Exp(big2, y, nil)
-		x.Add(x, y)
-	}
 	return x
-}
-
-// calcDifficultyHomestead is the difficulty adjustment algorithm. It returns
-// the difficulty that a new block should have when created at time given the
-// parent block's time and difficulty. The calculation uses the Homestead rules.
-func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
-	// https://github.com/happyuc-project/HIPs/blob/master/EIPS/eip-2.md
-	// algorithm:
-	// diff = (parent_diff +
-	//         (parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) / 10, -99))
-	//        ) + 2^(periodCount - 2)
-
-	bigTime := new(big.Int).SetUint64(time)
-	bigParentTime := new(big.Int).Set(parent.Time)
-
-	// holds intermediate values to make the algo easier to read & audit
-	x := new(big.Int)
-	y := new(big.Int)
-
-	// 1 - (block_timestamp - parent_timestamp) / 10
-	x.Sub(bigTime, bigParentTime)
-	x.Div(x, big10)
-	x.Sub(big1, x)
-
-	// max(1 - (block_timestamp - parent_timestamp) / 10, -99)
-	if x.Cmp(bigMinus99) < 0 {
-		x.Set(bigMinus99)
-	}
-	// (parent_diff + parent_diff / 2048 * max(1 - (block_timestamp - parent_timestamp) / 10, -99))
-	y.Div(parent.Difficulty, params.DifficultyBoundDivisor)
-	x.Mul(y, x)
-	x.Add(parent.Difficulty, x)
-
-	// minimum difficulty can ever be (before exponential factor)
-	if x.Cmp(params.MinimumDifficulty) < 0 {
-		x.Set(params.MinimumDifficulty)
-	}
-	// for the exponential factor
-	periodCount := new(big.Int).Add(parent.Number, big1)
-	periodCount.Div(periodCount, expDiffPeriod)
-
-	// the exponential factor, commonly referred to as "the bomb"
-	// diff = diff + 2^(periodCount - 2)
-	if periodCount.Cmp(big1) > 0 {
-		y.Sub(periodCount, big2)
-		y.Exp(big2, y, nil)
-		x.Add(x, y)
-	}
-	return x
-}
-
-// calcDifficultyFrontier is the difficulty adjustment algorithm. It returns the
-// difficulty that a new block should have when created at time given the parent
-// block's time and difficulty. The calculation uses the Frontier rules.
-func calcDifficultyFrontier(time uint64, parent *types.Header) *big.Int {
-	diff := new(big.Int)
-	adjust := new(big.Int).Div(parent.Difficulty, params.DifficultyBoundDivisor)
-	bigTime := new(big.Int)
-	bigParentTime := new(big.Int)
-
-	bigTime.SetUint64(time)
-	bigParentTime.Set(parent.Time)
-
-	if bigTime.Sub(bigTime, bigParentTime).Cmp(params.DurationLimit) < 0 {
-		diff.Add(parent.Difficulty, adjust)
-	} else {
-		diff.Sub(parent.Difficulty, adjust)
-	}
-	if diff.Cmp(params.MinimumDifficulty) < 0 {
-		diff.Set(params.MinimumDifficulty)
-	}
-
-	periodCount := new(big.Int).Add(parent.Number, big1)
-	periodCount.Div(periodCount, expDiffPeriod)
-	if periodCount.Cmp(big1) > 0 {
-		// diff = diff + 2^(periodCount - 2)
-		expDiff := periodCount.Sub(periodCount, big2)
-		expDiff.Exp(big2, expDiff, nil)
-		diff.Add(diff, expDiff)
-		diff = math.BigMax(diff, params.MinimumDifficulty)
-	}
-	return diff
 }
 
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
@@ -519,38 +395,36 @@ func (huchash *Huchash) Prepare(chain consensus.ChainReader, header *types.Heade
 func (huchash *Huchash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(chain.Config(), state, header, uncles)
-	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
+	// TODO Intermediate Serenity Root
+	header.Root = state.IntermediateRoot(true)
 	// Header seems complete, assemble into a block and return
 	return types.NewBlock(header, txs, uncles, receipts), nil
 }
 
 // Some weird constants to avoid constant memory allocs for them.
 var (
-	big8        = big.NewInt(8)
-	big32       = big.NewInt(32)
-	expBase     = big.NewInt(2)
-	limitEpoch  = big.NewInt(10)
-	rewardEpoch = big.NewInt(8409600)
+	big8         = big.NewInt(8)
+	big32        = big.NewInt(32)
+	rewardPeriod = big.NewInt(8409600)
 )
 
 // AccumulateRewards credits the coinbase of the given block with the mining
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
 func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
-	// when PendingBlock < 10, reward = FrontierBlockReward / 2 ^ (blockNum + 1 / rewardEpoch)
-	// when PendingBlock >= 10, reward = 0
+	// when periodCount < 10,  reward = 8 / 2^(periodCount / rewardPeriod)
+	// when periodCount >= 10, reward = 0
 	var (
-		blockReward  = new(big.Int).Set(FrontierBlockReward)
-		currBlockNum = new(big.Int).Sub(header.Number, big.NewInt(1))
-		epoch        = new(big.Int).Div(currBlockNum, rewardEpoch)
-		exponent     = new(big.Int)
+		blockReward = new(big.Int).Set(FrontierBlockReward)
+		periodCount = new(big.Int).Div(new(big.Int).Sub(header.Number, big1), rewardPeriod)
+		exponent    = new(big.Int)
 	)
 
-	// Compute currently epoch corresponding rewards
-	if epoch.Cmp(limitEpoch) >= 0 {
-		blockReward = big.NewInt(0)
+	// Compute currently periodCount corresponding rewards
+	if periodCount.Cmp(big10) >= 0 {
+		blockReward = new(big.Int)
 	} else {
-		exponent.Exp(expBase, epoch, nil)
+		exponent.Exp(big2, periodCount, nil)
 		blockReward.Div(blockReward, exponent)
 	}
 

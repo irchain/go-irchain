@@ -66,8 +66,6 @@ type TxPool struct {
 	pending      map[common.Hash]*types.Transaction   // pending transactions by tx hash
 	mined        map[common.Hash][]*types.Transaction // mined transactions by block hash
 	clearIdx     uint64                               // earliest block nr that can contain mined tx info
-
-	homestead bool
 }
 
 // TxRelayBackend provides an interface to the mechanism that forwards transacions
@@ -308,7 +306,6 @@ func (pool *TxPool) setNewHead(head *types.Header) {
 	txc, _ := pool.reorgOnNewHead(ctx, head)
 	m, r := txc.getLists()
 	pool.relay.NewHead(pool.head, m, r)
-	pool.homestead = pool.config.IsHomestead(head.Number)
 	pool.signer = types.MakeSigner(pool.config, head.Number)
 }
 
@@ -373,7 +370,7 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 
 	// Should supply enough intrinsic gas
 	var contractCreation = tx.To() == nil
-	if gas, err := core.IntrinsicGas(tx.Data(), contractCreation, pool.homestead); err != nil {
+	if gas, err := core.IntrinsicGas(tx.Data(), contractCreation); err != nil {
 		return err
 	} else if tx.Gas() < gas {
 		return core.ErrIntrinsicGas

@@ -32,7 +32,7 @@ var emptyCodeHash = crypto.Keccak256Hash(nil)
 
 type (
 	CanTransferFunc func(StateDB, common.Address, *big.Int) bool
-	TransferFunc    func(StateDB, common.Address, common.Address, *big.Int)
+	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
 	// GetHashFunc returns the nth block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
@@ -41,10 +41,8 @@ type (
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	if contract.CodeAddr != nil {
-		precompiles := PrecompiledContractsHomestead
-		if evm.ChainConfig().IsByzantium(evm.BlockNumber) {
-			precompiles = PrecompiledContractsByzantium
-		}
+		// TODO Precompiled Serenity Contracts
+		precompiles := PrecompiledContractsByzantium
 		if p := precompiles[*contract.CodeAddr]; p != nil {
 			return RunPrecompiledContract(p, input, contract)
 		}
@@ -94,10 +92,7 @@ type EVM struct {
 
 	// chainConfig contains information about the current chain
 	chainConfig *params.ChainConfig
-	// chain rules contains the chain rules for the current epoch
-	chainRules params.Rules
-	// virtual machine configuration options used to initialise the
-	// evm.
+	// virtual machine configuration options used to initialise the evm.
 	vmConfig Config
 	// global (to this context) happyuc virtual machine
 	// used throughout the execution of the tx.
@@ -119,7 +114,6 @@ func NewEVM(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmCon
 		StateDB:     statedb,
 		vmConfig:    vmConfig,
 		chainConfig: chainConfig,
-		chainRules:  chainConfig.Rules(ctx.BlockNumber),
 	}
 
 	evm.interpreter = NewInterpreter(evm, vmConfig)
@@ -155,11 +149,9 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		snapshot = evm.StateDB.Snapshot()
 	)
 	if !evm.StateDB.Exist(addr) {
-		precompiles := PrecompiledContractsHomestead
-		if evm.ChainConfig().IsByzantium(evm.BlockNumber) {
-			precompiles = PrecompiledContractsByzantium
-		}
-		if precompiles[addr] == nil && evm.ChainConfig().IsEIP158(evm.BlockNumber) && value.Sign() == 0 {
+		// TODO Precompiled Serenity Contracts
+		precompiles := PrecompiledContractsByzantium
+		if precompiles[addr] == nil && value.Sign() == 0 {
 			return nil, gas, nil
 		}
 		evm.StateDB.CreateAccount(addr)
@@ -333,9 +325,8 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 	// Create a new account on the state
 	snapshot := evm.StateDB.Snapshot()
 	evm.StateDB.CreateAccount(contractAddr)
-	if evm.ChainConfig().IsEIP158(evm.BlockNumber) {
-		evm.StateDB.SetNonce(contractAddr, 1)
-	}
+	// TODO Set Serenity Nonce
+	evm.StateDB.SetNonce(contractAddr, 1)
 	evm.Transfer(evm.StateDB, caller.Address(), contractAddr, value)
 
 	// initialise a new contract and set the code that is to be used by the
@@ -355,8 +346,9 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 
 	ret, err = run(evm, contract, nil)
 
-	// check whether the max code size has been exceeded
-	maxCodeSizeExceeded := evm.ChainConfig().IsEIP158(evm.BlockNumber) && len(ret) > params.MaxCodeSize
+	// check whether the max code size has been exceeded\
+	// TODO Check Serenity Max code size exceeded
+	maxCodeSizeExceeded := len(ret) > params.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
 	// calculate the gas required to store the code. If the code could not
 	// be stored due to not enough gas set an error and let it be handled
@@ -373,7 +365,7 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
-	if maxCodeSizeExceeded || (err != nil && (evm.ChainConfig().IsHomestead(evm.BlockNumber) || err != ErrCodeStoreOutOfGas)) {
+	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfGas) {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != errExecutionReverted {
 			contract.UseGas(contract.Gas)
