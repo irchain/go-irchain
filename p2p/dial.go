@@ -79,9 +79,8 @@ type dialstate struct {
 	randomNodes   []*discover.Node // filled from Table
 	static        map[discover.NodeID]*dialTask
 	hist          *dialHistory
-
-	start     time.Time        // time when the dialer was first used
-	bootnodes []*discover.Node // default dials when there are no peers
+	start         time.Time        // time when the dialer was first used
+	bootnodes     []*discover.Node // default dials when there are no peers
 }
 
 type discoverTable interface {
