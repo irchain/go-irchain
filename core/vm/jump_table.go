@@ -50,13 +50,6 @@ type operation struct {
 	returns bool // determines whether the operations sets the return data content
 }
 
-var (
-	frontierInstructionSet       = NewFrontierInstructionSet()
-	homesteadInstructionSet      = NewHomesteadInstructionSet()
-	byzantiumInstructionSet      = NewByzantiumInstructionSet()
-	constantinopleInstructionSet = NewConstantinopleInstructionSet()
-)
-
 // NewConstantinopleInstructionSet returns the frontier, homestead
 // byzantium and contantinople instructions.
 func NewConstantinopleInstructionSet() [256]operation {

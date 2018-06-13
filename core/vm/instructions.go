@@ -636,17 +636,15 @@ func opCreate(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *S
 		input        = memory.Get(offset.Int64(), size.Int64())
 		gas          = contract.Gas
 	)
-	if evm.ChainConfig().IsEIP150(evm.BlockNumber) {
-		gas -= gas / 64
-	}
-
+	// TODO Create Serenity op
+	gas -= gas / 64
 	contract.UseGas(gas)
 	res, addr, returnGas, suberr := evm.Create(contract, input, gas, value)
 	// Push item on the stack based on the returned error. If the ruleset is
 	// homestead we must check for CodeStoreOutOfGasError (homestead only
 	// rule) and treat as an error, if the ruleset is frontier we must
 	// ignore this error and pretend the operation was successful.
-	if evm.ChainConfig().IsHomestead(evm.BlockNumber) && suberr == ErrCodeStoreOutOfGas {
+	if suberr == ErrCodeStoreOutOfGas {
 		stack.push(new(big.Int))
 	} else if suberr != nil && suberr != ErrCodeStoreOutOfGas {
 		stack.push(new(big.Int))

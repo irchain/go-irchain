@@ -21,16 +21,11 @@ import (
 	"math/big"
 	"math/rand"
 	"testing"
-	"time"
-
 	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/event"
 	"github.com/happyuc-project/happyuc-go/huc/downloader"
 	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/p2p"
@@ -202,7 +197,7 @@ func testGetBlockHeaders(t *testing.T, protocol int) {
 	// Run each of the tests and verify the results against the chain
 	for i, tt := range tests {
 		// Collect the headers to expect in the response
-		headers := []*types.Header{}
+		var headers []*types.Header
 		for _, hash := range tt.expect {
 			headers = append(headers, pm.blockchain.GetBlockByHash(hash).Header())
 		}
@@ -264,8 +259,9 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 	// Run each of the tests and verify the results against the chain
 	for i, tt := range tests {
 		// Collect the hashes to request, and the response to expect
-		hashes, seen := []common.Hash{}, make(map[int64]bool)
-		bodies := []*blockBody{}
+		var hashes []common.Hash
+		seen := make(map[int64]bool)
+		var bodies []*blockBody
 
 		for j := 0; j < tt.random; j++ {
 			for {
@@ -342,7 +338,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	defer peer.close()
 
 	// Fetch for now the entire chain db
-	hashes := []common.Hash{}
+	var hashes []common.Hash
 	for _, key := range db.Keys() {
 		if len(key) == len(common.Hash{}) {
 			hashes = append(hashes, common.BytesToHash(key))
@@ -434,7 +430,8 @@ func testGetReceipt(t *testing.T, protocol int) {
 	defer peer.close()
 
 	// Collect the hashes to request, and the response to expect
-	hashes, receipts := []common.Hash{}, []types.Receipts{}
+	var receipts []types.Receipts
+	var hashes []common.Hash
 	for i := uint64(0); i <= pm.blockchain.CurrentBlock().NumberU64(); i++ {
 		block := pm.blockchain.GetBlockByNumber(i)
 
@@ -445,78 +442,5 @@ func testGetReceipt(t *testing.T, protocol int) {
 	p2p.Send(peer.app, 0x0f, hashes)
 	if err := p2p.ExpectMsg(peer.app, 0x10, receipts); err != nil {
 		t.Errorf("receipts mismatch: %v", err)
-	}
-}
-
-// Tests that post huc protocol handshake, DAO fork-enabled clients also execute
-// a DAO "challenge" verifying each others' DAO fork headers to ensure they're on
-// compatible chains.
-func TestDAOChallengeNoVsNo(t *testing.T)       { testDAOChallenge(t, false, false, false) }
-func TestDAOChallengeNoVsPro(t *testing.T)      { testDAOChallenge(t, false, true, false) }
-func TestDAOChallengeProVsNo(t *testing.T)      { testDAOChallenge(t, true, false, false) }
-func TestDAOChallengeProVsPro(t *testing.T)     { testDAOChallenge(t, true, true, false) }
-func TestDAOChallengeNoVsTimeout(t *testing.T)  { testDAOChallenge(t, false, false, true) }
-func TestDAOChallengeProVsTimeout(t *testing.T) { testDAOChallenge(t, true, true, true) }
-
-func testDAOChallenge(t *testing.T, localForked, remoteForked bool, timeout bool) {
-	// Reduce the DAO handshake challenge timeout
-	if timeout {
-		defer func(old time.Duration) { daoChallengeTimeout = old }(daoChallengeTimeout)
-		daoChallengeTimeout = 500 * time.Millisecond
-	}
-	// Create a DAO aware protocol manager
-	var (
-		evmux         = new(event.TypeMux)
-		pow           = huchash.NewFaker()
-		db, _         = hucdb.NewMemDatabase()
-		config        = &params.ChainConfig{DAOForkBlock: big.NewInt(1), DAOForkSupport: localForked}
-		gspec         = &core.Genesis{Config: config}
-		genesis       = gspec.MustCommit(db)
-		blockchain, _ = core.NewBlockChain(db, nil, config, pow, vm.Config{})
-	)
-	pm, err := NewProtocolManager(config, downloader.FullSync, DefaultConfig.NetworkId, evmux, new(testTxPool), pow, blockchain, db)
-	if err != nil {
-		t.Fatalf("failed to start test protocol manager: %v", err)
-	}
-	pm.Start(1000)
-	defer pm.Stop()
-
-	// Connect a new peer and check that we receive the DAO challenge
-	peer, _ := newTestPeer("peer", eth63, pm, true)
-	defer peer.close()
-
-	challenge := &getBlockHeadersData{
-		Origin:  hashOrNumber{Number: config.DAOForkBlock.Uint64()},
-		Amount:  1,
-		Skip:    0,
-		Reverse: false,
-	}
-	if err := p2p.ExpectMsg(peer.app, GetBlockHeadersMsg, challenge); err != nil {
-		t.Fatalf("challenge mismatch: %v", err)
-	}
-	// Create a block to reply to the challenge if no timeout is simulated
-	if !timeout {
-		blocks, _ := core.GenerateChain(&params.ChainConfig{}, genesis, huchash.NewFaker(), db, 1, func(i int, block *core.BlockGen) {
-			if remoteForked {
-				block.SetExtra(params.DAOForkBlockExtra)
-			}
-		})
-		if err := p2p.Send(peer.app, BlockHeadersMsg, []*types.Header{blocks[0].Header()}); err != nil {
-			t.Fatalf("failed to answer challenge: %v", err)
-		}
-		time.Sleep(100 * time.Millisecond) // Sleep to avoid the verification racing with the drops
-	} else {
-		// Otherwise wait until the test timeout passes
-		time.Sleep(daoChallengeTimeout + 500*time.Millisecond)
-	}
-	// Verify that depending on fork side, the remote peer is maintained or dropped
-	if localForked == remoteForked && !timeout {
-		if peers := pm.peers.Len(); peers != 1 {
-			t.Fatalf("peer count mismatch: have %d, want %d", peers, 1)
-		}
-	} else {
-		if peers := pm.peers.Len(); peers != 0 {
-			t.Fatalf("peer count mismatch: have %d, want %d", peers, 0)
-		}
 	}
 }
