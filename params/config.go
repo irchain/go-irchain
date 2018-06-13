@@ -42,7 +42,7 @@ var (
 	TestnetChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(3),
 		ByzantiumBlock:      big.NewInt(0),
-		ConstantinopleBlock: big.NewInt(10),
+		ConstantinopleBlock: nil,
 		Huchash:             new(HuchashConfig),
 	}
 
