@@ -23,15 +23,16 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 )
 
+// Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash = common.HexToHash("0xf29c3da3e1710517cbb3a555ab20981ec2c9abacbbcb914ab91e8c23edfbf4d0") // Mainnet genesis hash to enforce below configs on
-	TestnetGenesisHash = common.HexToHash("0x389d168191585e7a14b01a654c02058053abf3ca3d167efb69a51dec86d9cfbc") // Testnet genesis hash to enforce below configs on
+	MainnetGenesisHash = common.HexToHash("0xf29c3da3e1710517cbb3a555ab20981ec2c9abacbbcb914ab91e8c23edfbf4d0")
+	TestnetGenesisHash = common.HexToHash("0x389d168191585e7a14b01a654c02058053abf3ca3d167efb69a51dec86d9cfbc")
 )
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
-		ChainId:             big.NewInt(1),
+		ChainID:             big.NewInt(1),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: big.NewInt(0),
 		Huchash:             new(HuchashConfig),
@@ -39,7 +40,7 @@ var (
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	TestnetChainConfig = &ChainConfig{
-		ChainId:             big.NewInt(3),
+		ChainID:             big.NewInt(3),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: big.NewInt(0),
 		Huchash:             new(HuchashConfig),
@@ -47,7 +48,7 @@ var (
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
 	RinkebyChainConfig = &ChainConfig{
-		ChainId:             big.NewInt(4),
+		ChainID:             big.NewInt(4),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: big.NewInt(0),
 		Clique: &CliqueConfig{
@@ -62,7 +63,7 @@ var (
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
 	AllHuchashProtocolChanges = &ChainConfig{
-		ChainId:             big.NewInt(1337),
+		ChainID:             big.NewInt(1337),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
 		Huchash:             new(HuchashConfig),
@@ -75,7 +76,7 @@ var (
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
 	AllCliqueProtocolChanges = &ChainConfig{
-		ChainId:             big.NewInt(1337),
+		ChainID:             big.NewInt(1337),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
 		Huchash:             nil,
@@ -86,7 +87,7 @@ var (
 	}
 
 	TestChainConfig = &ChainConfig{
-		ChainId:             big.NewInt(1),
+		ChainID:             big.NewInt(1),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
 		Huchash:             new(HuchashConfig),
@@ -101,17 +102,7 @@ var (
 // that any network, identified by its genesis block, can have its own
 // set of configuration options.
 type ChainConfig struct {
-	ChainId *big.Int `json:"chainId"` // Chain id identifies the current chain and is used for replay protection
-	// HomesteadBlock *big.Int `json:"homesteadBlock,omitempty"` // Homestead switch block (nil = no fork, 0 = already homestead)
-	// DAOForkBlock   *big.Int `json:"daoForkBlock,omitempty"`   // TheDAO hard-fork switch block (nil = no fork)
-	// DAOForkSupport bool     `json:"daoForkSupport,omitempty"` // Whether the nodes supports or opposes the DAO hard-fork
-	//
-	// // EIP150 implements the Gas price changes (https://github.com/happyuc-project/HIPs/issues/150)
-	// EIP150Block *big.Int    `json:"eip150Block,omitempty"` // EIP150 HF block (nil = no fork)
-	// EIP150Hash  common.Hash `json:"eip150Hash,omitempty"`  // EIP150 HF hash (needed for header only clients as only gas pricing changed)
-	// EIP155Block *big.Int    `json:"eip155Block,omitempty"` // EIP155 HF block
-	// EIP158Block *big.Int    `json:"eip158Block,omitempty"` // EIP158 HF block
-
+	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
 	ByzantiumBlock      *big.Int `json:"byzantiumBlock,omitempty"`      // Byzantium switch block (nil = no fork, 0 = already on byzantium)
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated )
 
@@ -151,7 +142,7 @@ func (c *ChainConfig) String() string {
 		engine = "unknown"
 	}
 	return fmt.Sprintf("{ChainID: %v Homestead: %v DAO: %v DAOSupport: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Engine: %v}",
-		c.ChainId,
+		c.ChainID,
 		c.ByzantiumBlock,
 		c.ConstantinopleBlock,
 		engine,
@@ -163,7 +154,7 @@ func (c *ChainConfig) String() string {
 // 	return isForked(c.HomesteadBlock, num)
 // }
 
-// IsDAO returns whether num is either equal to the DAO fork block or greater.
+// IsDAOFork returns whether num is either equal to the DAO fork block or greater.
 // func (c *ChainConfig) IsDAOFork(num *big.Int) bool {
 // 	return isForked(c.DAOForkBlock, num)
 // }
@@ -234,7 +225,7 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	// if isForkIncompatible(c.EIP158Block, newcfg.EIP158Block, head) {
 	// 	return newCompatError("EIP158 fork block", c.EIP158Block, newcfg.EIP158Block)
 	// }
-	// if c.IsEIP158(head) && !configNumEqual(c.ChainId, newcfg.ChainId) {
+	// if c.IsEIP158(head) && !configNumEqual(c.ChainID, newcfg.ChainID) {
 	// 	return newCompatError("EIP158 chain ID", c.EIP158Block, newcfg.EIP158Block)
 	// }
 	// if isForkIncompatible(c.ByzantiumBlock, newcfg.ByzantiumBlock, head) {

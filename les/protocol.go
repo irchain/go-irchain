@@ -28,6 +28,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/crypto"
 	"github.com/happyuc-project/happyuc-go/crypto/secp256k1"
 	"github.com/happyuc-project/happyuc-go/rlp"
@@ -160,9 +161,8 @@ func (a *announceData) checkSignature(pubKey *ecdsa.PublicKey) error {
 	pbytes := elliptic.Marshal(pubKey.Curve, pubKey.X, pubKey.Y)
 	if bytes.Equal(pbytes, recPubkey) {
 		return nil
-	} else {
-		return errors.New("Wrong signature")
 	}
+	return errors.New("Wrong signature")
 }
 
 type blockInfo struct {
@@ -224,6 +224,6 @@ type proofsData [][]rlp.RawValue
 
 type txStatus struct {
 	Status core.TxStatus
-	Lookup *core.TxLookupEntry `rlp:"nil"`
+	Lookup *rawdb.TxLookupEntry `rlp:"nil"`
 	Error  string
 }

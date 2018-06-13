@@ -34,10 +34,10 @@ import (
 
 func TestNodeIterator(t *testing.T) {
 	var (
-		fulldb, _  = hucdb.NewMemDatabase()
-		lightdb, _ = hucdb.NewMemDatabase()
-		gspec      = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
-		genesis    = gspec.MustCommit(fulldb)
+		fulldb  = hucdb.NewMemDatabase()
+		lightdb = hucdb.NewMemDatabase()
+		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
+		genesis = gspec.MustCommit(fulldb)
 	)
 	gspec.MustCommit(lightdb)
 	blockchain, _ := core.NewBlockChain(fulldb, nil, params.TestChainConfig, huchash.NewFullFaker(), vm.Config{})

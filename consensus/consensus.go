@@ -18,12 +18,13 @@
 package consensus
 
 import (
+	"math/big"
+
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
-	"math/big"
 )
 
 // ChainReader defines a small collection of methods needed to access the local

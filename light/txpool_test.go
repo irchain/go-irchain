@@ -81,8 +81,8 @@ func TestTxPool(t *testing.T) {
 	}
 
 	var (
-		sdb, _  = hucdb.NewMemDatabase()
-		ldb, _  = hucdb.NewMemDatabase()
+		sdb     = hucdb.NewMemDatabase()
+		ldb     = hucdb.NewMemDatabase()
 		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
 		genesis = gspec.MustCommit(sdb)
 	)

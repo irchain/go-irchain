@@ -25,6 +25,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
@@ -83,16 +84,22 @@ func (b *LesApiBackend) GetBlock(ctx context.Context, blockHash common.Hash) (*t
 	return b.huc.blockchain.GetBlockByHash(ctx, blockHash)
 }
 
-func (b *LesApiBackend) GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error) {
-	return light.GetBlockReceipts(ctx, b.huc.odr, blockHash, core.GetBlockNumber(b.huc.chainDb, blockHash))
+func (b *LesApiBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
+	if number := rawdb.ReadHeaderNumber(b.huc.chainDb, hash); number != nil {
+		return light.GetBlockReceipts(ctx, b.huc.odr, hash, *number)
+	}
+	return nil, nil
 }
 
-func (b *LesApiBackend) GetLogs(ctx context.Context, blockHash common.Hash) ([][]*types.Log, error) {
-	return light.GetBlockLogs(ctx, b.huc.odr, blockHash, core.GetBlockNumber(b.huc.chainDb, blockHash))
+func (b *LesApiBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*types.Log, error) {
+	if number := rawdb.ReadHeaderNumber(b.huc.chainDb, hash); number != nil {
+		return light.GetBlockLogs(ctx, b.huc.odr, hash, *number)
+	}
+	return nil, nil
 }
 
-func (b *LesApiBackend) GetTd(blockHash common.Hash) *big.Int {
-	return b.huc.blockchain.GetTdByHash(blockHash)
+func (b *LesApiBackend) GetTd(hash common.Hash) *big.Int {
+	return b.huc.blockchain.GetTdByHash(hash)
 }
 
 func (b *LesApiBackend) GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmCfg vm.Config) (*vm.EVM, func() error, error) {
@@ -129,8 +136,8 @@ func (b *LesApiBackend) TxPoolContent() (map[common.Address]types.Transactions, 
 	return b.huc.txPool.Content()
 }
 
-func (b *LesApiBackend) SubscribeTxPreEvent(ch chan<- core.TxPreEvent) event.Subscription {
-	return b.huc.txPool.SubscribeTxPreEvent(ch)
+func (b *LesApiBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subscription {
+	return b.huc.txPool.SubscribeNewTxsEvent(ch)
 }
 
 func (b *LesApiBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription {

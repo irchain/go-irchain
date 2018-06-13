@@ -18,7 +18,6 @@ package core
 
 import (
 	"container/list"
-	"fmt"
 
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/event"
@@ -77,18 +76,11 @@ func (tm *TestManager) Db() hucdb.Database {
 }
 
 func NewTestManager() *TestManager {
-	db, err := hucdb.NewMemDatabase()
-	if err != nil {
-		fmt.Println("Could not create mem-db, failing")
-		return nil
-	}
-
 	testManager := &TestManager{}
 	testManager.eventMux = new(event.TypeMux)
-	testManager.db = db
+	testManager.db = hucdb.NewMemDatabase()
 	// testManager.txPool = NewTxPool(testManager)
 	// testManager.blockChain = NewBlockChain(testManager)
 	// testManager.stateManager = NewStateManager(testManager)
-
 	return testManager
 }

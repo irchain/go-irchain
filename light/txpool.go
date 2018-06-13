@@ -24,6 +24,7 @@ import (
 
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/event"
@@ -87,7 +88,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewEIP155Signer(config.ChainId),
+		signer:      types.NewEIP155Signer(config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),
@@ -182,9 +183,8 @@ func (pool *TxPool) checkMinedTxs(ctx context.Context, hash common.Hash, number 
 		if _, err := GetBlockReceipts(ctx, pool.odr, hash, number); err != nil { // ODR caches, ignore results
 			return err
 		}
-		if err := core.WriteTxLookupEntries(pool.chainDb, block); err != nil {
-			return err
-		}
+		rawdb.WriteTxLookupEntries(pool.chainDb, block)
+
 		// Update the transaction pool's state
 		for _, tx := range list {
 			delete(pool.pending, tx.Hash())
@@ -201,7 +201,7 @@ func (pool *TxPool) rollbackTxs(hash common.Hash, txc txStateChanges) {
 	if list, ok := pool.mined[hash]; ok {
 		for _, tx := range list {
 			txHash := tx.Hash()
-			core.DeleteTxLookupEntry(pool.chainDb, txHash)
+			rawdb.DeleteTxLookupEntry(pool.chainDb, txHash)
 			pool.pending[txHash] = tx
 			txc.setState(txHash, false)
 		}
@@ -257,7 +257,7 @@ func (pool *TxPool) reorgOnNewHead(ctx context.Context, newHeader *types.Header)
 		idx2 := idx - txPermanent
 		if len(pool.mined) > 0 {
 			for i := pool.clearIdx; i < idx2; i++ {
-				hash := core.GetCanonicalHash(pool.chainDb, i)
+				hash := rawdb.ReadCanonicalHash(pool.chainDb, i)
 				if list, ok := pool.mined[hash]; ok {
 					hashes := make([]common.Hash, len(list))
 					for i, tx := range list {
@@ -319,9 +319,9 @@ func (pool *TxPool) Stop() {
 	log.Info("Transaction pool stopped")
 }
 
-// SubscribeTxPreEvent registers a subscription of core.TxPreEvent and
+// SubscribeNewTxsEvent registers a subscription of core.NewTxsEvent and
 // starts sending event to the given channel.
-func (pool *TxPool) SubscribeTxPreEvent(ch chan<- core.TxPreEvent) event.Subscription {
+func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.Subscription {
 	return pool.scope.Track(pool.txFeed.Subscribe(ch))
 }
 
@@ -382,21 +382,26 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInsufficientValues
 	}
 
-	// Creating contract need to store a certain amount of hucer
-	if contractCreation && val.Cmp(core.TxContractCreationDeposit) < 0 {
-		return core.ErrContractCreation
-	}
+	// // Creating contract need to store a certain amount of hucer
+	// if contractCreation && val.Cmp(core.TxContractCreationDeposit) < 0 {
+	// 	return core.ErrContractCreation
+	// }
 
 	// Transaction value should have enough funds to cover the fees,
 	// fees == gasPrice * gasLimit
 	var assert *big.Int
-	if len(tx.Data()) == 0 || contractCreation {
+	if len(tx.Data()) == 0 {
 		assert = tx.Value()
+		err = core.ErrInsufficientFees
+	} else if contractCreation {
+		assert = currentState.GetBalance(from)
+		err = core.ErrInsufficientFeesByBalance
 	} else {
 		assert = currentState.GetBalance(*tx.To())
+		err = core.ErrInsufficientFeesByContract
 	}
 	if assert.Cmp(tx.Fee()) < 0 {
-		return core.ErrInsufficientFees
+		return err
 	}
 
 	return currentState.Error()
@@ -428,7 +433,7 @@ func (self *TxPool) add(ctx context.Context, tx *types.Transaction) error {
 		// Notify the subscribers. This event is posted in a goroutine
 		// because it's possible that somewhere during the post "Remove transaction"
 		// gets called which will then wait for the global tx pool lock and deadlock.
-		go self.txFeed.Send(core.TxPreEvent{Tx: tx})
+		go self.txFeed.Send(core.NewTxsEvent{Txs: types.Transactions{tx}})
 	}
 
 	// Print a log message if low enough level is set

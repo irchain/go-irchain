@@ -41,7 +41,7 @@ type ServiceContext struct {
 // node is an ephemeral one, a memory database is returned.
 func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int) (hucdb.Database, error) {
 	if ctx.config.DataDir == "" {
-		return hucdb.NewMemDatabase()
+		return hucdb.NewMemDatabase(), nil
 	}
 	db, err := hucdb.NewLDBDatabase(ctx.config.resolvePath(name), cache, handles)
 	if err != nil {

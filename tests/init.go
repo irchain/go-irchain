@@ -23,17 +23,17 @@ import (
 	"github.com/happyuc-project/happyuc-go/params"
 )
 
-// This table defines supported forks and their chain config.
+// Forks table defines supported forks and their chain config.
 var Forks = map[string]*params.ChainConfig{
 	"Frontier": {
-		ChainId: big.NewInt(1),
+		ChainID: big.NewInt(1),
 	},
 	"Byzantium": {
-		ChainId: big.NewInt(1),
+		ChainID: big.NewInt(1),
 		ByzantiumBlock: big.NewInt(0),
 	},
 	"FrontierToByzantiumAt5": {
-		ChainId: big.NewInt(1),
+		ChainID: big.NewInt(1),
 		ByzantiumBlock: big.NewInt(5),
 	},
 }

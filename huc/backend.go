@@ -48,6 +48,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rlp"
 	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 )
 
 type LesServer interface {
@@ -64,7 +65,6 @@ type HappyUC struct {
 
 	// Channel for shutting down the service
 	shutdownChan  chan bool    // Channel for shutting down the happyuc
-	stopDbUpgrade func() error // stop chain db sequential key upgrade
 
 	// Handlers
 	txPool          *core.TxPool
@@ -112,7 +112,6 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	if err != nil {
 		return nil, err
 	}
-	stopDbUpgrade := upgradeDeduplicateData(chainDb)
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
@@ -127,7 +126,6 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 		accountManager: ctx.AccountManager,
 		engine:         CreateConsensusEngine(ctx, &config.Huchash, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
-		stopDbUpgrade:  stopDbUpgrade,
 		networkId:      config.NetworkId,
 		gasPrice:       config.GasPrice,
 		coinbase:       config.Coinbase,
@@ -138,11 +136,11 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	log.Info("Initialising HappyUC protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
 	if !config.SkipBcVersionCheck {
-		bcVersion := core.GetBlockChainVersion(chainDb)
+		bcVersion := rawdb.ReadDatabaseVersion(chainDb)
 		if bcVersion != core.BlockChainVersion && bcVersion != 0 {
-			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run ghuc upgradedb.\n", bcVersion, core.BlockChainVersion)
+			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run geth upgradedb.\n", bcVersion, core.BlockChainVersion)
 		}
-		core.WriteBlockChainVersion(chainDb, core.BlockChainVersion)
+		rawdb.WriteDatabaseVersion(chainDb, core.BlockChainVersion)
 	}
 	var (
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
@@ -156,7 +154,7 @@ func New(ctx *node.ServiceContext, config *Config) (*HappyUC, error) {
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
 		huc.blockchain.SetHead(compat.RewindTo)
-		core.WriteChainConfig(chainDb, genesisHash, chainConfig)
+		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 	huc.bloomIndexer.Start(huc.blockchain)
 
@@ -411,9 +409,6 @@ func (huc *HappyUC) Start(srvr *p2p.Server) error {
 // Stop implements node.Service, terminating all internal goroutines used by the
 // HappyUC protocol.
 func (huc *HappyUC) Stop() error {
-	if huc.stopDbUpgrade != nil {
-		huc.stopDbUpgrade()
-	}
 	huc.bloomIndexer.Close()
 	huc.blockchain.Stop()
 	huc.protocolManager.Stop()

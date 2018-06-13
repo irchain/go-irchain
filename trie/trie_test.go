@@ -38,13 +38,11 @@ import (
 
 func init() {
 	spew.Config.Indent = "    "
-	spew.Config.DisableMhucods = false
 }
 
 // Used for testing
 func newEmpty() *Trie {
-	diskdb, _ := hucdb.NewMemDatabase()
-	trie, _ := New(common.Hash{}, NewDatabase(diskdb))
+	trie, _ := New(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()))
 	return trie
 }
 
@@ -68,8 +66,7 @@ func TestNull(t *testing.T) {
 }
 
 func TestMissingRoot(t *testing.T) {
-	diskdb, _ := hucdb.NewMemDatabase()
-	trie, err := New(common.HexToHash("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"), NewDatabase(diskdb))
+	trie, err := New(common.HexToHash("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"), NewDatabase(hucdb.NewMemDatabase()))
 	if trie != nil {
 		t.Error("New returned non-nil trie for invalid root")
 	}
@@ -82,7 +79,7 @@ func TestMissingNodeDisk(t *testing.T)    { testMissingNode(t, false) }
 func TestMissingNodeMemonly(t *testing.T) { testMissingNode(t, true) }
 
 func testMissingNode(t *testing.T, memonly bool) {
-	diskdb, _ := hucdb.NewMemDatabase()
+	diskdb := hucdb.NewMemDatabase()
 	triedb := NewDatabase(diskdb)
 
 	trie, _ := New(common.Hash{}, triedb)
@@ -413,8 +410,7 @@ func (randTest) Generate(r *rand.Rand, size int) reflect.Value {
 }
 
 func runRandTest(rt randTest) bool {
-	diskdb, _ := hucdb.NewMemDatabase()
-	triedb := NewDatabase(diskdb)
+	triedb := NewDatabase(hucdb.NewMemDatabase())
 
 	tr, _ := New(common.Hash{}, triedb)
 	values := make(map[string]string) // tracks content of the trie

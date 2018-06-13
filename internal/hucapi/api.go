@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/happyuc-project/happyuc-go/accounts"
 	"github.com/happyuc-project/happyuc-go/accounts/keystore"
 	"github.com/happyuc-project/happyuc-go/common"
@@ -32,6 +33,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/crypto"
@@ -60,8 +62,9 @@ func NewPublicHappyUCAPI(b Backend) *PublicHappyUCAPI {
 }
 
 // GasPrice returns a suggestion for a gas price.
-func (s *PublicHappyUCAPI) GasPrice(ctx context.Context) (*big.Int, error) {
-	return s.b.SuggestPrice(ctx)
+func (s *PublicHappyUCAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) {
+	price, err := s.b.SuggestPrice(ctx)
+	return (*hexutil.Big)(price), err
 }
 
 // ProtocolVersion returns the current HappyUC protocol version this node supports
@@ -351,7 +354,7 @@ func (s *PrivateAccountAPI) signTransaction(ctx context.Context, args SendTxArgs
 	tx := args.toTransaction()
 
 	// TODO Sign Serenity Tx
-	var chainID = s.b.ChainConfig().ChainId
+	var chainID = s.b.ChainConfig().ChainID
 	return wallet.SignTxWithPassphrase(account, passwd, tx, chainID)
 }
 
@@ -483,21 +486,20 @@ func NewPublicBlockChainAPI(b Backend) *PublicBlockChainAPI {
 }
 
 // BlockNumber returns the block number of the chain head.
-func (s *PublicBlockChainAPI) BlockNumber() *big.Int {
+func (s *PublicBlockChainAPI) BlockNumber() hexutil.Uint64 {
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
-	return header.Number
+	return hexutil.Uint64(header.Number.Uint64())
 }
 
 // GetBalance returns the amount of wei for the given address in the state of the
 // given block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta
 // block numbers are also allowed.
-func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (*big.Int, error) {
+func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (*hexutil.Big, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	b := state.GetBalance(address)
-	return b, state.Error()
+	return (*hexutil.Big)(state.GetBalance(address)), state.Error()
 }
 
 // GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
@@ -789,10 +791,10 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 	return formatted
 }
 
-// rpcOutputBlock converts the given block to the RPC output which depends on fullTx. If inclTx is true transactions are
+// RPCMarshalBlock converts the given block to the RPC output which depends on fullTx. If inclTx is true transactions are
 // returned. When fullTx is true the returned block contains full transaction details, otherwise it will only contain
 // transaction hashes.
-func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
+func RPCMarshalBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
 	head := b.Header() // copies the header once
 	fields := map[string]interface{}{
 		"number":           (*hexutil.Big)(head.Number),
@@ -805,7 +807,6 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 		"stateRoot":        head.Root,
 		"miner":            head.Coinbase,
 		"difficulty":       (*hexutil.Big)(head.Difficulty),
-		"totalDifficulty":  (*hexutil.Big)(s.b.GetTd(b.Hash())),
 		"extraData":        hexutil.Bytes(head.Extra),
 		"size":             hexutil.Uint64(b.Size()),
 		"gasLimit":         hexutil.Uint64(head.GasLimit),
@@ -819,17 +820,15 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 		formatTx := func(tx *types.Transaction) (interface{}, error) {
 			return tx.Hash(), nil
 		}
-
 		if fullTx {
 			formatTx = func(tx *types.Transaction) (interface{}, error) {
 				return newRPCTransactionFromBlockHash(b, tx.Hash()), nil
 			}
 		}
-
 		txs := b.Transactions()
 		transactions := make([]interface{}, len(txs))
 		var err error
-		for i, tx := range b.Transactions() {
+		for i, tx := range txs {
 			if transactions[i], err = formatTx(tx); err != nil {
 				return nil, err
 			}
@@ -845,6 +844,17 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 	fields["uncles"] = uncleHashes
 
 	return fields, nil
+}
+
+// rpcOutputBlock uses the generalized output filler, then adds the total difficulty field, which requires
+// a `PublicBlockchainAPI`.
+func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]interface{}, error) {
+	fields, err := RPCMarshalBlock(b, inclTx, fullTx)
+	if err != nil {
+		return nil, err
+	}
+	fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(b.Hash()))
+	return fields, err
 }
 
 // RPCTransaction represents a transaction that will serialize to the RPC representation of a transaction
@@ -1004,7 +1014,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionCount(ctx context.Context, addr
 // GetTransactionByHash returns the transaction for the given hash
 func (s *PublicTransactionPoolAPI) GetTransactionByHash(ctx context.Context, hash common.Hash) *RPCTransaction {
 	// Try to return an already finalized transaction
-	if tx, blockHash, blockNumber, index := core.GetTransaction(s.b.ChainDb(), hash); tx != nil {
+	if tx, blockHash, blockNumber, index := rawdb.ReadTransaction(s.b.ChainDb(), hash); tx != nil {
 		return newRPCTransaction(tx, blockHash, blockNumber, index)
 	}
 	// No finalized transaction, try to retrieve it from the pool
@@ -1020,7 +1030,7 @@ func (s *PublicTransactionPoolAPI) GetRawTransactionByHash(ctx context.Context, 
 	var tx *types.Transaction
 
 	// Retrieve a finalized transaction, or a pooled otherwise
-	if tx, _, _, _ = core.GetTransaction(s.b.ChainDb(), hash); tx == nil {
+	if tx, _, _, _ = rawdb.ReadTransaction(s.b.ChainDb(), hash); tx == nil {
 		if tx = s.b.GetPoolTransaction(hash); tx == nil {
 			// Transaction not found anywhere, abort
 			return nil, nil
@@ -1032,7 +1042,7 @@ func (s *PublicTransactionPoolAPI) GetRawTransactionByHash(ctx context.Context, 
 
 // GetTransactionReceipt returns the transaction receipt for the given transaction hash.
 func (s *PublicTransactionPoolAPI) GetTransactionReceipt(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
-	tx, blockHash, blockNumber, index := core.GetTransaction(s.b.ChainDb(), hash)
+	tx, blockHash, blockNumber, index := rawdb.ReadTransaction(s.b.ChainDb(), hash)
 	if tx == nil {
 		return nil, nil
 	}
@@ -1092,7 +1102,7 @@ func (s *PublicTransactionPoolAPI) sign(addr common.Address, tx *types.Transacti
 	}
 	// Request the wallet to sign the transaction
 	// TODO Serenity Sign
-	var chainID = s.b.ChainConfig().ChainId
+	var chainID = s.b.ChainConfig().ChainID
 	return wallet.SignTx(account, tx, chainID)
 }
 
@@ -1209,7 +1219,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	tx := args.toTransaction()
 
 	// TODO Send Serenity Tx
-	var chainID = s.b.ChainConfig().ChainId
+	var chainID = s.b.ChainConfig().ChainID
 	signed, err := wallet.SignTx(account, tx, chainID)
 	if err != nil {
 		return common.Hash{}, err
@@ -1331,10 +1341,10 @@ func (s *PublicTransactionPoolAPI) Resend(ctx context.Context, sendArgs SendTxAr
 
 		if pFrom, err := types.Sender(signer, p); err == nil && pFrom == sendArgs.From && signer.Hash(p) == wantSigHash {
 			// Match. Re-sign and send the transaction.
-			if gasPrice != nil {
+			if gasPrice != nil && (*big.Int)(gasPrice).Sign() != 0 {
 				sendArgs.GasPrice = gasPrice
 			}
-			if gasLimit != nil {
+			if gasLimit != nil && *gasLimit != 0 {
 				sendArgs.Gas = gasLimit
 			}
 			signedTx, err := s.sign(sendArgs.From, sendArgs.toTransaction())
@@ -1382,7 +1392,7 @@ func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (strin
 	if block == nil {
 		return "", fmt.Errorf("block #%d not found", number)
 	}
-	return block.String(), nil
+	return spew.Sdump(block), nil
 }
 
 // SeedHash retrieves the seed hash of a block.

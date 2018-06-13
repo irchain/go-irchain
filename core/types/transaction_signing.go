@@ -39,7 +39,7 @@ type sigCache struct {
 // MakeSigner returns a Signer based on the given chain config and block number.
 func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 	// TODO Make Serenity Signer
-	return NewEIP155Signer(config.ChainId)
+	return NewEIP155Signer(config.ChainID)
 }
 
 // SignTx signs the transaction using the given signer and private key

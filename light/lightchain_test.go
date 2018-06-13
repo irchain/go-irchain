@@ -24,6 +24,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
@@ -51,7 +52,7 @@ func makeHeaderChain(parent *types.Header, n int, db hucdb.Database, seed int) [
 // chain. Depending on the full flag, if creates either a full block chain or a
 // header only chain.
 func newCanonical(n int) (hucdb.Database, *LightChain, error) {
-	db, _ := hucdb.NewMemDatabase()
+	db := hucdb.NewMemDatabase()
 	gspec := core.Genesis{Config: params.TestChainConfig}
 	genesis := gspec.MustCommit(db)
 	blockchain, _ := NewLightChain(&dummyOdr{db: db}, gspec.Config, huchash.NewFaker())
@@ -68,7 +69,7 @@ func newCanonical(n int) (hucdb.Database, *LightChain, error) {
 
 // newTestLightChain creates a LightChain that doesn't validate anything.
 func newTestLightChain() *LightChain {
-	db, _ := hucdb.NewMemDatabase()
+	db := hucdb.NewMemDatabase()
 	gspec := &core.Genesis{
 		Difficulty: big.NewInt(1),
 		Config:     params.TestChainConfig,
@@ -122,8 +123,8 @@ func testHeaderChainImport(chain []*types.Header, lightchain *LightChain) error 
 		}
 		// Manually insert the header into the database, but don't reorganize (allows subsequent testing)
 		lightchain.mu.Lock()
-		core.WriteTd(lightchain.chainDb, header.Hash(), header.Number.Uint64(), new(big.Int).Add(header.Difficulty, lightchain.GetTdByHash(header.ParentHash)))
-		core.WriteHeader(lightchain.chainDb, header)
+		rawdb.WriteTd(lightchain.chainDb, header.Hash(), header.Number.Uint64(), new(big.Int).Add(header.Difficulty, lightchain.GetTdByHash(header.ParentHash)))
+		rawdb.WriteHeader(lightchain.chainDb, header)
 		lightchain.mu.Unlock()
 	}
 	return nil
