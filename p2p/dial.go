@@ -306,8 +306,7 @@ func (t *dialTask) Do(srv *Server) {
 	}
 }
 
-// resolve attempts to find the current endpoint for the destination
-// using discovery.
+// resolve attempts to find the current endpoint for the destination using discovery.
 //
 // Resolve operations are throttled with backoff to avoid flooding the
 // discovery network with useless queries for nodes that don't exist.

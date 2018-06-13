@@ -24,11 +24,11 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/fjl/memsize/memsizeui"
 	"github.com/happyuc-project/happyuc-go/log"
 	"github.com/happyuc-project/happyuc-go/log/term"
 	"github.com/happyuc-project/happyuc-go/metrics"
 	"github.com/happyuc-project/happyuc-go/metrics/exp"
-	"github.com/fjl/memsize/memsizeui"
 	colorable "github.com/mattn/go-colorable"
 	"gopkg.in/urfave/cli.v1"
 )

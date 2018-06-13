@@ -29,11 +29,11 @@ var Forks = map[string]*params.ChainConfig{
 		ChainID: big.NewInt(1),
 	},
 	"Byzantium": {
-		ChainID: big.NewInt(1),
+		ChainID:        big.NewInt(1),
 		ByzantiumBlock: big.NewInt(0),
 	},
 	"FrontierToByzantiumAt5": {
-		ChainID: big.NewInt(1),
+		ChainID:        big.NewInt(1),
 		ByzantiumBlock: big.NewInt(5),
 	},
 }

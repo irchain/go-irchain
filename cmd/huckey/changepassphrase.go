@@ -10,7 +10,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-
 var newPassphraseFlag = cli.StringFlag{
 	Name:  "newpasswordfile",
 	Usage: "the file that contains the new passphrase for the keyfile",

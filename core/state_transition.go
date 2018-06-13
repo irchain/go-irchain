@@ -158,7 +158,7 @@ func (st *StateTransition) useGas(amount uint64) error {
 func (st *StateTransition) buyGas() error {
 	var (
 		assert *big.Int
-		err error
+		err    error
 	)
 	if len(st.data) == 0 {
 		assert = st.value

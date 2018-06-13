@@ -27,11 +27,11 @@ import (
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/consensus"
+	"github.com/happyuc-project/happyuc-go/consensus/misc"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/params"
 	"gopkg.in/fatih/set.v0"
-	"github.com/happyuc-project/happyuc-go/consensus/misc"
 )
 
 // Huchash proof-of-work protocol constants.

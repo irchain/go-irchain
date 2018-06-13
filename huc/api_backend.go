@@ -25,6 +25,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/common/math"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/state"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
@@ -34,7 +35,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rpc"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
 )
 
 // HucApiBackend implements hucapi.Backend for full nodes

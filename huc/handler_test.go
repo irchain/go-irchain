@@ -17,10 +17,6 @@
 package huc
 
 import (
-	"math"
-	"math/big"
-	"math/rand"
-	"testing"
 	"github.com/happyuc-project/happyuc-go/common"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/state"
@@ -30,6 +26,10 @@ import (
 	"github.com/happyuc-project/happyuc-go/hucdb"
 	"github.com/happyuc-project/happyuc-go/p2p"
 	"github.com/happyuc-project/happyuc-go/params"
+	"math"
+	"math/big"
+	"math/rand"
+	"testing"
 )
 
 // Tests that protocol versions and modes of operations are matched up properly.

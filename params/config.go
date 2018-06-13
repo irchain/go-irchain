@@ -102,7 +102,7 @@ var (
 // that any network, identified by its genesis block, can have its own
 // set of configuration options.
 type ChainConfig struct {
-	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
+	ChainID             *big.Int `json:"chainId"`                       // chainId identifies the current chain and is used for replay protection
 	ByzantiumBlock      *big.Int `json:"byzantiumBlock,omitempty"`      // Byzantium switch block (nil = no fork, 0 = already on byzantium)
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated )
 

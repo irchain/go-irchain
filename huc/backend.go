@@ -33,6 +33,7 @@ import (
 	"github.com/happyuc-project/happyuc-go/consensus/huchash"
 	"github.com/happyuc-project/happyuc-go/core"
 	"github.com/happyuc-project/happyuc-go/core/bloombits"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
 	"github.com/happyuc-project/happyuc-go/core/types"
 	"github.com/happyuc-project/happyuc-go/core/vm"
 	"github.com/happyuc-project/happyuc-go/event"
@@ -48,7 +49,6 @@ import (
 	"github.com/happyuc-project/happyuc-go/params"
 	"github.com/happyuc-project/happyuc-go/rlp"
 	"github.com/happyuc-project/happyuc-go/rpc"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
 )
 
 type LesServer interface {
@@ -64,7 +64,7 @@ type HappyUC struct {
 	chainConfig *params.ChainConfig
 
 	// Channel for shutting down the service
-	shutdownChan  chan bool    // Channel for shutting down the happyuc
+	shutdownChan chan bool // Channel for shutting down the happyuc
 
 	// Handlers
 	txPool          *core.TxPool
