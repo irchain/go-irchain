@@ -34,7 +34,7 @@ var (
 	MainnetChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(1),
 		ByzantiumBlock:      big.NewInt(0),
-		ConstantinopleBlock: big.NewInt(0),
+		ConstantinopleBlock: nil,
 		Huchash:             new(HuchashConfig),
 	}
 
@@ -42,7 +42,7 @@ var (
 	TestnetChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(3),
 		ByzantiumBlock:      big.NewInt(0),
-		ConstantinopleBlock: big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(10),
 		Huchash:             new(HuchashConfig),
 	}
 
@@ -50,7 +50,7 @@ var (
 	RinkebyChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(4),
 		ByzantiumBlock:      big.NewInt(0),
-		ConstantinopleBlock: big.NewInt(0),
+		ConstantinopleBlock: nil,
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
