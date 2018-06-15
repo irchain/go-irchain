@@ -165,7 +165,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, to, value, gas)
+	contract := NewContract(caller, to, value, gas, false)
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))
 
 	start := time.Now()
@@ -220,7 +220,7 @@ func (evm *EVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 	// initialise a new contract and set the code that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	contract := NewContract(caller, to, value, gas)
+	contract := NewContract(caller, to, value, gas, false)
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))
 
 	ret, err = run(evm, contract, input)
@@ -253,7 +253,7 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 	)
 
 	// Initialise a new contract and make initialise the delegate values
-	contract := NewContract(caller, to, nil, gas).AsDelegate()
+	contract := NewContract(caller, to, nil, gas, false).AsDelegate()
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))
 
 	ret, err = run(evm, contract, input)
@@ -293,7 +293,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	// Initialise a new contract and set the code that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	contract := NewContract(caller, to, new(big.Int), gas)
+	contract := NewContract(caller, to, new(big.Int), gas, false)
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr), evm.StateDB.GetCode(addr))
 
 	// When an error was returned by the EVM or when setting the creation code
@@ -337,7 +337,7 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 	// initialise a new contract and set the code that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	contract := NewContract(caller, AccountRef(contractAddr), value, gas)
+	contract := NewContract(caller, AccountRef(contractAddr), value, gas, true)
 	contract.SetCallCode(&contractAddr, crypto.Keccak256Hash(code), code)
 
 	if evm.vmConfig.NoRecursion && evm.depth > 0 {

@@ -486,7 +486,7 @@ func (self *worker) commitNewWork() {
 		panic(false)
 	}
 
-	log.Trace("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
+	log.Info("Commit new mining work", "number", work.Block.Number(), "txs num", work.tcount, "uncles", len(uncles))
 	self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	self.push(work)
 	self.updateSnapshot()
@@ -555,8 +555,8 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			log.Trace("Skipping transaction with low nonce", "sender", from, "nonce", tx.Nonce())
 			txs.Shift()
 		case core.ErrNonceTooHigh:
-			// Reorg notification data race between the transaction pool and miner, skip account =
-			log.Trace("Skipping account with hight nonce", "sender", from, "nonce", tx.Nonce())
+			// Reorg notification data race between the transaction pool and miner, skip account
+			log.Trace("Skipping account with high nonce", "sender", from, "nonce", tx.Nonce())
 			txs.Pop()
 		case nil:
 			// Everything ok, collect the logs and shift in the next transaction from the same account
