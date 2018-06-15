@@ -100,7 +100,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 	in.returnData = nil
 
 	// Don't bother with the execution if there's no code.
-	if len(contract.Code) == 0 {
+	if len(contract.Code) == 0 || len(input) == 0 && !contract.creation {
 		return nil, nil
 	}
 

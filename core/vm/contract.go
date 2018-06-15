@@ -55,18 +55,17 @@ type Contract struct {
 	CodeHash common.Hash
 	CodeAddr *common.Address
 	Input    []byte
-
-	Gas   uint64
-	value *big.Int
-
-	Args []byte
+	Gas      uint64
+	value    *big.Int
+	Args     []byte
 
 	DelegateCall bool
+	creation     bool
 }
 
 // NewContract returns a new contract environment for the execution of EVM.
-func NewContract(caller ContractRef, object ContractRef, value *big.Int, gas uint64) *Contract {
-	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil}
+func NewContract(caller ContractRef, object ContractRef, value *big.Int, gas uint64, creation bool) *Contract {
+	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object, Args: nil, creation: creation}
 
 	if parent, ok := caller.(*Contract); ok {
 		// Reuse JUMPDEST analysis from parent context if available.
