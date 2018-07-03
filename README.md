@@ -7,7 +7,7 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 )](https://godoc.org/github.com/happyuc-project/happyuc-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/happyuc-project/happyuc-go)](https://goreportcard.com/report/github.com/happyuc-project/happyuc-go)
 [![Travis](https://travis-ci.org/happyuc-project/happyuc-go.svg?branch=master)](https://travis-ci.org/happyuc-project/happyuc-go)
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/happyuc-project/happyuc-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/happy-uc/happyuc-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Automated builds are available for stable releases and the unstable master branch.
 Binary archives are published at https://www.happyuc.org/downloads/.
