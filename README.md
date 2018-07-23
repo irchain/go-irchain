@@ -1,21 +1,21 @@
-## Go HappyUC
+## Go IrChain
 
-Official golang implementation of the HappyUC protocol.
+Official golang implementation of the IrChain protocol.
 
 [![API Reference](
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
-)](https://godoc.org/github.com/happyuc-project/happyuc-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/happyuc-project/happyuc-go)](https://goreportcard.com/report/github.com/happyuc-project/happyuc-go)
+)](https://godoc.org/github.com/irchian/go-irchain)
+[![Go Report Card](https://goreportcard.com/badge/github.com/irchian/go-irchain)](https://goreportcard.com/report/github.com/irchian/go-irchain)
 [![Travis](https://travis-ci.org/happyuc-project/happyuc-go.svg?branch=master)](https://travis-ci.org/happyuc-project/happyuc-go)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/happy-uc/happyuc-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Automated builds are available for stable releases and the unstable master branch.
-Binary archives are published at https://www.happyuc.org/downloads/.
+Binary archives are published at https://www.happyuc.org/.
 
 ## Building the source
 
 For prerequisites and detailed build instructions please read the
-[Installation Instructions](https://github.com/happyuc-project/happyuc-go/wiki/Building-HappyUC)
+[Installation Instructions](https://github.com/irchian/go-irchain/wiki/Building-IrChain)
 on the wiki.
 
 Building ghuc requires both a Go (version 1.7 or later) and a C compiler.
@@ -34,25 +34,25 @@ The happyuc-go project comes with several wrappers/executables found in the `cmd
 
 | Command    | Description |
 |:----------:|-------------|
-| **`ghuc`** | Our main HappyUC CLI client. It is the entry point into the HappyUC network (main-, test- or private net), capable of running as a full node (default) archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the HappyUC network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. `ghuc --help` and the [CLI Wiki page](https://github.com/happyuc-project/happyuc-go/wiki/Command-Line-Options) for command line options. |
-| `abigen` | Source code generator to convert HappyUC contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [HappyUC contract ABIs](https://github.com/happyuc-project/wiki/wiki/HappyUC-Contract-ABI) with expanded functionality if the contract bytecode is also available. However it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://github.com/happyuc-project/happyuc-go/wiki/Native-DApps:-Go-bindings-to-HappyUC-contracts) wiki page for details. |
-| `bootnode` | Stripped down version of our HappyUC client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks. |
-| `evm` | Developer utility version of the EVM (HappyUC Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of EVM opcodes (e.g. `evm --code 60ff60ff --debug`). |
-| `ghucrpctest` | Developer utility tool to support our [happyuc/rpc-test](https://github.com/happyuc-project/rpc-tests) test suite which validates baseline conformity to the [HappyUC JSON RPC](https://github.com/happyuc-project/wiki/wiki/JSON-RPC) specs. Please see the [test suite's readme](https://github.com/happyuc-project/rpc-tests/blob/master/README.md) for details. |
-| `rlpdump` | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://github.com/happyuc-project/wiki/wiki/RLP)) dumps (data encoding used by the HappyUC protocol both network as well as consensus wise) to user friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`). |
+| **`ghuc`** | Our main IrChain CLI client. It is the entry point into the IrChain network (main-, test- or private net), capable of running as a full node (default) archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the IrChain network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. `ghuc --help` and the [CLI Wiki page](https://github.com/irchian/go-irchain/wiki/Command-Line-Options) for command line options. |
+| `abigen` | Source code generator to convert IrChain contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [IrChain contract ABIs](https://github.com/happyuc-project/wiki/wiki/IrChain-Contract-ABI) with expanded functionality if the contract bytecode is also available. However it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://github.com/irchian/go-irchain/wiki/Native-DApps:-Go-bindings-to-IrChain-contracts) wiki page for details. |
+| `bootnode` | Stripped down version of our IrChain client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks. |
+| `evm` | Developer utility version of the EVM (IrChain Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of EVM opcodes (e.g. `evm --code 60ff60ff --debug`). |
+| `ghucrpctest` | Developer utility tool to support our [happyuc/rpc-test](https://github.com/happyuc-project/rpc-tests) test suite which validates baseline conformity to the [IrChain JSON RPC](https://github.com/happyuc-project/wiki/wiki/JSON-RPC) specs. Please see the [test suite's readme](https://github.com/happyuc-project/rpc-tests/blob/master/README.md) for details. |
+| `rlpdump` | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://github.com/happyuc-project/wiki/wiki/RLP)) dumps (data encoding used by the IrChain protocol both network as well as consensus wise) to user friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`). |
 | `swarm`    | swarm daemon and tools. This is the entrypoint for the swarm network. `swarm --help` for command line options and subcommands. See https://swarm-guide.readthedocs.io for swarm documentation. |
-| `puppeth`    | a CLI wizard that aids in creating a new HappyUC network. |
+| `puppeth`    | a CLI wizard that aids in creating a new IrChain network. |
 
 ## Running ghuc
 
 Going through all the possible command line flags is out of scope here (please consult our
-[CLI Wiki page](https://github.com/happyuc-project/happyuc-go/wiki/Command-Line-Options)), but we've
+[CLI Wiki page](https://github.com/irchian/go-irchain/wiki/Command-Line-Options)), but we've
 enumerated a few common parameter combos to get you up to speed quickly on how you can run your
 own Ghuc instance.
 
-### Full node on the main HappyUC network
+### Full node on the main IrChain network
 
-By far the most common scenario is people wanting to simply interact with the HappyUC network:
+By far the most common scenario is people wanting to simply interact with the IrChain network:
 create accounts; transfer funds; deploy and interact with contracts. For this particular use-case
 the user doesn't care about years-old historical data, so we can fast-sync quickly to the current
 state of the network. To do so:
@@ -64,17 +64,17 @@ $ ghuc console
 This command will:
 
  * Start ghuc in fast sync mode (default, can be changed with the `--syncmode` flag), causing it to
-   download more data in exchange for avoiding processing the entire history of the HappyUC network,
+   download more data in exchange for avoiding processing the entire history of the IrChain network,
    which is very CPU intensive.
- * Start up Ghuc's built-in interactive [JavaScript console](https://github.com/happyuc-project/happyuc-go/wiki/JavaScript-Console),
+ * Start up Ghuc's built-in interactive [JavaScript console](https://github.com/irchian/go-irchain/wiki/JavaScript-Console),
    (via the trailing `console` subcommand) through which you can invoke all official [`webu` methods](https://github.com/happyuc-project/wiki/wiki/JavaScript-API)
-   as well as Ghuc's own [management APIs](https://github.com/happyuc-project/happyuc-go/wiki/Management-APIs).
+   as well as Ghuc's own [management APIs](https://github.com/irchian/go-irchain/wiki/Management-APIs).
    This too is optional and if you leave it out you can always attach to an already running Ghuc instance
    with `ghuc attach`.
 
-### Full node on the HappyUC test network
+### Full node on the IrChain test network
 
-Transitioning towards developers, if you'd like to play around with creating HappyUC contracts, you
+Transitioning towards developers, if you'd like to play around with creating IrChain contracts, you
 almost certainly would like to do that without any real money involved until you get the hang of the
 entire system. In other words, instead of attaching to the main network, you want to join the **test**
 network with your node, which is fully equivalent to the main network, but with play-Ether only.
@@ -103,7 +103,7 @@ separate the two networks and will not make any accounts available between them.
 
 ### Full node on the Rinkeby test network
 
-The above test network is a cross client one based on the huchash proof-of-work consensus algorithm. As such, it has certain extra overhead and is more susceptible to reorganization attacks due to the network's low difficulty / security. Go HappyUC also supports connecting to a proof-of-authority based test network called [*Rinkeby*](https://www.rinkeby.io) (operated by members of the community). This network is lighter, more secure, but is only supported by happyuc-go.
+The above test network is a cross client one based on the huchash proof-of-work consensus algorithm. As such, it has certain extra overhead and is more susceptible to reorganization attacks due to the network's low difficulty / security. Go HappyUC also supports connecting to a proof-of-authority based test network called [*Rinkeby*](https://www.rinkeby.io) (operated by members of the community). This network is lighter, more secure, but is only supported by go-irchain.
 
 ```
 $ ghuc --rinkeby console
@@ -130,9 +130,9 @@ $ ghuc --your-favourite-flags dumpconfig
 One of the quickest ways to get HappyUC up and running on your machine is by using Docker:
 
 ```
-docker run -d --name happyuc-node -v /Users/alice/happyuc:/root \
+docker run -d --name irchain-node -v /Users/alice/irchain:/root \
            -p 8545:8545 -p 50505:50505 \
-           happyuc/client-go
+           irchain/client-go
 ```
 
 This will start ghuc in fast-sync mode with a DB memory allowance of 1GB just as the above command does.  It will also create a persistent volume in your home directory for saving your blockchain as well as map the default ports. There is also an `alpine` tag available for a slim version of the image.
@@ -144,7 +144,7 @@ Do not forget `--rpcaddr 0.0.0.0`, if you want to access RPC from other containe
 As a developer, sooner rather than later you'll want to start interacting with Ghuc and the HappyUC
 network via your own programs and not manually through the console. To aid this, Ghuc has built-in
 support for a JSON-RPC based APIs ([standard APIs](https://github.com/happyuc-project/wiki/wiki/JSON-RPC) and
-[Ghuc specific APIs](https://github.com/happyuc-project/happyuc-go/wiki/Management-APIs)). These can be
+[Ghuc specific APIs](https://github.com/irchian/go-irchain/wiki/Management-APIs)). These can be
 exposed via HTTP, WebSockets and IPC (unix sockets on unix based platforms, and named pipes on Windows).
 
 The IPC interface is enabled by default and exposes all the APIs supported by Ghuc, whereas the HTTP
@@ -297,7 +297,7 @@ Please make sure your contributions adhere to our coding guidelines:
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "huc, rpc: make trace configs optional"
 
-Please see the [Developers' Guide](https://github.com/happyuc-project/happyuc-go/wiki/Developers'-Guide)
+Please see the [Developers' Guide](https://github.com/irchian/go-irchain/wiki/Developers'-Guide)
 for more details on configuring your environment, managing project dependencies and testing procedures.
 
 ## License
