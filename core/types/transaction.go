@@ -375,9 +375,9 @@ func (t *TransactionsByPriceAndNonce) Peek() *Transaction {
 
 // Shift replaces the current best head with the next one from the same account.
 func (t *TransactionsByPriceAndNonce) Shift() {
-	acc, _ := Sender(t.signer, t.heads[0])
-	if txs, ok := t.txs[acc]; ok && len(txs) > 0 {
-		t.heads[0], t.txs[acc] = txs[0], txs[1:]
+	sender, _ := Sender(t.signer, t.heads[0])
+	if txs, ok := t.txs[sender]; ok && len(txs) > 0 {
+		t.heads[0], t.txs[sender] = txs[0], txs[1:]
 		heap.Fix(&t.heads, 0)
 	} else {
 		heap.Pop(&t.heads)
