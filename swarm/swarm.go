@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package swarm
 
@@ -27,24 +27,24 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/contracts/chequebook"
-	"github.com/happyuc-project/happyuc-go/contracts/ens"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucclient"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/metrics"
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/rpc"
-	"github.com/happyuc-project/happyuc-go/swarm/api"
-	httpapi "github.com/happyuc-project/happyuc-go/swarm/api/http"
-	"github.com/happyuc-project/happyuc-go/swarm/fuse"
-	"github.com/happyuc-project/happyuc-go/swarm/network"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/accounts/abi/bind"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/contracts/chequebook"
+	"github.com/irchain/go-irchain/contracts/ens"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/irclient"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/metrics"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/rpc"
+	"github.com/irchain/go-irchain/swarm/api"
+	httpapi "github.com/irchain/go-irchain/swarm/api/http"
+	"github.com/irchain/go-irchain/swarm/fuse"
+	"github.com/irchain/go-irchain/swarm/network"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 var (
@@ -207,7 +207,7 @@ func newEnsClient(endpoint string, addr common.Address, config *api.Config) (*en
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to ENS API %s: %s", endpoint, err)
 	}
-	ensClient := hucclient.NewClient(client)
+	ensClient := irclient.NewClient(client)
 
 	ensRoot := config.EnsRoot
 	if addr != (common.Address{}) {
@@ -241,7 +241,7 @@ func detectEnsAddr(client *rpc.Client) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	block, err := hucclient.NewClient(client).BlockByNumber(ctx, big.NewInt(0))
+	block, err := irclient.NewClient(client).BlockByNumber(ctx, big.NewInt(0))
 	if err != nil {
 		return common.Address{}, err
 	}

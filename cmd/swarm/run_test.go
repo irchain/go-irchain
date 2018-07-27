@@ -27,13 +27,13 @@ import (
 	"time"
 
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/internal/cmdtest"
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/rpc"
-	"github.com/happyuc-project/happyuc-go/swarm"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/internal/cmdtest"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/rpc"
+	"github.com/irchain/go-irchain/swarm"
 )
 
 func init() {

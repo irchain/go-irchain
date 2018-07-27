@@ -24,9 +24,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 var (

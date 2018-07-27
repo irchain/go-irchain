@@ -27,8 +27,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/swarm/api"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/swarm/api"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 type fileInfo struct {

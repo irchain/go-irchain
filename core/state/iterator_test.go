@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.
@@ -51,7 +51,7 @@ func TestNodeIteratorCoverage(t *testing.T) {
 			t.Errorf("state entry not reported %x", hash)
 		}
 	}
-	for _, key := range db.TrieDB().DiskDB().(*hucdb.MemDatabase).Keys() {
+	for _, key := range db.TrieDB().DiskDB().(*ircdb.MemDatabase).Keys() {
 		if bytes.HasPrefix(key, []byte("secure-key-")) {
 			continue
 		}

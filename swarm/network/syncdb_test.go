@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 func init() {

@@ -1,20 +1,20 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2015 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
-// bootnode runs a bootstrap node for the HappyUC Discovery Protocol.
+// bootnode runs a bootstrap node for the IrChain Discovery Protocol.
 package main
 
 import (
@@ -24,13 +24,13 @@ import (
 	"net"
 	"os"
 
-	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/discv5"
-	"github.com/happyuc-project/happyuc-go/p2p/nat"
-	"github.com/happyuc-project/happyuc-go/p2p/netutil"
+	"github.com/irchain/go-irchain/cmd/utils"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/discv5"
+	"github.com/irchain/go-irchain/p2p/nat"
+	"github.com/irchain/go-irchain/p2p/netutil"
 )
 
 func main() {
@@ -109,7 +109,7 @@ func main() {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	if natm != nil {
 		if !realaddr.IP.IsLoopback() {
-			go nat.Map(natm, nil, "udp", realaddr.Port, realaddr.Port, "happyuc discovery")
+			go nat.Map(natm, nil, "udp", realaddr.Port, realaddr.Port, "irchain discovery")
 		}
 		// TODO: react to external IP changes over time.
 		if ext, err := natm.ExternalIP(); err == nil {

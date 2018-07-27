@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/params"
 )
 
 // Forks table defines supported forks and their chain config.

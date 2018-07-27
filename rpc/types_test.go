@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common/math"
+	"github.com/irchain/go-irchain/common/math"
 )
 
 func TestBlockNumberJSONUnmarshal(t *testing.T) {

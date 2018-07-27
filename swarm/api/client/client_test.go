@@ -25,8 +25,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/swarm/api"
-	"github.com/happyuc-project/happyuc-go/swarm/testutil"
+	"github.com/irchain/go-irchain/swarm/api"
+	"github.com/irchain/go-irchain/swarm/testutil"
 )
 
 // TestClientUploadDownloadRaw test uploading and downloading raw data to swarm

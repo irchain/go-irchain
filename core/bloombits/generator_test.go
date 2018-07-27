@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/irchain/go-irchain/core/types"
 )
 
 // Tests that batched bloom bits are correctly rotated from the input bloom

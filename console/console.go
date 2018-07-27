@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package console
 
@@ -27,9 +27,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/happyuc-project/happyuc-go/internal/jsre"
-	"github.com/happyuc-project/happyuc-go/internal/webuext"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/internal/jsre"
+	"github.com/irchain/go-irchain/internal/webuext"
+	"github.com/irchain/go-irchain/rpc"
 	"github.com/mattn/go-colorable"
 	"github.com/peterh/liner"
 	"github.com/robertkrimen/otto"
@@ -52,7 +52,7 @@ const DefaultPrompt = "> "
 type Config struct {
 	DataDir  string       // Data directory to store the console history at
 	DocRoot  string       // Filesystem path from where to load JavaScript files from
-	Client   *rpc.Client  // RPC client to execute HappyUC requests through
+	Client   *rpc.Client  // RPC client to execute IrChain requests through
 	Prompt   string       // Input prompt prefix string (defaults to DefaultPrompt)
 	Prompter UserPrompter // Input prompter to allow interactive user feedback (defaults to TerminalPrompter)
 	Printer  io.Writer    // Output writer to serialize any display strings to (defaults to os.Stdout)
@@ -63,7 +63,7 @@ type Config struct {
 // JavaScript console attached to a running node via an external or in-process RPC
 // client.
 type Console struct {
-	client   *rpc.Client  // RPC client to execute HappyUC requests through
+	client   *rpc.Client  // RPC client to execute IrChain requests through
 	jsre     *jsre.JSRE   // JavaScript runtime environment running the interpreter
 	prompt   string       // Input prompt prefix string
 	prompter UserPrompter // Input prompter to allow interactive user feedback
@@ -109,11 +109,11 @@ func New(config Config) (*Console, error) {
 func (c *Console) init(preload []string) error {
 	// Initialize the JavaScript <-> Go RPC bridge
 	bridge := newBridge(c.client, c.prompter, c.printer)
-	c.jsre.Set("jhuc", struct{}{})
+	c.jsre.Set("jirc", struct{}{})
 
-	jhucObj, _ := c.jsre.Get("jhuc")
-	jhucObj.Object().Set("send", bridge.Send)
-	jhucObj.Object().Set("sendAsync", bridge.Send)
+	jircObj, _ := c.jsre.Get("jirc")
+	jircObj.Object().Set("send", bridge.Send)
+	jircObj.Object().Set("sendAsync", bridge.Send)
 
 	consoleObj, _ := c.jsre.Get("console")
 	consoleObj.Object().Set("log", c.consoleOutput)
@@ -132,7 +132,7 @@ func (c *Console) init(preload []string) error {
 		return fmt.Errorf("webu require: %v", err)
 	}
 
-	if _, err := c.jsre.Run("var webu = new Webu(jhuc);"); err != nil {
+	if _, err := c.jsre.Run("var webu = new Webu(jirc);"); err != nil {
 		return fmt.Errorf("webu provider: %v", err)
 	}
 
@@ -142,7 +142,7 @@ func (c *Console) init(preload []string) error {
 		return fmt.Errorf("api modules: %v", err)
 	}
 
-	flatten := "var huc = webu.huc; var personal = webu.personal; "
+	flatten := "var irc = webu.irc; var personal = webu.personal; "
 	for api := range apis {
 		if api == "webu" {
 			continue // manually mapped or ignore
@@ -162,7 +162,7 @@ func (c *Console) init(preload []string) error {
 		return fmt.Errorf("namespace flattening: %v", err)
 	}
 	// Initialize the global name register (disabled for now)
-	//c.jsre.Run(`var GlobalRegistrar = huc.contract(` + registrar.GlobalRegistrarAbi + `);   registrar = GlobalRegistrar.at("` + registrar.GlobalRegistrarAddr + `");`)
+	//c.jsre.Run(`var GlobalRegistrar = irc.contract(` + registrar.GlobalRegistrarAbi + `);   registrar = GlobalRegistrar.at("` + registrar.GlobalRegistrarAddr + `");`)
 
 	// If the console is in interactive mode, instrument password related methods to query the user
 	if c.prompter != nil {
@@ -173,20 +173,20 @@ func (c *Console) init(preload []string) error {
 		}
 		// Override the openWallet, unlockAccount, newAccount and sign methods since
 		// these require user interaction. Assign these method in the Console the
-		// original webu callbacks. These will be called by the jhuc.* methods after
+		// original webu callbacks. These will be called by the jirc.* methods after
 		// they got the password from the user and send the original webu request to
 		// the backend.
 		if obj := personal.Object(); obj != nil { // make sure the personal api is enabled over the interface
-			if _, err = c.jsre.Run(`jhuc.openWallet = personal.openWallet;`); err != nil {
+			if _, err = c.jsre.Run(`jirc.openWallet = personal.openWallet;`); err != nil {
 				return fmt.Errorf("personal.openWallet: %v", err)
 			}
-			if _, err = c.jsre.Run(`jhuc.unlockAccount = personal.unlockAccount;`); err != nil {
+			if _, err = c.jsre.Run(`jirc.unlockAccount = personal.unlockAccount;`); err != nil {
 				return fmt.Errorf("personal.unlockAccount: %v", err)
 			}
-			if _, err = c.jsre.Run(`jhuc.newAccount = personal.newAccount;`); err != nil {
+			if _, err = c.jsre.Run(`jirc.newAccount = personal.newAccount;`); err != nil {
 				return fmt.Errorf("personal.newAccount: %v", err)
 			}
-			if _, err = c.jsre.Run(`jhuc.sign = personal.sign;`); err != nil {
+			if _, err = c.jsre.Run(`jirc.sign = personal.sign;`); err != nil {
 				return fmt.Errorf("personal.sign: %v", err)
 			}
 			obj.Set("openWallet", bridge.OpenWallet)
@@ -257,7 +257,7 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 		return "", nil, ""
 	}
 	// Chunck data to relevant part for autocompletion
-	// E.g. in case of nested lines huc.getBalance(huc.coinb<tab><tab>
+	// E.g. in case of nested lines irc.getBalance(irc.coinb<tab><tab>
 	start := pos - 1
 	for ; start > 0; start-- {
 		// Skip all methods and namespaces (i.e. including the dot)
@@ -276,15 +276,15 @@ func (c *Console) AutoCompleteInput(line string, pos int) (string, []string, str
 	return line[:start], c.jsre.CompleteKeywords(line[start:pos]), line[pos:]
 }
 
-// Welcome show summary of current Ghuc instance and some metadata about the
+// Welcome show summary of current Girc instance and some metadata about the
 // console's available modules.
 func (c *Console) Welcome() {
-	// Print some generic Ghuc metadata
-	fmt.Fprint(c.printer, "Welcome to the Ghuc JavaScript console(webu.js)!\n\n")
+	// Print some generic Girc metadata
+	fmt.Fprint(c.printer, "Welcome to the Girc JavaScript console(webu.js)!\n\n")
 	c.jsre.Run(`
 		console.log("Instance: " + webu.version.node);
-		console.log("Coinbase: " + huc.coinbase);
-		console.log("At block: " + huc.blockNumber + " (" + new Date(1000 * huc.getBlock(huc.blockNumber).timestamp) + ")");
+		console.log("Coinbase: " + irc.coinbase);
+		console.log("At block: " + irc.blockNumber + " (" + new Date(1000 * irc.getBlock(irc.blockNumber).timestamp) + ")");
 		console.log("Datadir : " + admin.datadir);
 	`)
 	// List all the supported modules for the user to call

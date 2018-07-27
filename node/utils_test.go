@@ -22,8 +22,8 @@ package node
 import (
 	"reflect"
 
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 // NoopService is a trivial implementation of the Service interface.

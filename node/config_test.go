@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/p2p"
 )
 
 // Tests that datadirs can be successfully created, be them manually configured
@@ -73,14 +73,14 @@ func TestIPCPathResolution(t *testing.T) {
 	}{
 		{"", "", false, ""},
 		{"data", "", false, ""},
-		{"", "ghuc.ipc", false, filepath.Join(os.TempDir(), "ghuc.ipc")},
-		{"data", "ghuc.ipc", false, "data/ghuc.ipc"},
-		{"data", "./ghuc.ipc", false, "./ghuc.ipc"},
-		{"data", "/ghuc.ipc", false, "/ghuc.ipc"},
+		{"", "girc.ipc", false, filepath.Join(os.TempDir(), "girc.ipc")},
+		{"data", "girc.ipc", false, "data/girc.ipc"},
+		{"data", "./girc.ipc", false, "./girc.ipc"},
+		{"data", "/girc.ipc", false, "/girc.ipc"},
 		{"", "", true, ``},
 		{"data", "", true, ``},
-		{"", "ghuc.ipc", true, `\\.\pipe\ghuc.ipc`},
-		{"data", "ghuc.ipc", true, `\\.\pipe\ghuc.ipc`},
+		{"", "girc.ipc", true, `\\.\pipe\ghuc.ipc`},
+		{"data", "girc.ipc", true, `\\.\pipe\ghuc.ipc`},
 		{"data", `\\.\pipe\ghuc.ipc`, true, `\\.\pipe\ghuc.ipc`},
 	}
 	for i, test := range tests {

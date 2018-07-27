@@ -22,12 +22,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/signer/core"
-	"github.com/happyuc-project/happyuc-go/signer/rules/deps"
-	"github.com/happyuc-project/happyuc-go/signer/storage"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/signer/core"
+	"github.com/irchain/go-irchain/signer/rules/deps"
+	"github.com/irchain/go-irchain/signer/storage"
 	"github.com/robertkrimen/otto"
 )
 
@@ -235,7 +235,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

@@ -29,7 +29,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/params"
 )
 
 var (

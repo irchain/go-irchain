@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/rpc"
-	"github.com/happyuc-project/happyuc-go/swarm"
-	"github.com/happyuc-project/happyuc-go/swarm/api"
+	"github.com/irchain/go-irchain/rpc"
+	"github.com/irchain/go-irchain/swarm"
+	"github.com/irchain/go-irchain/swarm/api"
 
 	"github.com/docker/docker/pkg/reexec"
 )
@@ -465,7 +465,7 @@ func TestValidateConfig(t *testing.T) {
 	}{
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"/data/testnet/ghuc.ipc",
+				"/data/testnet/girc.ipc",
 			}},
 		},
 		{
@@ -480,7 +480,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"test:/data/testnet/ghuc.ipc",
+				"test:/data/testnet/girc.ipc",
 			}},
 		},
 		{
@@ -490,7 +490,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/ghuc.ipc",
+				"314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/girc.ipc",
 			}},
 		},
 		{
@@ -505,24 +505,24 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"test:314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/ghuc.ipc",
+				"test:314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/girc.ipc",
 			}},
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"huc:314159265dD8dbb310642f98f50C066173C1259b@http://127.0.0.1:1234",
+				"irc:314159265dD8dbb310642f98f50C066173C1259b@http://127.0.0.1:1234",
 			}},
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"huc:314159265dD8dbb310642f98f50C066173C1259b@ws://127.0.0.1:12344",
+				"irc:314159265dD8dbb310642f98f50C066173C1259b@ws://127.0.0.1:12344",
 			}},
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"huc:",
+				"irc:",
 			}},
-			err: "invalid format [tld:][contract-addr@]url for ENS API endpoint configuration \"huc:\": missing url",
+			err: "invalid format [tld:][contract-addr@]url for ENS API endpoint configuration \"irc:\": missing url",
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
@@ -538,9 +538,9 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			cfg: &api.Config{EnsAPIs: []string{
-				"@/data/testnet/ghuc.ipc",
+				"@/data/testnet/girc.ipc",
 			}},
-			err: "invalid format [tld:][contract-addr@]url for ENS API endpoint configuration \"@/data/testnet/ghuc.ipc\": missing contract address",
+			err: "invalid format [tld:][contract-addr@]url for ENS API endpoint configuration \"@/data/testnet/girc.ipc\": missing contract address",
 		},
 	} {
 		err := validateConfig(c.cfg)

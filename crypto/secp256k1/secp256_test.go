@@ -24,8 +24,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common/math"
-	"github.com/happyuc-project/happyuc-go/crypto/randentropy"
+	"github.com/irchain/go-irchain/common/math"
+	"github.com/irchain/go-irchain/crypto/randentropy"
 )
 
 const TestCount = 1000

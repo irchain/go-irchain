@@ -19,8 +19,8 @@ package miner
 import (
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/types"
 )
 
 // noopHeaderRetriever is an implementation of headerRetriever that always

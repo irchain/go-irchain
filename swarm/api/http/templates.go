@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2017 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package http
 
@@ -20,7 +20,7 @@ import (
 	"html/template"
 	"path"
 
-	"github.com/happyuc-project/happyuc-go/swarm/api"
+	"github.com/irchain/go-irchain/swarm/api"
 )
 
 type htmlListData struct {
@@ -77,8 +77,8 @@ var landingPageTemplate = template.Must(template.New("landingPage").Parse(`
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" ww="chrome=1">
-    <meta name="description" content="HappyUC/Swarm Landing page">
-    <meta property="og:url" content="https://swarm-gateways.net/bzz:/theswarm.huc">
+    <meta name="description" content="IrChain/Swarm Landing page">
+    <meta property="og:url" content="https://swarm-gateways.net/bzz:/theswarm.irc">
 		<style>
 
       body, div, header, footer {
@@ -189,7 +189,7 @@ var landingPageTemplate = template.Must(template.New("landingPage").Parse(`
 			function goToPage() {
 					var page = document.getElementById('page').value;
 					if (page == "") {
-						var page = "theswarm.huc"
+						var page = "theswarm.irc"
 					}
 					var address = "/bzz:/" + page;
 					location.href = address;
@@ -206,7 +206,7 @@ var landingPageTemplate = template.Must(template.New("landingPage").Parse(`
       <footer>
         <p>
           Swarm: Serverless Hosting Incentivised Peer-To-Peer Storage And Content Distribution<br/>
-          <a href="http://swarm-gateways.net/bzz:/theswarm.huc">Swarm</a>
+          <a href="http://swarm-gateways.net/bzz:/theswarm.irc">Swarm</a>
         </p>
       </footer>
 

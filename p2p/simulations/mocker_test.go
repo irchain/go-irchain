@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/discover"
 )
 
 func TestMocker(t *testing.T) {

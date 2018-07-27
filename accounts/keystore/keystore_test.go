@@ -26,9 +26,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/event"
 )
 
 var testSigData = make([]byte, 32)
@@ -375,7 +375,7 @@ func checkEvents(t *testing.T, want []walletEvent, have []walletEvent) {
 }
 
 func tmpKeyStore(t *testing.T, encrypted bool) (string, *KeyStore) {
-	d, err := ioutil.TempDir("", "huc-keystore-test")
+	d, err := ioutil.TempDir("", "irc-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}

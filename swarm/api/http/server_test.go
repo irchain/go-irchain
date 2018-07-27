@@ -26,11 +26,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/swarm/api"
-	swarm "github.com/happyuc-project/happyuc-go/swarm/api/client"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
-	"github.com/happyuc-project/happyuc-go/swarm/testutil"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/swarm/api"
+	swarm "github.com/irchain/go-irchain/swarm/api/client"
+	"github.com/irchain/go-irchain/swarm/storage"
+	"github.com/irchain/go-irchain/swarm/testutil"
 )
 
 func TestBzzGetPath(t *testing.T) {

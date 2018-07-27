@@ -54,7 +54,7 @@ func TestBloom(t *testing.T) {
 import (
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/core/state"
+	"github.com/irchain/go-irchain/core/state"
 )
 
 func TestBloom9(t *testing.T) {

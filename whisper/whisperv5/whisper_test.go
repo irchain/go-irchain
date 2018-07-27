@@ -24,7 +24,7 @@ import (
 
 	mrand "math/rand"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 func TestWhisperBasic(t *testing.T) {

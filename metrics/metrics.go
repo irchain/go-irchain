@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/log"
 )
 
 // Enabled is checked by the constructor functions for all of the

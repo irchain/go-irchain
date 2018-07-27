@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/happyuc-project/happyuc-go/swarm/network"
+	"github.com/irchain/go-irchain/swarm/network"
 )
 
 type Control struct {

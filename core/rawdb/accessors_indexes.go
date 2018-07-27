@@ -17,10 +17,10 @@
 package rawdb
 
 import (
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction

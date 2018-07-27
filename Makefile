@@ -2,19 +2,19 @@
 # with Go source code. If you know what GOPATH is then you probably
 # don't need to bother with make.
 
-.PHONY: ghuc android ios ghuc-cross swarm evm all test clean
-.PHONY: ghuc-linux ghuc-linux-386 ghuc-linux-amd64 ghuc-linux-mips64 ghuc-linux-mips64le
-.PHONY: ghuc-linux-arm ghuc-linux-arm-5 ghuc-linux-arm-6 ghuc-linux-arm-7 ghuc-linux-arm64
-.PHONY: ghuc-darwin ghuc-darwin-386 ghuc-darwin-amd64
-.PHONY: ghuc-windows ghuc-windows-386 ghuc-windows-amd64
+.PHONY: girc android ios girc-cross swarm evm all test clean
+.PHONY: girc-linux girc-linux-386 girc-linux-amd64 girc-linux-mips64 girc-linux-mips64le
+.PHONY: girc-linux-arm girc-linux-arm-5 girc-linux-arm-6 girc-linux-arm-7 girc-linux-arm64
+.PHONY: girc-darwin girc-darwin-386 girc-darwin-amd64
+.PHONY: girc-windows girc-windows-386 girc-windows-amd64
 
 GOBIN = $(shell pwd)/build/bin
 GO ?= latest
 
-ghuc:
-	build/env.sh go run build/ci.go install ./cmd/ghuc
+girc:
+	build/env.sh go run build/ci.go install ./cmd/girc
 	@echo "Done building."
-	@echo "Run \"$(GOBIN)/ghuc\" to launch ghuc."
+	@echo "Run \"$(GOBIN)/girc\" to launch girc."
 
 swarm:
 	build/env.sh go run build/ci.go install ./cmd/swarm
@@ -27,12 +27,12 @@ all:
 android:
 	build/env.sh go run build/ci.go aar --local
 	@echo "Done building."
-	@echo "Import \"$(GOBIN)/ghuc.aar\" to use the library."
+	@echo "Import \"$(GOBIN)/girc.aar\" to use the library."
 
 ios:
 	build/env.sh go run build/ci.go xcode --local
 	@echo "Done building."
-	@echo "Import \"$(GOBIN)/Ghuc.framework\" to use the library."
+	@echo "Import \"$(GOBIN)/Girc.framework\" to use the library."
 
 test: all
 	build/env.sh go run build/ci.go test
@@ -58,92 +58,92 @@ devtools:
 
 # Cross Compilation Targets (xgo)
 
-ghuc-cross: ghuc-linux ghuc-darwin ghuc-windows ghuc-android ghuc-ios
+girc-cross: girc-linux girc-darwin girc-windows girc-android girc-ios
 	@echo "Full cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-*
+	@ls -ld $(GOBIN)/girc-*
 
-ghuc-linux: ghuc-linux-386 ghuc-linux-amd64 ghuc-linux-arm ghuc-linux-mips64 ghuc-linux-mips64le
+girc-linux: girc-linux-386 girc-linux-amd64 girc-linux-arm girc-linux-mips64 girc-linux-mips64le
 	@echo "Linux cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-*
+	@ls -ld $(GOBIN)/girc-linux-*
 
-ghuc-linux-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/ghuc
+girc-linux-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/girc
 	@echo "Linux 386 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep 386
+	@ls -ld $(GOBIN)/girc-linux-* | grep 386
 
-ghuc-linux-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/ghuc
+girc-linux-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/girc
 	@echo "Linux amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep amd64
+	@ls -ld $(GOBIN)/girc-linux-* | grep amd64
 
-ghuc-linux-arm: ghuc-linux-arm-5 ghuc-linux-arm-6 ghuc-linux-arm-7 ghuc-linux-arm64
+girc-linux-arm: girc-linux-arm-5 girc-linux-arm-6 girc-linux-arm-7 girc-linux-arm64
 	@echo "Linux ARM cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep arm
+	@ls -ld $(GOBIN)/girc-linux-* | grep arm
 
-ghuc-linux-arm-5:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/ghuc
+girc-linux-arm-5:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/girc
 	@echo "Linux ARMv5 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep arm-5
+	@ls -ld $(GOBIN)/girc-linux-* | grep arm-5
 
-ghuc-linux-arm-6:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/ghuc
+girc-linux-arm-6:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/girc
 	@echo "Linux ARMv6 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep arm-6
+	@ls -ld $(GOBIN)/girc-linux-* | grep arm-6
 
-ghuc-linux-arm-7:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/ghuc
+girc-linux-arm-7:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/girc
 	@echo "Linux ARMv7 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep arm-7
+	@ls -ld $(GOBIN)/girc-linux-* | grep arm-7
 
-ghuc-linux-arm64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/ghuc
+girc-linux-arm64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/girc
 	@echo "Linux ARM64 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep arm64
+	@ls -ld $(GOBIN)/girc-linux-* | grep arm64
 
-ghuc-linux-mips:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/ghuc
+girc-linux-mips:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/girc
 	@echo "Linux MIPS cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep mips
+	@ls -ld $(GOBIN)/girc-linux-* | grep mips
 
-ghuc-linux-mipsle:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/ghuc
+girc-linux-mipsle:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/girc
 	@echo "Linux MIPSle cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep mipsle
+	@ls -ld $(GOBIN)/girc-linux-* | grep mipsle
 
-ghuc-linux-mips64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/ghuc
+girc-linux-mips64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/girc
 	@echo "Linux MIPS64 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep mips64
+	@ls -ld $(GOBIN)/girc-linux-* | grep mips64
 
-ghuc-linux-mips64le:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/ghuc
+girc-linux-mips64le:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/girc
 	@echo "Linux MIPS64le cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-linux-* | grep mips64le
+	@ls -ld $(GOBIN)/girc-linux-* | grep mips64le
 
-ghuc-darwin: ghuc-darwin-386 ghuc-darwin-amd64
+girc-darwin: girc-darwin-386 girc-darwin-amd64
 	@echo "Darwin cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-darwin-*
+	@ls -ld $(GOBIN)/girc-darwin-*
 
-ghuc-darwin-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/ghuc
+girc-darwin-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/girc
 	@echo "Darwin 386 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-darwin-* | grep 386
+	@ls -ld $(GOBIN)/girc-darwin-* | grep 386
 
-ghuc-darwin-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/ghuc
+girc-darwin-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/girc
 	@echo "Darwin amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-darwin-* | grep amd64
+	@ls -ld $(GOBIN)/girc-darwin-* | grep amd64
 
-ghuc-windows: ghuc-windows-386 ghuc-windows-amd64
+girc-windows: girc-windows-386 girc-windows-amd64
 	@echo "Windows cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-windows-*
+	@ls -ld $(GOBIN)/girc-windows-*
 
-ghuc-windows-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/ghuc
+girc-windows-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/girc
 	@echo "Windows 386 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-windows-* | grep 386
+	@ls -ld $(GOBIN)/girc-windows-* | grep 386
 
-ghuc-windows-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/ghuc
+girc-windows-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/girc
 	@echo "Windows amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/ghuc-windows-* | grep amd64
+	@ls -ld $(GOBIN)/girc-windows-* | grep amd64

@@ -1,20 +1,20 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2015 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
-// package webuext contains ghuc specific webu.js extensions.
+// package webuext contains girc specific webu.js extensions.
 package webuext
 
 var Modules = map[string]string{
@@ -22,7 +22,7 @@ var Modules = map[string]string{
 	"chequebook": Chequebook_JS,
 	"clique":     Clique_JS,
 	"debug":      Debug_JS,
-	"huc":        Huc_JS,
+	"irc":        Irc_JS,
 	"miner":      Miner_JS,
 	"net":        Net_JS,
 	"personal":   Personal_JS,
@@ -390,43 +390,43 @@ webu._extend({
 });
 `
 
-const Huc_JS = `
+const Irc_JS = `
 webu._extend({
-	property: 'huc',
+	property: 'irc',
 	methods: [
 		new webu._extend.Method({
 			name: 'sign',
-			call: 'huc_sign',
+			call: 'irc_sign',
 			params: 2,
 			inputFormatter: [webu._extend.formatters.inputAddressFormatter, null]
 		}),
 		new webu._extend.Method({
 			name: 'resend',
-			call: 'huc_resend',
+			call: 'irc_resend',
 			params: 3,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter, webu._extend.utils.fromDecimal, webu._extend.utils.fromDecimal]
 		}),
 		new webu._extend.Method({
 			name: 'signTransaction',
-			call: 'huc_signTransaction',
+			call: 'irc_signTransaction',
 			params: 1,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter]
 		}),
 		new webu._extend.Method({
 			name: 'submitTransaction',
-			call: 'huc_submitTransaction',
+			call: 'irc_submitTransaction',
 			params: 1,
 			inputFormatter: [webu._extend.formatters.inputTransactionFormatter]
 		}),
 		new webu._extend.Method({
 			name: 'getRawTransaction',
-			call: 'huc_getRawTransactionByHash',
+			call: 'irc_getRawTransactionByHash',
 			params: 1
 		}),
 		new webu._extend.Method({
 			name: 'getRawTransactionFromBlock',
 			call: function(args) {
-				return (webu._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'huc_getRawTransactionByBlockHashAndIndex' : 'huc_getRawTransactionByBlockNumberAndIndex';
+				return (webu._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'irc_getRawTransactionByBlockHashAndIndex' : 'irc_getRawTransactionByBlockNumberAndIndex';
 			},
 			params: 2,
 			inputFormatter: [webu._extend.formatters.inputBlockNumberFormatter, webu._extend.utils.toHex]
@@ -435,7 +435,7 @@ webu._extend({
 	properties: [
 		new webu._extend.Property({
 			name: 'pendingTransactions',
-			getter: 'huc_pendingTransactions',
+			getter: 'irc_pendingTransactions',
 			outputFormatter: function(txs) {
 				var formatted = [];
 				for (var i = 0; i < txs.length; i++) {

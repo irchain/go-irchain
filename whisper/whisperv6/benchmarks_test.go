@@ -20,7 +20,7 @@ import (
 	"crypto/sha256"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/crypto"
 	"golang.org/x/crypto/pbkdf2"
 )
 

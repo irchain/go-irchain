@@ -19,7 +19,7 @@ package rpc
 import (
 	"net"
 
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/log"
 )
 
 // StartHTTPEndpoint starts the HTTP RPC endpoint, configured with cors/vhosts/modules

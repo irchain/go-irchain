@@ -40,7 +40,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 var dumpEnc bool

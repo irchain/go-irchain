@@ -19,9 +19,9 @@ package core
 import (
 	"container/list"
 
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 // Implement our EthTest Manager
@@ -29,7 +29,7 @@ type TestManager struct {
 	// stateManager *StateManager
 	eventMux *event.TypeMux
 
-	db         hucdb.Database
+	db         ircdb.Database
 	txPool     *TxPool
 	blockChain *BlockChain
 	Blocks     []*types.Block
@@ -71,14 +71,14 @@ func (tm *TestManager) EventMux() *event.TypeMux {
 // 	return nil
 // }
 
-func (tm *TestManager) Db() hucdb.Database {
+func (tm *TestManager) Db() ircdb.Database {
 	return tm.db
 }
 
 func NewTestManager() *TestManager {
 	testManager := &TestManager{}
 	testManager.eventMux = new(event.TypeMux)
-	testManager.db = hucdb.NewMemDatabase()
+	testManager.db = ircdb.NewMemDatabase()
 	// testManager.txPool = NewTxPool(testManager)
 	// testManager.blockChain = NewBlockChain(testManager)
 	// testManager.stateManager = NewStateManager(testManager)

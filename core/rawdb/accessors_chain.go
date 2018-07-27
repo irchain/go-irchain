@@ -21,10 +21,10 @@ import (
 	"encoding/binary"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 // ReadCanonicalHash retrieves the hash assigned to a canonical block number.

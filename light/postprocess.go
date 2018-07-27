@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2017 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package light
 
@@ -22,16 +22,16 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/bitutil"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/rlp"
-	"github.com/happyuc-project/happyuc-go/trie"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/bitutil"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/rlp"
+	"github.com/irchain/go-irchain/trie"
 )
 
 const (
@@ -96,7 +96,7 @@ type ChtNode struct {
 
 // GetChtRoot reads the CHT root assoctiated to the given section from the database
 // Note that sectionIdx is specified according to LES/1 CHT section size
-func GetChtRoot(db hucdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetChtRoot(db ircdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -105,13 +105,13 @@ func GetChtRoot(db hucdb.Database, sectionIdx uint64, sectionHead common.Hash) c
 
 // GetChtV2Root reads the CHT root assoctiated to the given section from the database
 // Note that sectionIdx is specified according to LES/2 CHT section size
-func GetChtV2Root(db hucdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetChtV2Root(db ircdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	return GetChtRoot(db, (sectionIdx+1)*(CHTFrequencyClient/CHTFrequencyServer)-1, sectionHead)
 }
 
 // StoreChtRoot writes the CHT root assoctiated to the given section into the database
 // Note that sectionIdx is specified according to LES/1 CHT section size
-func StoreChtRoot(db hucdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreChtRoot(db ircdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -119,7 +119,7 @@ func StoreChtRoot(db hucdb.Database, sectionIdx uint64, sectionHead, root common
 
 // ChtIndexerBackend implements core.ChainIndexerBackend
 type ChtIndexerBackend struct {
-	diskdb               hucdb.Database
+	diskdb               ircdb.Database
 	triedb               *trie.Database
 	section, sectionSize uint64
 	lastHash             common.Hash
@@ -127,7 +127,7 @@ type ChtIndexerBackend struct {
 }
 
 // NewBloomTrieIndexer creates a BloomTrie chain indexer
-func NewChtIndexer(db hucdb.Database, clientMode bool) *core.ChainIndexer {
+func NewChtIndexer(db ircdb.Database, clientMode bool) *core.ChainIndexer {
 	var sectionSize, confirmReq uint64
 	if clientMode {
 		sectionSize = CHTFrequencyClient
@@ -136,10 +136,10 @@ func NewChtIndexer(db hucdb.Database, clientMode bool) *core.ChainIndexer {
 		sectionSize = CHTFrequencyServer
 		confirmReq = HelperTrieProcessConfirmations
 	}
-	idb := hucdb.NewTable(db, "chtIndex-")
+	idb := ircdb.NewTable(db, "chtIndex-")
 	backend := &ChtIndexerBackend{
 		diskdb:      db,
-		triedb:      trie.NewDatabase(hucdb.NewTable(db, ChtTablePrefix)),
+		triedb:      trie.NewDatabase(ircdb.NewTable(db, ChtTablePrefix)),
 		sectionSize: sectionSize,
 	}
 	return core.NewChainIndexer(db, idb, backend, sectionSize, confirmReq, time.Millisecond*100, "cht")
@@ -189,8 +189,8 @@ func (c *ChtIndexerBackend) Commit() error {
 
 const (
 	BloomTrieFrequency        = 32768
-	hucBloomBitsSection       = 4096
-	hucBloomBitsConfirmations = 256
+	ircBloomBitsSection       = 4096
+	ircBloomBitsConfirmations = 256
 )
 
 var (
@@ -199,7 +199,7 @@ var (
 )
 
 // GetBloomTrieRoot reads the BloomTrie root assoctiated to the given section from the database
-func GetBloomTrieRoot(db hucdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetBloomTrieRoot(db ircdb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -207,7 +207,7 @@ func GetBloomTrieRoot(db hucdb.Database, sectionIdx uint64, sectionHead common.H
 }
 
 // StoreBloomTrieRoot writes the BloomTrie root assoctiated to the given section into the database
-func StoreBloomTrieRoot(db hucdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreBloomTrieRoot(db ircdb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -215,7 +215,7 @@ func StoreBloomTrieRoot(db hucdb.Database, sectionIdx uint64, sectionHead, root 
 
 // BloomTrieIndexerBackend implements core.ChainIndexerBackend
 type BloomTrieIndexerBackend struct {
-	diskdb                                     hucdb.Database
+	diskdb                                     ircdb.Database
 	triedb                                     *trie.Database
 	section, parentSectionSize, bloomTrieRatio uint64
 	trie                                       *trie.Trie
@@ -223,24 +223,24 @@ type BloomTrieIndexerBackend struct {
 }
 
 // NewBloomTrieIndexer creates a BloomTrie chain indexer
-func NewBloomTrieIndexer(db hucdb.Database, clientMode bool) *core.ChainIndexer {
+func NewBloomTrieIndexer(db ircdb.Database, clientMode bool) *core.ChainIndexer {
 	backend := &BloomTrieIndexerBackend{
 		diskdb: db,
-		triedb: trie.NewDatabase(hucdb.NewTable(db, BloomTrieTablePrefix)),
+		triedb: trie.NewDatabase(ircdb.NewTable(db, BloomTrieTablePrefix)),
 	}
-	idb := hucdb.NewTable(db, "bltIndex-")
+	idb := ircdb.NewTable(db, "bltIndex-")
 
 	var confirmReq uint64
 	if clientMode {
 		backend.parentSectionSize = BloomTrieFrequency
 		confirmReq = HelperTrieConfirmations
 	} else {
-		backend.parentSectionSize = hucBloomBitsSection
+		backend.parentSectionSize = ircBloomBitsSection
 		confirmReq = HelperTrieProcessConfirmations
 	}
 	backend.bloomTrieRatio = BloomTrieFrequency / backend.parentSectionSize
 	backend.sectionHeads = make([]common.Hash, backend.bloomTrieRatio)
-	return core.NewChainIndexer(db, idb, backend, BloomTrieFrequency, confirmReq-hucBloomBitsConfirmations, time.Millisecond*100, "bloomtrie")
+	return core.NewChainIndexer(db, idb, backend, BloomTrieFrequency, confirmReq-ircBloomBitsConfirmations, time.Millisecond*100, "bloomtrie")
 }
 
 // Reset implements core.ChainIndexerBackend

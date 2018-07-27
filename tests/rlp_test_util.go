@@ -24,7 +24,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 // RLPTest is the JSON structure of a single RLP test.

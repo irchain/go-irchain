@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/irchain/go-irchain/common/hexutil"
 )
 
 // Tests that data bitset encoding and decoding works and is bijective.

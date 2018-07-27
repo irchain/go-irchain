@@ -19,7 +19,7 @@ package core
 import (
 	"runtime"
 
-	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/irchain/go-irchain/core/types"
 )
 
 // senderCacher is a concurrent tranaction sender recoverer anc cacher.

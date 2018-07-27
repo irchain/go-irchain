@@ -29,7 +29,7 @@ import (
 
 	crand "crypto/rand"
 
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
+	"github.com/irchain/go-irchain/crypto/sha3"
 )
 
 const (

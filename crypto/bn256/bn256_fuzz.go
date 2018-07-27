@@ -22,8 +22,8 @@ import (
 	"bytes"
 	"math/big"
 
-	cloudflare "github.com/happyuc-project/happyuc-go/crypto/bn256/cloudflare"
-	google "github.com/happyuc-project/happyuc-go/crypto/bn256/google"
+	cloudflare "github.com/irchain/go-irchain/crypto/bn256/cloudflare"
+	google "github.com/irchain/go-irchain/crypto/bn256/google"
 )
 
 // FuzzAdd fuzzez bn256 addition between the Google and Cloudflare libraries.

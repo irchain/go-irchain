@@ -25,9 +25,9 @@ import (
 	"sync"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/log"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -234,7 +234,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("Info: %v\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	spew.Dump(tx.Tx)
 }

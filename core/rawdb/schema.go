@@ -20,8 +20,8 @@ package rawdb
 import (
 	"encoding/binary"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/metrics"
 )
 
 // The fields below define the low level database schema prefixing.

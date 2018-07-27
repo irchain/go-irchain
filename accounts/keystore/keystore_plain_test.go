@@ -27,12 +27,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 func tmpKeyStoreIface(t *testing.T, encrypted bool) (dir string, ks keyStore) {
-	d, err := ioutil.TempDir("", "ghuc-keystore-test")
+	d, err := ioutil.TempDir("", "girc-keystore-test")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,7 +19,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/irchain/go-irchain/core/vm"
 )
 
 func TestVM(t *testing.T) {

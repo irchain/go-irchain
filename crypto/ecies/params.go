@@ -42,11 +42,11 @@ import (
 	"fmt"
 	"hash"
 
-	huccrypto "github.com/happyuc-project/happyuc-go/crypto"
+	ircrypto "github.com/irchain/go-irchain/crypto"
 )
 
 var (
-	DefaultCurve                  = huccrypto.S256()
+	DefaultCurve                  = ircrypto.S256()
 	ErrUnsupportedECDHAlgorithm   = fmt.Errorf("ecies: unsupported ECDH algorithm")
 	ErrUnsupportedECIESParameters = fmt.Errorf("ecies: unsupported ECIES parameters")
 )
@@ -100,10 +100,10 @@ var (
 )
 
 var paramsFromCurve = map[elliptic.Curve]*ECIESParams{
-	huccrypto.S256(): ECIES_AES128_SHA256,
-	elliptic.P256():  ECIES_AES128_SHA256,
-	elliptic.P384():  ECIES_AES256_SHA384,
-	elliptic.P521():  ECIES_AES256_SHA512,
+	ircrypto.S256(): ECIES_AES128_SHA256,
+	elliptic.P256(): ECIES_AES128_SHA256,
+	elliptic.P384(): ECIES_AES256_SHA384,
+	elliptic.P521(): ECIES_AES256_SHA512,
 }
 
 func AddParamsForCurve(curve elliptic.Curve, params *ECIESParams) {

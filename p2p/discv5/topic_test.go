@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/mclock"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/mclock"
 )
 
 func TestTopicRadius(t *testing.T) {

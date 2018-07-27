@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2017 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -28,13 +28,13 @@ import (
 
 	cli "gopkg.in/urfave/cli.v1"
 
-	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/irchain/go-irchain/cmd/utils"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/node"
 	"github.com/naoina/toml"
 
-	bzzapi "github.com/happyuc-project/happyuc-go/swarm/api"
+	bzzapi "github.com/irchain/go-irchain/swarm/api"
 )
 
 var (
@@ -59,18 +59,18 @@ var (
 //constants for environment variables
 const (
 	SWARM_ENV_CHEQUEBOOK_ADDR = "SWARM_CHEQUEBOOK_ADDR"
-	SWARM_ENV_ACCOUNT         = "SWARM_ACCOUNT"
-	SWARM_ENV_LISTEN_ADDR     = "SWARM_LISTEN_ADDR"
-	SWARM_ENV_PORT            = "SWARM_PORT"
-	SWARM_ENV_NETWORK_ID      = "SWARM_NETWORK_ID"
-	SWARM_ENV_SWAP_ENABLE     = "SWARM_SWAP_ENABLE"
-	SWARM_ENV_SWAP_API        = "SWARM_SWAP_API"
-	SWARM_ENV_SYNC_ENABLE     = "SWARM_SYNC_ENABLE"
-	SWARM_ENV_ENS_API         = "SWARM_ENS_API"
-	SWARM_ENV_ENS_ADDR        = "SWARM_ENS_ADDR"
-	SWARM_ENV_CORS            = "SWARM_CORS"
-	SWARM_ENV_BOOTNODES       = "SWARM_BOOTNODES"
-	GHUC_ENV_DATADIR          = "GHUC_DATADIR"
+	SWARM_ENV_ACCOUNT     = "SWARM_ACCOUNT"
+	SWARM_ENV_LISTEN_ADDR = "SWARM_LISTEN_ADDR"
+	SWARM_ENV_PORT        = "SWARM_PORT"
+	SWARM_ENV_NETWORK_ID  = "SWARM_NETWORK_ID"
+	SWARM_ENV_SWAP_ENABLE = "SWARM_SWAP_ENABLE"
+	SWARM_ENV_SWAP_API    = "SWARM_SWAP_API"
+	SWARM_ENV_SYNC_ENABLE = "SWARM_SYNC_ENABLE"
+	SWARM_ENV_ENS_API     = "SWARM_ENS_API"
+	SWARM_ENV_ENS_ADDR    = "SWARM_ENS_ADDR"
+	SWARM_ENV_CORS        = "SWARM_CORS"
+	SWARM_ENV_BOOTNODES   = "SWARM_BOOTNODES"
+	GIRC_ENV_DATADIR      = "GIRC_DATADIR"
 )
 
 // These settings ensure that TOML keys use the same names as Go struct fields.
@@ -84,7 +84,7 @@ var tomlSettings = toml.Config{
 	MissingField: func(rt reflect.Type, field string) error {
 		link := ""
 		if unicode.IsUpper(rune(rt.Name()[0])) && rt.PkgPath() != "main" {
-			link = fmt.Sprintf(", check github.com/happyuc-project/happyuc-go/swarm/api/config.go for available fields")
+			link = fmt.Sprintf(", check github.com/irchain/go-irchain/swarm/api/config.go for available fields")
 		}
 		return fmt.Errorf("field '%s' is not defined in %s%s", field, rt.String(), link)
 	},
@@ -116,7 +116,7 @@ func initSwarmNode(config *bzzapi.Config, stack *node.Node, ctx *cli.Context) {
 	//at this point, all vars should be set in the Config
 	//get the account for the provided swarm account
 	prvkey := getAccount(config.BzzAccount, ctx, stack)
-	//set the resolved config path (ghuc --datadir)
+	//set the resolved config path (girc --datadir)
 	config.Path = stack.InstanceDir()
 	//finally, initialize the configuration
 	config.Init(prvkey)
@@ -243,7 +243,7 @@ func envVarsOverride(currentConfig *bzzapi.Config) (config *bzzapi.Config) {
 		}
 	}
 
-	if datadir := os.Getenv(GHUC_ENV_DATADIR); datadir != "" {
+	if datadir := os.Getenv(GIRC_ENV_DATADIR); datadir != "" {
 		currentConfig.Path = datadir
 	}
 
@@ -314,9 +314,9 @@ func dumpConfig(ctx *cli.Context) error {
 
 //deprecated flags checked here
 func checkDeprecated(ctx *cli.Context) {
-	// exit if the deprecated --hucapi flag is set
-	if ctx.GlobalString(DeprecatedHucAPIFlag.Name) != "" {
-		utils.Fatalf("--hucapi is no longer a valid command line flag, please use --ens-api and/or --swap-api.")
+	// exit if the deprecated --ircapi flag is set
+	if ctx.GlobalString(DeprecatedIrcAPIFlag.Name) != "" {
+		utils.Fatalf("--ircapi is no longer a valid command line flag, please use --ens-api and/or --swap-api.")
 	}
 	// warn if --ens-api flag is set
 	if ctx.GlobalString(DeprecatedEnsAddrFlag.Name) != "" {

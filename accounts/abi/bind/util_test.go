@@ -22,12 +22,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind/backends"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/accounts/abi/bind"
+	"github.com/irchain/go-irchain/accounts/abi/bind/backends"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 var testKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")

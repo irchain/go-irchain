@@ -21,12 +21,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/huc"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/light"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/irc"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/light"
 )
 
 var testBankSecureTrieKey = secAddr(testBankAddress)
@@ -35,13 +35,13 @@ func secAddr(addr common.Address) []byte {
 	return crypto.Keccak256(addr[:])
 }
 
-type accessTestFn func(db hucdb.Database, bhash common.Hash, number uint64) light.OdrRequest
+type accessTestFn func(db ircdb.Database, bhash common.Hash, number uint64) light.OdrRequest
 
 func TestBlockAccessLes1(t *testing.T) { testAccess(t, 1, tfBlockAccess) }
 
 func TestBlockAccessLes2(t *testing.T) { testAccess(t, 2, tfBlockAccess) }
 
-func tfBlockAccess(db hucdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfBlockAccess(db ircdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	return &light.BlockRequest{Hash: bhash, Number: number}
 }
 
@@ -49,7 +49,7 @@ func TestReceiptsAccessLes1(t *testing.T) { testAccess(t, 1, tfReceiptsAccess) }
 
 func TestReceiptsAccessLes2(t *testing.T) { testAccess(t, 2, tfReceiptsAccess) }
 
-func tfReceiptsAccess(db hucdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfReceiptsAccess(db ircdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	return &light.ReceiptsRequest{Hash: bhash, Number: number}
 }
 
@@ -57,7 +57,7 @@ func TestTrieEntryAccessLes1(t *testing.T) { testAccess(t, 1, tfTrieEntryAccess)
 
 func TestTrieEntryAccessLes2(t *testing.T) { testAccess(t, 2, tfTrieEntryAccess) }
 
-func tfTrieEntryAccess(db hucdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
+func tfTrieEntryAccess(db ircdb.Database, bhash common.Hash, number uint64) light.OdrRequest {
 	if number := rawdb.ReadHeaderNumber(db, bhash); number != nil {
 		return &light.TrieRequest{Id: light.StateTrieID(rawdb.ReadHeader(db, bhash, *number)), Key: testBankSecureTrieKey}
 	}
@@ -68,7 +68,7 @@ func TestCodeAccessLes1(t *testing.T) { testAccess(t, 1, tfCodeAccess) }
 
 func TestCodeAccessLes2(t *testing.T) { testAccess(t, 2, tfCodeAccess) }
 
-func tfCodeAccess(db hucdb.Database, bhash common.Hash, num uint64) light.OdrRequest {
+func tfCodeAccess(db ircdb.Database, bhash common.Hash, num uint64) light.OdrRequest {
 	number := rawdb.ReadHeaderNumber(db, bhash)
 	if number != nil {
 		return nil
@@ -87,9 +87,9 @@ func testAccess(t *testing.T, protocol int, fn accessTestFn) {
 	peers := newPeerSet()
 	dist := newRequestDistributor(peers, make(chan struct{}))
 	rm := newRetrieveManager(peers, dist, nil)
-	db := hucdb.NewMemDatabase()
-	ldb := hucdb.NewMemDatabase()
-	odr := NewLesOdr(ldb, light.NewChtIndexer(db, true), light.NewBloomTrieIndexer(db, true), huc.NewBloomIndexer(db, light.BloomTrieFrequency), rm)
+	db := ircdb.NewMemDatabase()
+	ldb := ircdb.NewMemDatabase()
+	odr := NewLesOdr(ldb, light.NewChtIndexer(db, true), light.NewBloomTrieIndexer(db, true), irc.NewBloomIndexer(db, light.BloomTrieFrequency), rm)
 
 	pm := newTestProtocolManagerMust(t, false, 4, testChainGen, nil, nil, db)
 	lpm := newTestProtocolManagerMust(t, true, 0, nil, peers, odr, ldb)

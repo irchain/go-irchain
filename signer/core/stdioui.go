@@ -21,9 +21,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 type StdIOUI struct {
@@ -98,7 +98,7 @@ func (ui *StdIOUI) ShowInfo(message string) {
 		log.Info("Error calling 'ShowInfo'", "exc", err.Error(), "msg", message)
 	}
 }
-func (ui *StdIOUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (ui *StdIOUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	err := ui.dispatch("OnApprovedTx", tx, nil)
 	if err != nil {
 		log.Info("Error calling 'OnApprovedTx'", "exc", err.Error(), "tx", tx)

@@ -1,18 +1,18 @@
-// Copyright 2018 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2018 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package trie
 
@@ -20,10 +20,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/metrics"
 )
 
 var (
@@ -59,7 +59,7 @@ type DatabaseReader interface {
 // the disk database. The aim is to accumulate trie writes in-memory and only
 // periodically flush a couple tries to disk, garbage collecting the remainder.
 type Database struct {
-	diskdb hucdb.Database // Persistent storage for matured trie nodes
+	diskdb ircdb.Database // Persistent storage for matured trie nodes
 
 	nodes  map[common.Hash]*cachedNode // Data and references relationships of a node
 	oldest common.Hash                 // Oldest tracked node, flush-list head
@@ -95,7 +95,7 @@ type cachedNode struct {
 
 // NewDatabase creates a new trie database to store ephemeral trie content before
 // its written out to disk or garbage collected.
-func NewDatabase(diskdb hucdb.Database) *Database {
+func NewDatabase(diskdb ircdb.Database) *Database {
 	return &Database{
 		diskdb: diskdb,
 		nodes: map[common.Hash]*cachedNode{
@@ -309,7 +309,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 				db.lock.RUnlock()
 				return err
 			}
-			if batch.ValueSize() > hucdb.IdealBatchSize {
+			if batch.ValueSize() > ircdb.IdealBatchSize {
 				if err := batch.Write(); err != nil {
 					db.lock.RUnlock()
 					return err
@@ -328,7 +328,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 			return err
 		}
 		// If we exceeded the ideal batch size, commit and reset
-		if batch.ValueSize() >= hucdb.IdealBatchSize {
+		if batch.ValueSize() >= ircdb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
 				log.Error("Failed to write flush list to disk", "err", err)
 				db.lock.RUnlock()
@@ -404,7 +404,7 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 			db.lock.RUnlock()
 			return err
 		}
-		if batch.ValueSize() > hucdb.IdealBatchSize {
+		if batch.ValueSize() > ircdb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
 				return err
 			}
@@ -454,7 +454,7 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 }
 
 // commit is the private locked version of Commit.
-func (db *Database) commit(hash common.Hash, batch hucdb.Batch) error {
+func (db *Database) commit(hash common.Hash, batch ircdb.Batch) error {
 	// If the node does not exist, it's a previously committed node
 	node, ok := db.nodes[hash]
 	if !ok {
@@ -469,7 +469,7 @@ func (db *Database) commit(hash common.Hash, batch hucdb.Batch) error {
 		return err
 	}
 	// If we've reached an optimal batch size, commit and start over
-	if batch.ValueSize() >= hucdb.IdealBatchSize {
+	if batch.ValueSize() >= ircdb.IdealBatchSize {
 		if err := batch.Write(); err != nil {
 			return err
 		}

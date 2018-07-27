@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/irchain/go-irchain/metrics"
 )
 
 type exp struct {

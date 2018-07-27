@@ -32,14 +32,14 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/simulations"
-	"github.com/happyuc-project/happyuc-go/p2p/simulations/adapters"
-	"github.com/happyuc-project/happyuc-go/rlp"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/simulations"
+	"github.com/irchain/go-irchain/p2p/simulations/adapters"
+	"github.com/irchain/go-irchain/rlp"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 // ProtocolTester is the tester environment used for unit testing protocol

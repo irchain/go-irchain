@@ -25,8 +25,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -323,7 +323,7 @@ func unpackTestEventData(dest interface{}, hexData string, jsonEvent []byte, ass
 
 /*
 Taken from
-https://github.com/happyuc-project/happyuc-go/pull/15568
+https://github.com/irchain/go-irchain/pull/15568
 */
 
 type testResult struct {

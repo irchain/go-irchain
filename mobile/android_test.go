@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
-package ghuc
+package girc
 
 import (
 	"io/ioutil"
@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/internal/build"
+	"github.com/irchain/go-irchain/internal/build"
 )
 
 // androidTestClass is a Java class to do some lightweight tests against the Android
@@ -40,7 +40,7 @@ import android.test.MoreAsserts;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.happyuc.ghuc.*;
+import org.happyuc.girc.*;
 
 public class AndroidTest extends InstrumentationTestCase {
 	public AndroidTest() {}
@@ -106,7 +106,7 @@ public class AndroidTest extends InstrumentationTestCase {
 			info.getProtocols();
 
 			// Retrieve some data via the APIs (we don't really care about the results)
-			HappyUCClient ec = node.getHappyUCClient();
+			IrChainClient ec = node.getHappyUCClient();
 			ec.getBlockByNumber(ctx, -1).getNumber();
 
 			NewHeadHandler handler = new NewHeadHandler() {
@@ -184,7 +184,7 @@ func TestAndroid(t *testing.T) {
 		t.Logf("initialization took %v", time.Since(start))
 	}
 	// Create and switch to a temporary workspace
-	workspace, err := ioutil.TempDir("", "ghuc-android-")
+	workspace, err := ioutil.TempDir("", "girc-android-")
 	if err != nil {
 		t.Fatalf("failed to create temporary workspace: %v", err)
 	}
@@ -207,12 +207,12 @@ func TestAndroid(t *testing.T) {
 		}
 	}
 	// Generate the mobile bindings for Ghuc and add the tester class
-	gobind := exec.Command("gomobile", "bind", "-javapkg", "org.happyuc", "github.com/happyuc-project/happyuc-go/mobile")
+	gobind := exec.Command("gomobile", "bind", "-javapkg", "org.happyuc", "github.com/irchain/go-irchain/mobile")
 	if output, err := gobind.CombinedOutput(); err != nil {
 		t.Logf("%s", output)
 		t.Fatalf("failed to run gomobile bind: %v", err)
 	}
-	build.CopyFile(filepath.Join("libs", "ghuc.aar"), "ghuc.aar", os.ModePerm)
+	build.CopyFile(filepath.Join("libs", "girc.aar"), "girc.aar", os.ModePerm)
 
 	if err = ioutil.WriteFile(filepath.Join("src", "androidTest", "java", "org", "happyuc", "ghuctest", "AndroidTest.java"), []byte(androidTestClass), os.ModePerm); err != nil {
 		t.Fatalf("failed to write Android test class: %v", err)
@@ -261,6 +261,6 @@ repositories {
 }
 dependencies {
     compile 'com.android.support:appcompat-v7:19.0.0'
-    compile(name: "ghuc", ext: "aar")
+    compile(name: "girc", ext: "aar")
 }
 `
