@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package tests
 
@@ -21,12 +21,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"math/big"
-	"os"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/happyuc-project/happyuc-go/rlp"
 )
 
 // RLPTest is the JSON structure of a single RLP test.
@@ -42,33 +40,6 @@ type RLPTest struct {
 
 	// Out is a hex-encoded RLP value.
 	Out string
-}
-
-// RunRLPTest runs the tests in the given file, skipping tests by name.
-func RunRLPTest(file string, skip []string) error {
-	f, err := os.Open(file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return RunRLPTestWithReader(f, skip)
-}
-
-// RunRLPTest runs the tests encoded in r, skipping tests by name.
-func RunRLPTestWithReader(r io.Reader, skip []string) error {
-	var tests map[string]*RLPTest
-	if err := readJson(r, &tests); err != nil {
-		return err
-	}
-	for _, s := range skip {
-		delete(tests, s)
-	}
-	for name, test := range tests {
-		if err := test.Run(); err != nil {
-			return fmt.Errorf("test %q failed: %v", name, err)
-		}
-	}
-	return nil
 }
 
 // Run executes the test.

@@ -8,25 +8,21 @@ if [ ! -f "build/env.sh" ]; then
 fi
 
 # Create fake Go workspace if it doesn't exist yet.
-workspace="$PWD/build/_workspace"
 root="$PWD"
-ethdir="$workspace/src/github.com/ethereum"
-if [ ! -L "$ethdir/go-ethereum" ]; then
-    mkdir -p "$ethdir"
-    cd "$ethdir"
-    ln -s ../../../../../. go-ethereum
+workspace="$PWD/build/_workspace"
+hucdir="$workspace/src/github.com/happyuc-project"
+if [ ! -L "$hucdir/happyuc-go" ]; then
+    mkdir -p "$hucdir"
+    cd "$hucdir"
+    ln -s "$root" happyuc-go
     cd "$root"
 fi
 
 # Set up the environment to use the workspace.
-# Also add Godeps workspace so we build using canned dependencies.
-GOPATH="$ethdir/go-ethereum/Godeps/_workspace:$workspace"
-GOBIN="$PWD/build/bin"
-export GOPATH GOBIN
+export GOPATH="$workspace"
 
 # Run the command inside the workspace.
-cd "$ethdir/go-ethereum"
-PWD="$ethdir/go-ethereum"
+cd "$hucdir/happyuc-go"
 
 # Launch the arguments with the configured environment.
 exec "$@"

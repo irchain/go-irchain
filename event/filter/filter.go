@@ -1,18 +1,18 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2014 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package filter implements event filters.
 package filter
@@ -45,37 +45,37 @@ func New() *Filters {
 	}
 }
 
-func (self *Filters) Start() {
-	go self.loop()
+func (f *Filters) Start() {
+	go f.loop()
 }
 
-func (self *Filters) Stop() {
-	close(self.quit)
+func (f *Filters) Stop() {
+	close(f.quit)
 }
 
-func (self *Filters) Notify(filter Filter, data interface{}) {
-	self.ch <- FilterEvent{filter, data}
+func (f *Filters) Notify(filter Filter, data interface{}) {
+	f.ch <- FilterEvent{filter, data}
 }
 
-func (self *Filters) Install(watcher Filter) int {
-	self.watchers[self.id] = watcher
-	self.id++
+func (f *Filters) Install(watcher Filter) int {
+	f.watchers[f.id] = watcher
+	f.id++
 
-	return self.id - 1
+	return f.id - 1
 }
 
-func (self *Filters) Uninstall(id int) {
-	delete(self.watchers, id)
+func (f *Filters) Uninstall(id int) {
+	delete(f.watchers, id)
 }
 
-func (self *Filters) loop() {
+func (f *Filters) loop() {
 out:
 	for {
 		select {
-		case <-self.quit:
+		case <-f.quit:
 			break out
-		case event := <-self.ch:
-			for _, watcher := range self.watchers {
+		case event := <-f.ch:
+			for _, watcher := range f.watchers {
 				if reflect.TypeOf(watcher) == reflect.TypeOf(event.filter) {
 					if watcher.Compare(event.filter) {
 						watcher.Trigger(event.data)
@@ -86,10 +86,10 @@ out:
 	}
 }
 
-func (self *Filters) Match(a, b Filter) bool {
+func (f *Filters) Match(a, b Filter) bool {
 	return reflect.TypeOf(a) == reflect.TypeOf(b) && a.Compare(b)
 }
 
-func (self *Filters) Get(i int) Filter {
-	return self.watchers[i]
+func (f *Filters) Get(i int) Filter {
+	return f.watchers[i]
 }

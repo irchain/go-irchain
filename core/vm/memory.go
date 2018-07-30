@@ -1,31 +1,34 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package vm
 
 import "fmt"
 
+// Memory implements a simple memory model for the happyuc virtual machine.
 type Memory struct {
-	store []byte
+	store       []byte
+	lastGasCost uint64
 }
 
 func NewMemory() *Memory {
-	return &Memory{nil}
+	return &Memory{}
 }
 
+// Set sets offset + size to value
 func (m *Memory) Set(offset, size uint64, value []byte) {
 	// length of store may never be less than offset + size.
 	// The store should be resized PRIOR to setting the memory
@@ -40,20 +43,22 @@ func (m *Memory) Set(offset, size uint64, value []byte) {
 	}
 }
 
+// Resize resizes the memory to size
 func (m *Memory) Resize(size uint64) {
 	if uint64(m.Len()) < size {
 		m.store = append(m.store, make([]byte, size-uint64(m.Len()))...)
 	}
 }
 
-func (self *Memory) Get(offset, size int64) (cpy []byte) {
+// Get returns offset + size as a new slice
+func (m *Memory) Get(offset, size int64) (cpy []byte) {
 	if size == 0 {
 		return nil
 	}
 
-	if len(self.store) > int(offset) {
+	if len(m.store) > int(offset) {
 		cpy = make([]byte, size)
-		copy(cpy, self.store[offset:offset+size])
+		copy(cpy, m.store[offset:offset+size])
 
 		return
 	}
@@ -61,22 +66,25 @@ func (self *Memory) Get(offset, size int64) (cpy []byte) {
 	return
 }
 
-func (self *Memory) GetPtr(offset, size int64) []byte {
+// GetPtr returns the offset + size
+func (m *Memory) GetPtr(offset, size int64) []byte {
 	if size == 0 {
 		return nil
 	}
 
-	if len(self.store) > int(offset) {
-		return self.store[offset : offset+size]
+	if len(m.store) > int(offset) {
+		return m.store[offset : offset+size]
 	}
 
 	return nil
 }
 
+// Len returns the length of the backing slice
 func (m *Memory) Len() int {
 	return len(m.store)
 }
 
+// Data returns the backing slice
 func (m *Memory) Data() []byte {
 	return m.store
 }

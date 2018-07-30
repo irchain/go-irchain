@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
@@ -23,12 +23,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/happyuc-project/happyuc-go/common/math"
+	"github.com/happyuc-project/happyuc-go/consensus/huchash"
+	"github.com/happyuc-project/happyuc-go/core/rawdb"
+	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/happyuc-project/happyuc-go/core/vm"
+	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/happyuc-project/happyuc-go/params"
 )
 
 func BenchmarkInsertChain_empty_memdb(b *testing.B) {
@@ -72,7 +75,7 @@ var (
 	// This is the content of the genesis block used by the benchmarks.
 	benchRootKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	benchRootAddr   = crypto.PubkeyToAddress(benchRootKey.PublicKey)
-	benchRootFunds  = common.BigPow(2, 100)
+	benchRootFunds  = math.BigPow(2, 100)
 )
 
 // genValueTx returns a block generator that includes a single
@@ -82,8 +85,8 @@ func genValueTx(nbytes int) func(int, *BlockGen) {
 	return func(i int, gen *BlockGen) {
 		toaddr := common.Address{}
 		data := make([]byte, nbytes)
-		gas := IntrinsicGas(data)
-		tx, _ := types.NewTransaction(gen.TxNonce(benchRootAddr), toaddr, big.NewInt(1), gas, nil, data).SignECDSA(benchRootKey)
+		gas, _ := IntrinsicGas(data, false)
+		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(benchRootAddr), toaddr, big.NewInt(1), gas, nil, data), types.HomesteadSigner{}, benchRootKey)
 		gen.AddTx(tx)
 	}
 }
@@ -110,8 +113,8 @@ func genTxRing(naccounts int) func(int, *BlockGen) {
 	return func(i int, gen *BlockGen) {
 		gas := CalcGasLimit(gen.PrevBlock(i - 1))
 		for {
-			gas.Sub(gas, params.TxGas)
-			if gas.Cmp(params.TxGas) < 0 {
+			gas -= params.TxGas
+			if gas < params.TxGas {
 				break
 			}
 			to := (from + 1) % naccounts
@@ -123,7 +126,7 @@ func genTxRing(naccounts int) func(int, *BlockGen) {
 				nil,
 				nil,
 			)
-			tx, _ = tx.SignECDSA(ringKeys[from])
+			tx, _ = types.SignTx(tx, types.HomesteadSigner{}, ringKeys[from])
 			gen.AddTx(tx)
 			from = to
 		}
@@ -144,16 +147,16 @@ func genUncles(i int, gen *BlockGen) {
 
 func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 	// Create the database in memory or in a temporary directory.
-	var db common.Database
+	var db hucdb.Database
 	if !disk {
-		db, _ = ethdb.NewMemDatabase()
+		db = hucdb.NewMemDatabase()
 	} else {
 		dir, err := ioutil.TempDir("", "eth-core-bench")
 		if err != nil {
 			b.Fatalf("cannot create temporary directory: %v", err)
 		}
 		defer os.RemoveAll(dir)
-		db, err = ethdb.NewLDBDatabase(dir, 0)
+		db, err = hucdb.NewLDBDatabase(dir, 128, 128)
 		if err != nil {
 			b.Fatalf("cannot create temporary database: %v", err)
 		}
@@ -162,18 +165,141 @@ func benchInsertChain(b *testing.B, disk bool, gen func(int, *BlockGen)) {
 
 	// Generate a chain of b.N blocks using the supplied block
 	// generator function.
-	genesis := WriteGenesisBlockForTesting(db, benchRootAddr, benchRootFunds)
-	chain := GenerateChain(genesis, db, b.N, gen)
+	gspec := Genesis{
+		Config: params.TestChainConfig,
+		Alloc:  GenesisAlloc{benchRootAddr: {Balance: benchRootFunds}},
+	}
+	genesis := gspec.MustCommit(db)
+	chain, _ := GenerateChain(gspec.Config, genesis, huchash.NewFaker(), db, b.N, gen)
 
 	// Time the insertion of the new chain.
 	// State and blocks are stored in the same DB.
-	evmux := new(event.TypeMux)
-	chainman, _ := NewChainManager(db, db, db, FakePow{}, evmux)
-	chainman.SetProcessor(NewBlockProcessor(db, db, FakePow{}, chainman, evmux))
+	chainman, _ := NewBlockChain(db, nil, gspec.Config, huchash.NewFaker(), vm.Config{})
 	defer chainman.Stop()
 	b.ReportAllocs()
 	b.ResetTimer()
 	if i, err := chainman.InsertChain(chain); err != nil {
 		b.Fatalf("insert error (block %d): %v\n", i, err)
+	}
+}
+
+func BenchmarkChainRead_header_10k(b *testing.B) {
+	benchReadChain(b, false, 10000)
+}
+func BenchmarkChainRead_full_10k(b *testing.B) {
+	benchReadChain(b, true, 10000)
+}
+func BenchmarkChainRead_header_100k(b *testing.B) {
+	benchReadChain(b, false, 100000)
+}
+func BenchmarkChainRead_full_100k(b *testing.B) {
+	benchReadChain(b, true, 100000)
+}
+func BenchmarkChainRead_header_500k(b *testing.B) {
+	benchReadChain(b, false, 500000)
+}
+func BenchmarkChainRead_full_500k(b *testing.B) {
+	benchReadChain(b, true, 500000)
+}
+func BenchmarkChainWrite_header_10k(b *testing.B) {
+	benchWriteChain(b, false, 10000)
+}
+func BenchmarkChainWrite_full_10k(b *testing.B) {
+	benchWriteChain(b, true, 10000)
+}
+func BenchmarkChainWrite_header_100k(b *testing.B) {
+	benchWriteChain(b, false, 100000)
+}
+func BenchmarkChainWrite_full_100k(b *testing.B) {
+	benchWriteChain(b, true, 100000)
+}
+func BenchmarkChainWrite_header_500k(b *testing.B) {
+	benchWriteChain(b, false, 500000)
+}
+func BenchmarkChainWrite_full_500k(b *testing.B) {
+	benchWriteChain(b, true, 500000)
+}
+
+// makeChainForBench writes a given number of headers or empty blocks/receipts
+// into a database.
+func makeChainForBench(db hucdb.Database, full bool, count uint64) {
+	var hash common.Hash
+	for n := uint64(0); n < count; n++ {
+		header := &types.Header{
+			Coinbase:    common.Address{},
+			Number:      big.NewInt(int64(n)),
+			ParentHash:  hash,
+			Difficulty:  big.NewInt(1),
+			UncleHash:   types.EmptyUncleHash,
+			TxHash:      types.EmptyRootHash,
+			ReceiptHash: types.EmptyRootHash,
+		}
+		hash = header.Hash()
+
+		rawdb.WriteHeader(db, header)
+		rawdb.WriteCanonicalHash(db, hash, n)
+		rawdb.WriteTd(db, hash, n, big.NewInt(int64(n+1)))
+
+		if full || n == 0 {
+			block := types.NewBlockWithHeader(header)
+			rawdb.WriteBody(db, hash, n, block.Body())
+			rawdb.WriteReceipts(db, hash, n, nil)
+		}
+	}
+}
+
+func benchWriteChain(b *testing.B, full bool, count uint64) {
+	for i := 0; i < b.N; i++ {
+		dir, err := ioutil.TempDir("", "eth-chain-bench")
+		if err != nil {
+			b.Fatalf("cannot create temporary directory: %v", err)
+		}
+		db, err := hucdb.NewLDBDatabase(dir, 128, 1024)
+		if err != nil {
+			b.Fatalf("error opening database at %v: %v", dir, err)
+		}
+		makeChainForBench(db, full, count)
+		db.Close()
+		os.RemoveAll(dir)
+	}
+}
+
+func benchReadChain(b *testing.B, full bool, count uint64) {
+	dir, err := ioutil.TempDir("", "eth-chain-bench")
+	if err != nil {
+		b.Fatalf("cannot create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	db, err := hucdb.NewLDBDatabase(dir, 128, 1024)
+	if err != nil {
+		b.Fatalf("error opening database at %v: %v", dir, err)
+	}
+	makeChainForBench(db, full, count)
+	db.Close()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		db, err := hucdb.NewLDBDatabase(dir, 128, 1024)
+		if err != nil {
+			b.Fatalf("error opening database at %v: %v", dir, err)
+		}
+		chain, err := NewBlockChain(db, nil, params.TestChainConfig, huchash.NewFaker(), vm.Config{})
+		if err != nil {
+			b.Fatalf("error creating chain: %v", err)
+		}
+
+		for n := uint64(0); n < count; n++ {
+			header := chain.GetHeaderByNumber(n)
+			if full {
+				hash := header.Hash()
+				rawdb.ReadBody(db, hash, n)
+				rawdb.ReadReceipts(db, hash, n)
+			}
+		}
+		chain.Stop()
+		db.Close()
 	}
 }

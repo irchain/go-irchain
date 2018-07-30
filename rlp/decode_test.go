@@ -1,28 +1,30 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2014 The happyuc-go Authors
+// This file is part of the happyuc-go library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The happyuc-go library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The happyuc-go library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
 
 package rlp
 
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -115,6 +117,9 @@ func TestStreamErrors(t *testing.T) {
 		{"8133", calls{"Uint"}, nil, ErrCanonSize},
 		{"817F", calls{"Uint"}, nil, ErrCanonSize},
 		{"8180", calls{"Uint"}, nil, nil},
+
+		// Non-valid boolean
+		{"02", calls{"Bool"}, nil, errors.New("rlp: invalid boolean value: 2")},
 
 		// Size tags must use the smallest possible encoding.
 		// Leading zero bytes in the size tag are also rejected.
@@ -251,16 +256,31 @@ func TestStreamList(t *testing.T) {
 }
 
 func TestStreamRaw(t *testing.T) {
-	s := NewStream(bytes.NewReader(unhex("C58401010101")), 0)
-	s.List()
-
-	want := unhex("8401010101")
-	raw, err := s.Raw()
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		input  string
+		output string
+	}{
+		{
+			"C58401010101",
+			"8401010101",
+		},
+		{
+			"F842B84001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+			"B84001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+		},
 	}
-	if !bytes.Equal(want, raw) {
-		t.Errorf("raw mismatch: got %x, want %x", raw, want)
+	for i, tt := range tests {
+		s := NewStream(bytes.NewReader(unhex(tt.input)), 0)
+		s.List()
+
+		want := unhex(tt.output)
+		raw, err := s.Raw()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(want, raw) {
+			t.Errorf("test %d: raw mismatch: got %x, want %x", i, raw, want)
+		}
 	}
 }
 
@@ -307,6 +327,26 @@ type recstruct struct {
 	Child *recstruct `rlp:"nil"`
 }
 
+type invalidTail1 struct {
+	A uint `rlp:"tail"`
+	B string
+}
+
+type invalidTail2 struct {
+	A uint
+	B string `rlp:"tail"`
+}
+
+type tailRaw struct {
+	A    uint
+	Tail []RawValue `rlp:"tail"`
+}
+
+type tailUint struct {
+	A    uint
+	Tail []uint `rlp:"tail"`
+}
+
 var (
 	veryBigInt = big.NewInt(0).Add(
 		big.NewInt(0).Lsh(big.NewInt(0xFFFFFFFFFFFFFF), 16),
@@ -314,7 +354,18 @@ var (
 	)
 )
 
+type hasIgnoredField struct {
+	A uint
+	B uint `rlp:"-"`
+	C uint
+}
+
 var decodeTests = []decodeTest{
+	// booleans
+	{input: "01", ptr: new(bool), value: true},
+	{input: "80", ptr: new(bool), value: false},
+	{input: "02", ptr: new(bool), error: "rlp: invalid boolean value: 2"},
+
 	// integers
 	{input: "05", ptr: new(uint32), value: uint32(5)},
 	{input: "80", ptr: new(uint32), value: uint32(0)},
@@ -427,6 +478,50 @@ var decodeTests = []decodeTest{
 		ptr:   new(recstruct),
 		error: "rlp: expected input string or byte for uint, decoding into (rlp.recstruct).Child.I",
 	},
+	{
+		input: "C0",
+		ptr:   new(invalidTail1),
+		error: "rlp: invalid struct tag \"tail\" for rlp.invalidTail1.A (must be on last field)",
+	},
+	{
+		input: "C0",
+		ptr:   new(invalidTail2),
+		error: "rlp: invalid struct tag \"tail\" for rlp.invalidTail2.B (field type is not slice)",
+	},
+	{
+		input: "C50102C20102",
+		ptr:   new(tailUint),
+		error: "rlp: expected input string or byte for uint, decoding into (rlp.tailUint).Tail[1]",
+	},
+
+	// struct tag "tail"
+	{
+		input: "C3010203",
+		ptr:   new(tailRaw),
+		value: tailRaw{A: 1, Tail: []RawValue{unhex("02"), unhex("03")}},
+	},
+	{
+		input: "C20102",
+		ptr:   new(tailRaw),
+		value: tailRaw{A: 1, Tail: []RawValue{unhex("02")}},
+	},
+	{
+		input: "C101",
+		ptr:   new(tailRaw),
+		value: tailRaw{A: 1, Tail: []RawValue{}},
+	},
+
+	// struct tag "-"
+	{
+		input: "C20102",
+		ptr:   new(hasIgnoredField),
+		value: hasIgnoredField{A: 1, C: 2},
+	},
+
+	// RawValue
+	{input: "01", ptr: new(RawValue), value: RawValue(unhex("01"))},
+	{input: "82FFFF", ptr: new(RawValue), value: RawValue(unhex("82FFFF"))},
+	{input: "C20102", ptr: new([]RawValue), value: []RawValue{unhex("01"), unhex("02")}},
 
 	// pointers
 	{input: "00", ptr: new(*[]byte), value: &[]byte{0}},
@@ -436,7 +531,7 @@ var decodeTests = []decodeTest{
 	{input: "817F", ptr: new(*uint), error: "rlp: non-canonical size information for uint"},
 	{input: "8180", ptr: new(*uint), value: uintp(0x80)},
 	{input: "C109", ptr: new(*[]uint), value: &[]uint{9}},
-	{input: "C58403030303", ptr: new(*[][]byte), value: &[][]byte{{3, 3, 3, 3}}},
+	{input: "C58405050503", ptr: new(*[][]byte), value: &[][]byte{{3, 3, 3, 3}}},
 
 	// check that input position is advanced also for empty values.
 	{input: "C3808005", ptr: new([]*uint), value: []*uint{uintp(0), uintp(0), uintp(5)}},
@@ -456,7 +551,7 @@ var decodeTests = []decodeTest{
 
 	// fuzzer crashes
 	{
-		input: "c330f9c030f93030ce3030303030303030bd303030303030",
+		input: "c330f9c030f93030ce5050505050503030bd505050505050",
 		ptr:   new(interface{}),
 		error: "rlp: element is larger than containing list",
 	},
@@ -716,7 +811,7 @@ func encodeTestSlice(n uint) []byte {
 }
 
 func unhex(str string) []byte {
-	b, err := hex.DecodeString(str)
+	b, err := hex.DecodeString(strings.Replace(str, " ", "", -1))
 	if err != nil {
 		panic(fmt.Sprintf("invalid hex string: %q", str))
 	}
