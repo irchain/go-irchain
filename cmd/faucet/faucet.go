@@ -64,10 +64,10 @@ import (
 var (
 	genesisFlag = flag.String("genesis", "", "Genesis json file to seed the chain with")
 	apiPortFlag = flag.Int("apiport", 8080, "Listener port for the HTTP API connection")
-	ircPortFlag = flag.Int("ircport", 50505, "Listener port for the devp2p connection")
+	ircPortFlag = flag.Int("hucport", 50505, "Listener port for the devp2p connection")
 	bootFlag    = flag.String("bootnodes", "", "Comma separated bootnode hnode URLs to seed with")
 	netFlag     = flag.Uint64("network", 0, "Network ID to use for the IrChain protocol")
-	statsFlag   = flag.String("ircstats", "", "Ircstats network monitoring auth string")
+	statsFlag   = flag.String("hucstats", "", "Ircstats network monitoring auth string")
 
 	netnameFlag = flag.String("faucet.name", "", "Network name to assign to the faucet")
 	payoutFlag  = flag.Int("faucet.amount", 1, "Number of IrChains to pay out per user request")

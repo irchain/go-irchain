@@ -146,17 +146,17 @@ var MessageType_name = map[int32]string{
 	53:  "MessageType_SignIdentity",
 	54:  "MessageType_SignedIdentity",
 	55:  "MessageType_GetFeatures",
-	56:  "MessageType_GetAddressIrChain",
-	57:  "MessageType_AddressIrChain",
-	58:  "MessageType_SignTxIrChain",
-	59:  "MessageType_TxRequestIrChain",
-	60:  "MessageType_TxAckIrChain",
+	56:  "MessageType_GetAddressHappyUC",
+	57:  "MessageType_AddressHappyUC",
+	58:  "MessageType_SignTxHappyUC",
+	59:  "MessageType_TxRequestHappyUC",
+	60:  "MessageType_TxAckHappyUC",
 	61:  "MessageType_GetECDHSessionKey",
 	62:  "MessageType_ECDHSessionKey",
 	63:  "MessageType_SetU2FCounter",
-	64:  "MessageType_SignMessageIrChain",
-	65:  "MessageType_VerifyMessageIrChain",
-	66:  "MessageType_MessageSignatureIrChain",
+	64:  "MessageType_SignMessageHappyUC",
+	65:  "MessageType_VerifyMessageHappyUC",
+	66:  "MessageType_MessageSignatureHappyUC",
 	100: "MessageType_DebugLinkDecision",
 	101: "MessageType_DebugLinkGetState",
 	102: "MessageType_DebugLinkState",
@@ -221,17 +221,17 @@ var MessageType_value = map[string]int32{
 	"MessageType_SignIdentity":            53,
 	"MessageType_SignedIdentity":          54,
 	"MessageType_GetFeatures":             55,
-	"MessageType_GetAddressIrChain":       56,
-	"MessageType_AddressIrChain":          57,
-	"MessageType_SignTxIrChain":           58,
-	"MessageType_TxRequestIrChain":        59,
-	"MessageType_TxAckIrChain":            60,
+	"MessageType_GetAddressHappyUC":       56,
+	"MessageType_AddressHappyUC":          57,
+	"MessageType_SignTxHappyUC":           58,
+	"MessageType_TxRequestHappyUC":        59,
+	"MessageType_TxAckHappyUC":            60,
 	"MessageType_GetECDHSessionKey":       61,
 	"MessageType_ECDHSessionKey":          62,
 	"MessageType_SetU2FCounter":           63,
-	"MessageType_SignMessageIrChain":      64,
-	"MessageType_VerifyMessageIrChain":    65,
-	"MessageType_MessageSignatureIrChain": 66,
+	"MessageType_SignMessageHappyUC":      64,
+	"MessageType_VerifyMessageHappyUC":    65,
+	"MessageType_MessageSignatureHappyUC": 66,
 	"MessageType_DebugLinkDecision":       100,
 	"MessageType_DebugLinkGetState":       101,
 	"MessageType_DebugLinkState":          102,
@@ -2799,9 +2799,9 @@ func init() {
 	proto.RegisterType((*GetPublicKey)(nil), "GetPublicKey")
 	proto.RegisterType((*PublicKey)(nil), "PublicKey")
 	proto.RegisterType((*GetAddress)(nil), "GetAddress")
-	proto.RegisterType((*GetAddressIrChain)(nil), "GetAddressIrChain")
+	proto.RegisterType((*GetAddressIrChain)(nil), "GetAddressHappyUC")
 	proto.RegisterType((*Address)(nil), "Address")
-	proto.RegisterType((*AddressIrChain)(nil), "AddressIrChain")
+	proto.RegisterType((*AddressIrChain)(nil), "AddressHappyUC")
 	proto.RegisterType((*WipeDevice)(nil), "WipeDevice")
 	proto.RegisterType((*LoadDevice)(nil), "LoadDevice")
 	proto.RegisterType((*ResetDevice)(nil), "ResetDevice")
@@ -2826,12 +2826,12 @@ func init() {
 	proto.RegisterType((*SimpleSignTx)(nil), "SimpleSignTx")
 	proto.RegisterType((*TxRequest)(nil), "TxRequest")
 	proto.RegisterType((*TxAck)(nil), "TxAck")
-	proto.RegisterType((*SignTxIrChain)(nil), "SignTxIrChain")
-	proto.RegisterType((*TxRequestIrChain)(nil), "TxRequestIrChain")
-	proto.RegisterType((*TxAckIrChain)(nil), "TxAckIrChain")
-	proto.RegisterType((*SignMessageIrChain)(nil), "SignMessageIrChain")
-	proto.RegisterType((*VerifyMessageIrChain)(nil), "VerifyMessageIrChain")
-	proto.RegisterType((*MessageSignatureIrChain)(nil), "MessageSignatureIrChain")
+	proto.RegisterType((*SignTxIrChain)(nil), "SignTxHappyUC")
+	proto.RegisterType((*TxRequestIrChain)(nil), "TxRequestHappyUC")
+	proto.RegisterType((*TxAckIrChain)(nil), "TxAckHappyUC")
+	proto.RegisterType((*SignMessageIrChain)(nil), "SignMessageHappyUC")
+	proto.RegisterType((*VerifyMessageIrChain)(nil), "VerifyMessageHappyUC")
+	proto.RegisterType((*MessageSignatureIrChain)(nil), "MessageSignatureHappyUC")
 	proto.RegisterType((*SignIdentity)(nil), "SignIdentity")
 	proto.RegisterType((*SignedIdentity)(nil), "SignedIdentity")
 	proto.RegisterType((*GetECDHSessionKey)(nil), "GetECDHSessionKey")

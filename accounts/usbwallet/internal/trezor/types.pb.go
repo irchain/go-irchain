@@ -42,9 +42,9 @@ It has these top-level messages:
 	GetPublicKey
 	PublicKey
 	GetAddress
-	GetAddressIrChain
+	GetAddressHappyUC
 	Address
-	AddressIrChain
+	AddressHappyUC
 	WipeDevice
 	LoadDevice
 	ResetDevice
@@ -69,12 +69,12 @@ It has these top-level messages:
 	SimpleSignTx
 	TxRequest
 	TxAck
-	SignTxIrChain
-	TxRequestIrChain
-	TxAckIrChain
-	SignMessageIrChain
-	VerifyMessageIrChain
-	MessageSignatureIrChain
+	SignTxHappyUC
+	TxRequestHappyUC
+	TxAckHappyUC
+	SignMessageHappyUC
+	VerifyMessageHappyUC
+	MessageSignatureHappyUC
 	SignIdentity
 	SignedIdentity
 	GetECDHSessionKey
