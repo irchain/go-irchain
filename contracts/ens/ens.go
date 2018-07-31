@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package ens
 
@@ -23,11 +23,11 @@ package ens
 import (
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/contracts/ens/contract"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/accounts/abi/bind"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/contracts/ens/contract"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 var (
@@ -42,7 +42,7 @@ type ENS struct {
 }
 
 // NewENS creates a struct exposing convenient high-level operations for interacting with
-// the HappyUC Name Service.
+// the IrChain Name Service.
 func NewENS(transactOpts *bind.TransactOpts, contractAddr common.Address, contractBackend bind.ContractBackend) (*ENS, error) {
 	ens, err := contract.NewENS(contractAddr, contractBackend)
 	if err != nil {

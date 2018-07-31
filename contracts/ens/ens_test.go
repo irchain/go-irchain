@@ -20,11 +20,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind"
-	"github.com/happyuc-project/happyuc-go/accounts/abi/bind/backends"
-	"github.com/happyuc-project/happyuc-go/contracts/ens/contract"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/accounts/abi/bind"
+	"github.com/irchain/go-irchain/accounts/abi/bind/backends"
+	"github.com/irchain/go-irchain/contracts/ens/contract"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 var (

@@ -3,9 +3,9 @@
 
 package trezor
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import "github.com/golang/protobuf/proto"
+import "fmt"
+import "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -70,17 +70,17 @@ const (
 	MessageType_MessageType_SignIdentity            MessageType = 53
 	MessageType_MessageType_SignedIdentity          MessageType = 54
 	MessageType_MessageType_GetFeatures             MessageType = 55
-	MessageType_MessageType_GetAddressHappyUC       MessageType = 56
-	MessageType_MessageType_AddressHappyUC          MessageType = 57
-	MessageType_MessageType_SignTxHappyUC           MessageType = 58
-	MessageType_MessageType_TxRequestHappyUC        MessageType = 59
-	MessageType_MessageType_TxAckHappyUC            MessageType = 60
+	MessageType_MessageType_GetAddressIrChain       MessageType = 56
+	MessageType_MessageType_AddressIrChain          MessageType = 57
+	MessageType_MessageType_SignTxIrChain           MessageType = 58
+	MessageType_MessageType_TxRequestIrChain        MessageType = 59
+	MessageType_MessageType_TxAckIrChain            MessageType = 60
 	MessageType_MessageType_GetECDHSessionKey       MessageType = 61
 	MessageType_MessageType_ECDHSessionKey          MessageType = 62
 	MessageType_MessageType_SetU2FCounter           MessageType = 63
-	MessageType_MessageType_SignMessageHappyUC      MessageType = 64
-	MessageType_MessageType_VerifyMessageHappyUC    MessageType = 65
-	MessageType_MessageType_MessageSignatureHappyUC MessageType = 66
+	MessageType_MessageType_SignMessageIrChain      MessageType = 64
+	MessageType_MessageType_VerifyMessageIrChain    MessageType = 65
+	MessageType_MessageType_MessageSignatureIrChain MessageType = 66
 	MessageType_MessageType_DebugLinkDecision       MessageType = 100
 	MessageType_MessageType_DebugLinkGetState       MessageType = 101
 	MessageType_MessageType_DebugLinkState          MessageType = 102
@@ -146,17 +146,17 @@ var MessageType_name = map[int32]string{
 	53:  "MessageType_SignIdentity",
 	54:  "MessageType_SignedIdentity",
 	55:  "MessageType_GetFeatures",
-	56:  "MessageType_GetAddressHappyUC",
-	57:  "MessageType_AddressHappyUC",
-	58:  "MessageType_SignTxHappyUC",
-	59:  "MessageType_TxRequestHappyUC",
-	60:  "MessageType_TxAckHappyUC",
+	56:  "MessageType_GetAddressIrChain",
+	57:  "MessageType_AddressIrChain",
+	58:  "MessageType_SignTxIrChain",
+	59:  "MessageType_TxRequestIrChain",
+	60:  "MessageType_TxAckIrChain",
 	61:  "MessageType_GetECDHSessionKey",
 	62:  "MessageType_ECDHSessionKey",
 	63:  "MessageType_SetU2FCounter",
-	64:  "MessageType_SignMessageHappyUC",
-	65:  "MessageType_VerifyMessageHappyUC",
-	66:  "MessageType_MessageSignatureHappyUC",
+	64:  "MessageType_SignMessageIrChain",
+	65:  "MessageType_VerifyMessageIrChain",
+	66:  "MessageType_MessageSignatureIrChain",
 	100: "MessageType_DebugLinkDecision",
 	101: "MessageType_DebugLinkGetState",
 	102: "MessageType_DebugLinkState",
@@ -221,17 +221,17 @@ var MessageType_value = map[string]int32{
 	"MessageType_SignIdentity":            53,
 	"MessageType_SignedIdentity":          54,
 	"MessageType_GetFeatures":             55,
-	"MessageType_GetAddressHappyUC":       56,
-	"MessageType_AddressHappyUC":          57,
-	"MessageType_SignTxHappyUC":           58,
-	"MessageType_TxRequestHappyUC":        59,
-	"MessageType_TxAckHappyUC":            60,
+	"MessageType_GetAddressIrChain":       56,
+	"MessageType_AddressIrChain":          57,
+	"MessageType_SignTxIrChain":           58,
+	"MessageType_TxRequestIrChain":        59,
+	"MessageType_TxAckIrChain":            60,
 	"MessageType_GetECDHSessionKey":       61,
 	"MessageType_ECDHSessionKey":          62,
 	"MessageType_SetU2FCounter":           63,
-	"MessageType_SignMessageHappyUC":      64,
-	"MessageType_VerifyMessageHappyUC":    65,
-	"MessageType_MessageSignatureHappyUC": 66,
+	"MessageType_SignMessageIrChain":      64,
+	"MessageType_VerifyMessageIrChain":    65,
+	"MessageType_MessageSignatureIrChain": 66,
 	"MessageType_DebugLinkDecision":       100,
 	"MessageType_DebugLinkGetState":       101,
 	"MessageType_DebugLinkState":          102,
@@ -954,29 +954,29 @@ func (m *GetAddress) GetScriptType() InputScriptType {
 }
 
 // *
-// Request: Ask device for HappyUC address corresponding to address_n path
+// Request: Ask device for IrChain address corresponding to address_n path
 // @next PassphraseRequest
-// @next AddressHappyUC
+// @next AddressIrChain
 // @next Failure
-type GetAddressHappyUC struct {
+type GetAddressIrChain struct {
 	AddressN         []uint32 `protobuf:"varint,1,rep,name=address_n,json=addressN" json:"address_n,omitempty"`
 	ShowDisplay      *bool    `protobuf:"varint,2,opt,name=show_display,json=showDisplay" json:"show_display,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
-func (m *GetAddressHappyUC) Reset()                    { *m = GetAddressHappyUC{} }
-func (m *GetAddressHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*GetAddressHappyUC) ProtoMessage()               {}
-func (*GetAddressHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{22} }
+func (m *GetAddressIrChain) Reset()                    { *m = GetAddressIrChain{} }
+func (m *GetAddressIrChain) String() string            { return proto.CompactTextString(m) }
+func (*GetAddressIrChain) ProtoMessage()               {}
+func (*GetAddressIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{22} }
 
-func (m *GetAddressHappyUC) GetAddressN() []uint32 {
+func (m *GetAddressIrChain) GetAddressN() []uint32 {
 	if m != nil {
 		return m.AddressN
 	}
 	return nil
 }
 
-func (m *GetAddressHappyUC) GetShowDisplay() bool {
+func (m *GetAddressIrChain) GetShowDisplay() bool {
 	if m != nil && m.ShowDisplay != nil {
 		return *m.ShowDisplay
 	}
@@ -1004,19 +1004,19 @@ func (m *Address) GetAddress() string {
 }
 
 // *
-// Response: Contains an HappyUC address derived from device private seed
-// @prev GetAddressHappyUC
-type AddressHappyUC struct {
+// Response: Contains an IrChain address derived from device private seed
+// @prev GetAddressIrChain
+type AddressIrChain struct {
 	Address          []byte `protobuf:"bytes,1,req,name=address" json:"address,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
-func (m *AddressHappyUC) Reset()                    { *m = AddressHappyUC{} }
-func (m *AddressHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*AddressHappyUC) ProtoMessage()               {}
-func (*AddressHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{24} }
+func (m *AddressIrChain) Reset()                    { *m = AddressIrChain{} }
+func (m *AddressIrChain) String() string            { return proto.CompactTextString(m) }
+func (*AddressIrChain) ProtoMessage()               {}
+func (*AddressIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{24} }
 
-func (m *AddressHappyUC) GetAddress() []byte {
+func (m *AddressIrChain) GetAddress() []byte {
 	if m != nil {
 		return m.Address
 	}
@@ -2006,9 +2006,9 @@ func (m *TxAck) GetTx() *TransactionType {
 // Note: the first at most 1024 bytes of data MUST be transmitted as part of this message.
 // @next PassphraseRequest
 // @next PinMatrixRequest
-// @next TxRequestHappyUC
+// @next TxRequestIrChain
 // @next Failure
-type SignTxHappyUC struct {
+type SignTxIrChain struct {
 	AddressN         []uint32 `protobuf:"varint,1,rep,name=address_n,json=addressN" json:"address_n,omitempty"`
 	Nonce            []byte   `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
 	GasPrice         []byte   `protobuf:"bytes,3,opt,name=gas_price,json=gasPrice" json:"gas_price,omitempty"`
@@ -2021,68 +2021,68 @@ type SignTxHappyUC struct {
 	XXX_unrecognized []byte   `json:"-"`
 }
 
-func (m *SignTxHappyUC) Reset()                    { *m = SignTxHappyUC{} }
-func (m *SignTxHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*SignTxHappyUC) ProtoMessage()               {}
-func (*SignTxHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{49} }
+func (m *SignTxIrChain) Reset()                    { *m = SignTxIrChain{} }
+func (m *SignTxIrChain) String() string            { return proto.CompactTextString(m) }
+func (*SignTxIrChain) ProtoMessage()               {}
+func (*SignTxIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{49} }
 
-func (m *SignTxHappyUC) GetAddressN() []uint32 {
+func (m *SignTxIrChain) GetAddressN() []uint32 {
 	if m != nil {
 		return m.AddressN
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetNonce() []byte {
+func (m *SignTxIrChain) GetNonce() []byte {
 	if m != nil {
 		return m.Nonce
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetGasPrice() []byte {
+func (m *SignTxIrChain) GetGasPrice() []byte {
 	if m != nil {
 		return m.GasPrice
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetGasLimit() []byte {
+func (m *SignTxIrChain) GetGasLimit() []byte {
 	if m != nil {
 		return m.GasLimit
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetTo() []byte {
+func (m *SignTxIrChain) GetTo() []byte {
 	if m != nil {
 		return m.To
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetValue() []byte {
+func (m *SignTxIrChain) GetValue() []byte {
 	if m != nil {
 		return m.Value
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetDataInitialChunk() []byte {
+func (m *SignTxIrChain) GetDataInitialChunk() []byte {
 	if m != nil {
 		return m.DataInitialChunk
 	}
 	return nil
 }
 
-func (m *SignTxHappyUC) GetDataLength() uint32 {
+func (m *SignTxIrChain) GetDataLength() uint32 {
 	if m != nil && m.DataLength != nil {
 		return *m.DataLength
 	}
 	return 0
 }
 
-func (m *SignTxHappyUC) GetChainId() uint32 {
+func (m *SignTxIrChain) GetChainId() uint32 {
 	if m != nil && m.ChainId != nil {
 		return *m.ChainId
 	}
@@ -2093,9 +2093,9 @@ func (m *SignTxHappyUC) GetChainId() uint32 {
 // Response: Device asks for more data from transaction payload, or returns the signature.
 // If data_length is set, device awaits that many more bytes of payload.
 // Otherwise, the signature_* fields contain the computed transaction signature. All three fields will be present.
-// @prev SignTxHappyUC
-// @next TxAckHappyUC
-type TxRequestHappyUC struct {
+// @prev SignTxIrChain
+// @next TxAckIrChain
+type TxRequestIrChain struct {
 	DataLength       *uint32 `protobuf:"varint,1,opt,name=data_length,json=dataLength" json:"data_length,omitempty"`
 	SignatureV       *uint32 `protobuf:"varint,2,opt,name=signature_v,json=signatureV" json:"signature_v,omitempty"`
 	SignatureR       []byte  `protobuf:"bytes,3,opt,name=signature_r,json=signatureR" json:"signature_r,omitempty"`
@@ -2103,33 +2103,33 @@ type TxRequestHappyUC struct {
 	XXX_unrecognized []byte  `json:"-"`
 }
 
-func (m *TxRequestHappyUC) Reset()                    { *m = TxRequestHappyUC{} }
-func (m *TxRequestHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*TxRequestHappyUC) ProtoMessage()               {}
-func (*TxRequestHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{50} }
+func (m *TxRequestIrChain) Reset()                    { *m = TxRequestIrChain{} }
+func (m *TxRequestIrChain) String() string            { return proto.CompactTextString(m) }
+func (*TxRequestIrChain) ProtoMessage()               {}
+func (*TxRequestIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{50} }
 
-func (m *TxRequestHappyUC) GetDataLength() uint32 {
+func (m *TxRequestIrChain) GetDataLength() uint32 {
 	if m != nil && m.DataLength != nil {
 		return *m.DataLength
 	}
 	return 0
 }
 
-func (m *TxRequestHappyUC) GetSignatureV() uint32 {
+func (m *TxRequestIrChain) GetSignatureV() uint32 {
 	if m != nil && m.SignatureV != nil {
 		return *m.SignatureV
 	}
 	return 0
 }
 
-func (m *TxRequestHappyUC) GetSignatureR() []byte {
+func (m *TxRequestIrChain) GetSignatureR() []byte {
 	if m != nil {
 		return m.SignatureR
 	}
 	return nil
 }
 
-func (m *TxRequestHappyUC) GetSignatureS() []byte {
+func (m *TxRequestIrChain) GetSignatureS() []byte {
 	if m != nil {
 		return m.SignatureS
 	}
@@ -2138,19 +2138,19 @@ func (m *TxRequestHappyUC) GetSignatureS() []byte {
 
 // *
 // Request: Transaction payload data.
-// @prev TxRequestHappyUC
-// @next TxRequestHappyUC
-type TxAckHappyUC struct {
+// @prev TxRequestIrChain
+// @next TxRequestIrChain
+type TxAckIrChain struct {
 	DataChunk        []byte `protobuf:"bytes,1,opt,name=data_chunk,json=dataChunk" json:"data_chunk,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
-func (m *TxAckHappyUC) Reset()                    { *m = TxAckHappyUC{} }
-func (m *TxAckHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*TxAckHappyUC) ProtoMessage()               {}
-func (*TxAckHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{51} }
+func (m *TxAckIrChain) Reset()                    { *m = TxAckIrChain{} }
+func (m *TxAckIrChain) String() string            { return proto.CompactTextString(m) }
+func (*TxAckIrChain) ProtoMessage()               {}
+func (*TxAckIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{51} }
 
-func (m *TxAckHappyUC) GetDataChunk() []byte {
+func (m *TxAckIrChain) GetDataChunk() []byte {
 	if m != nil {
 		return m.DataChunk
 	}
@@ -2159,27 +2159,27 @@ func (m *TxAckHappyUC) GetDataChunk() []byte {
 
 // *
 // Request: Ask device to sign message
-// @next MessageSignatureHappyUC
+// @next MessageSignatureIrChain
 // @next Failure
-type SignMessageHappyUC struct {
+type SignMessageIrChain struct {
 	AddressN         []uint32 `protobuf:"varint,1,rep,name=address_n,json=addressN" json:"address_n,omitempty"`
 	Message          []byte   `protobuf:"bytes,2,req,name=message" json:"message,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
-func (m *SignMessageHappyUC) Reset()                    { *m = SignMessageHappyUC{} }
-func (m *SignMessageHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*SignMessageHappyUC) ProtoMessage()               {}
-func (*SignMessageHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{52} }
+func (m *SignMessageIrChain) Reset()                    { *m = SignMessageIrChain{} }
+func (m *SignMessageIrChain) String() string            { return proto.CompactTextString(m) }
+func (*SignMessageIrChain) ProtoMessage()               {}
+func (*SignMessageIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{52} }
 
-func (m *SignMessageHappyUC) GetAddressN() []uint32 {
+func (m *SignMessageIrChain) GetAddressN() []uint32 {
 	if m != nil {
 		return m.AddressN
 	}
 	return nil
 }
 
-func (m *SignMessageHappyUC) GetMessage() []byte {
+func (m *SignMessageIrChain) GetMessage() []byte {
 	if m != nil {
 		return m.Message
 	}
@@ -2190,26 +2190,26 @@ func (m *SignMessageHappyUC) GetMessage() []byte {
 // Request: Ask device to verify message
 // @next Success
 // @next Failure
-type VerifyMessageHappyUC struct {
+type VerifyMessageIrChain struct {
 	Address          []byte `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
 	Signature        []byte `protobuf:"bytes,2,opt,name=signature" json:"signature,omitempty"`
 	Message          []byte `protobuf:"bytes,3,opt,name=message" json:"message,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
-func (m *VerifyMessageHappyUC) Reset()                    { *m = VerifyMessageHappyUC{} }
-func (m *VerifyMessageHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*VerifyMessageHappyUC) ProtoMessage()               {}
-func (*VerifyMessageHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{53} }
+func (m *VerifyMessageIrChain) Reset()                    { *m = VerifyMessageIrChain{} }
+func (m *VerifyMessageIrChain) String() string            { return proto.CompactTextString(m) }
+func (*VerifyMessageIrChain) ProtoMessage()               {}
+func (*VerifyMessageIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{53} }
 
-func (m *VerifyMessageHappyUC) GetAddress() []byte {
+func (m *VerifyMessageIrChain) GetAddress() []byte {
 	if m != nil {
 		return m.Address
 	}
 	return nil
 }
 
-func (m *VerifyMessageHappyUC) GetSignature() []byte {
+func (m *VerifyMessageIrChain) GetSignature() []byte {
 	if m != nil {
 		return m.Signature
 	}
@@ -2218,26 +2218,26 @@ func (m *VerifyMessageHappyUC) GetSignature() []byte {
 
 // *
 // Response: Signed message
-// @prev SignMessageHappyUC
-type MessageSignatureHappyUC struct {
+// @prev SignMessageIrChain
+type MessageSignatureIrChain struct {
 	Address          []byte `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
 	Signature        []byte `protobuf:"bytes,2,opt,name=signature" json:"signature,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
-func (m *MessageSignatureHappyUC) Reset()                    { *m = MessageSignatureHappyUC{} }
-func (m *MessageSignatureHappyUC) String() string            { return proto.CompactTextString(m) }
-func (*MessageSignatureHappyUC) ProtoMessage()               {}
-func (*MessageSignatureHappyUC) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{54} }
+func (m *MessageSignatureIrChain) Reset()                    { *m = MessageSignatureIrChain{} }
+func (m *MessageSignatureIrChain) String() string            { return proto.CompactTextString(m) }
+func (*MessageSignatureIrChain) ProtoMessage()               {}
+func (*MessageSignatureIrChain) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{54} }
 
-func (m *MessageSignatureHappyUC) GetAddress() []byte {
+func (m *MessageSignatureIrChain) GetAddress() []byte {
 	if m != nil {
 		return m.Address
 	}
 	return nil
 }
 
-func (m *MessageSignatureHappyUC) GetSignature() []byte {
+func (m *MessageSignatureIrChain) GetSignature() []byte {
 	if m != nil {
 		return m.Signature
 	}
@@ -2799,9 +2799,9 @@ func init() {
 	proto.RegisterType((*GetPublicKey)(nil), "GetPublicKey")
 	proto.RegisterType((*PublicKey)(nil), "PublicKey")
 	proto.RegisterType((*GetAddress)(nil), "GetAddress")
-	proto.RegisterType((*GetAddressHappyUC)(nil), "GetAddressHappyUC")
+	proto.RegisterType((*GetAddressIrChain)(nil), "GetAddressIrChain")
 	proto.RegisterType((*Address)(nil), "Address")
-	proto.RegisterType((*AddressHappyUC)(nil), "AddressHappyUC")
+	proto.RegisterType((*AddressIrChain)(nil), "AddressIrChain")
 	proto.RegisterType((*WipeDevice)(nil), "WipeDevice")
 	proto.RegisterType((*LoadDevice)(nil), "LoadDevice")
 	proto.RegisterType((*ResetDevice)(nil), "ResetDevice")
@@ -2826,12 +2826,12 @@ func init() {
 	proto.RegisterType((*SimpleSignTx)(nil), "SimpleSignTx")
 	proto.RegisterType((*TxRequest)(nil), "TxRequest")
 	proto.RegisterType((*TxAck)(nil), "TxAck")
-	proto.RegisterType((*SignTxHappyUC)(nil), "SignTxHappyUC")
-	proto.RegisterType((*TxRequestHappyUC)(nil), "TxRequestHappyUC")
-	proto.RegisterType((*TxAckHappyUC)(nil), "TxAckHappyUC")
-	proto.RegisterType((*SignMessageHappyUC)(nil), "SignMessageHappyUC")
-	proto.RegisterType((*VerifyMessageHappyUC)(nil), "VerifyMessageHappyUC")
-	proto.RegisterType((*MessageSignatureHappyUC)(nil), "MessageSignatureHappyUC")
+	proto.RegisterType((*SignTxIrChain)(nil), "SignTxIrChain")
+	proto.RegisterType((*TxRequestIrChain)(nil), "TxRequestIrChain")
+	proto.RegisterType((*TxAckIrChain)(nil), "TxAckIrChain")
+	proto.RegisterType((*SignMessageIrChain)(nil), "SignMessageIrChain")
+	proto.RegisterType((*VerifyMessageIrChain)(nil), "VerifyMessageIrChain")
+	proto.RegisterType((*MessageSignatureIrChain)(nil), "MessageSignatureIrChain")
 	proto.RegisterType((*SignIdentity)(nil), "SignIdentity")
 	proto.RegisterType((*SignedIdentity)(nil), "SignedIdentity")
 	proto.RegisterType((*GetECDHSessionKey)(nil), "GetECDHSessionKey")

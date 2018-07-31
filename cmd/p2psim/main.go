@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2017 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
 // p2psim provides a command-line client for a simulation HTTP API.
 //
@@ -45,12 +45,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/simulations"
-	"github.com/happyuc-project/happyuc-go/p2p/simulations/adapters"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/simulations"
+	"github.com/irchain/go-irchain/p2p/simulations/adapters"
+	"github.com/irchain/go-irchain/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 

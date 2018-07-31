@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2017 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package clique implements the proof-of-authority consensus engine.
 package clique
@@ -25,20 +25,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/consensus/misc"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/rlp"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/consensus"
+	"github.com/irchain/go-irchain/consensus/misc"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/crypto/sha3"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/rlp"
+	"github.com/irchain/go-irchain/rpc"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -167,7 +167,7 @@ func sigHash(header *types.Header) (hash common.Hash) {
 	return hash
 }
 
-// ecrecover extracts the HappyUC account address from a signed header.
+// ecrecover extracts the IrChain account address from a signed header.
 func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, error) {
 	// If the signature's already cached, return that
 	hash := header.Hash()
@@ -180,7 +180,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	}
 	signature := header.Extra[len(header.Extra)-extraSeal:]
 
-	// Recover the public key and the HappyUC address
+	// Recover the public key and the IrChain address
 	pubkey, err := crypto.Ecrecover(sigHash(header).Bytes(), signature)
 	if err != nil {
 		return common.Address{}, err
@@ -193,24 +193,24 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 }
 
 // Clique is the proof-of-authority consensus engine proposed to support the
-// HappyUC testnet following the Ropsten attacks.
+// IrChain testnet following the Ropsten attacks.
 type Clique struct {
 	config *params.CliqueConfig // Consensus engine configuration parameters
-	db     hucdb.Database       // Database to store and retrieve snapshot checkpoints
+	db     ircdb.Database       // Database to store and retrieve snapshot checkpoints
 
 	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
 	signatures *lru.ARCCache // Signatures of recent blocks to speed up mining
 
 	proposals map[common.Address]bool // Current list of proposals we are pushing
 
-	signer common.Address // HappyUC address of the signing key
+	signer common.Address // IrChain address of the signing key
 	signFn SignerFn       // Signer function to authorize hashes with
 	lock   sync.RWMutex   // Protects the signer fields
 }
 
 // New creates a Clique proof-of-authority consensus engine with the initial
 // signers set to the ones provided by the user.
-func New(config *params.CliqueConfig, db hucdb.Database) *Clique {
+func New(config *params.CliqueConfig, db ircdb.Database) *Clique {
 	// Set any missing consensus parameters to their defaults
 	conf := *config
 	if conf.Epoch == 0 {
@@ -229,7 +229,7 @@ func New(config *params.CliqueConfig, db hucdb.Database) *Clique {
 	}
 }
 
-// Author implements consensus.Engine, returning the HappyUC address recovered
+// Author implements consensus.Engine, returning the IrChain address recovered
 // from the signature in the header's extra-data section.
 func (c *Clique) Author(header *types.Header) (common.Address, error) {
 	return ecrecover(header, c.signatures)

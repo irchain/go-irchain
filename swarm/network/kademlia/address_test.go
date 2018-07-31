@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 func (Address) Generate(rand *rand.Rand, size int) reflect.Value {

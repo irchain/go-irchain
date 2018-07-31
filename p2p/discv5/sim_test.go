@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 // In this test, nodes try to randomly resolve each other.

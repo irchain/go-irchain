@@ -20,9 +20,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 func TestEIP155Signing(t *testing.T) {

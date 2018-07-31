@@ -19,8 +19,8 @@ package runtime_test
 import (
 	"fmt"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/vm/runtime"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/vm/runtime"
 )
 
 func ExampleExecute() {

@@ -1,20 +1,20 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package types contains data types related to HappyUC consensus.
+// Package types contains data types related to IrChain consensus.
 package types
 
 import (
@@ -26,10 +26,10 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/crypto/sha3"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 var (
@@ -66,7 +66,7 @@ func (n *BlockNonce) UnmarshalText(input []byte) error {
 
 //go:generate gencodec -type Header -field-override headerMarshaling -out gen_header_json.go
 
-// Header represents a block header in the HappyUC blockchain.
+// Header represents a block header in the IrChain blockchain.
 type Header struct {
 	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
 	UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
@@ -135,13 +135,13 @@ func rlpHash(x interface{}) (h common.Hash) {
 }
 
 // Body is a simple (mutable, non-safe) data container for storing and moving
-// a block's data contents (transactions and uncles) toghucer.
+// a block's data contents (transactions and uncles) togircer.
 type Body struct {
 	Transactions []*Transaction
 	Uncles       []*Header
 }
 
-// Block represents an entire block in the HappyUC blockchain.
+// Block represents an entire block in the IrChain blockchain.
 type Block struct {
 	header       *Header
 	uncles       []*Header
@@ -155,7 +155,7 @@ type Block struct {
 	// of the chain up to and including the block.
 	td *big.Int
 
-	// These fields are used by package huc to track
+	// These fields are used by package irc to track
 	// inter-peer block relay.
 	ReceivedAt   time.Time
 	ReceivedFrom interface{}
@@ -168,20 +168,20 @@ func (b *Block) DeprecatedTd() *big.Int {
 	return b.td
 }
 
-// [deprecated by huc/63]
+// [deprecated by irc/63]
 // StorageBlock defines the RLP encoding of a Block stored in the
 // state database. The StorageBlock encoding contains fields that
 // would otherwise need to be recomputed.
 type StorageBlock Block
 
-// "external" block encoding. used for huc protocol, etc.
+// "external" block encoding. used for irc protocol, etc.
 type extblock struct {
 	Header *Header
 	Txs    []*Transaction
 	Uncles []*Header
 }
 
-// [deprecated by huc/63]
+// [deprecated by irc/63]
 // "storage" block encoding. used for database.
 type storageblock struct {
 	Header *Header
@@ -256,7 +256,7 @@ func CopyHeader(h *Header) *Header {
 	return &cpy
 }
 
-// DecodeRLP decodes the HappyUC
+// DecodeRLP decodes the IrChain
 func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	var eb extblock
 	_, size, _ := s.Kind()
@@ -268,7 +268,7 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-// EncodeRLP serializes b into the HappyUC RLP block format.
+// EncodeRLP serializes b into the IrChain RLP block format.
 func (b *Block) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, extblock{
 		Header: b.header,
@@ -277,7 +277,7 @@ func (b *Block) EncodeRLP(w io.Writer) error {
 	})
 }
 
-// [deprecated by huc/63]
+// [deprecated by irc/63]
 func (b *StorageBlock) DecodeRLP(s *rlp.Stream) error {
 	var sb storageblock
 	if err := s.Decode(&sb); err != nil {

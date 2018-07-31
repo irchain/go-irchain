@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package params
 
@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 // Genesis hashes to enforce below configs on.
@@ -35,7 +35,7 @@ var (
 		ChainID:             big.NewInt(1),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
-		Huchash:             new(HuchashConfig),
+		Irchash:             new(IrchashConfig),
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -43,7 +43,7 @@ var (
 		ChainID:             big.NewInt(3),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
-		Huchash:             new(HuchashConfig),
+		Irchash:             new(IrchashConfig),
 	}
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
@@ -57,21 +57,21 @@ var (
 		},
 	}
 
-	// AllHuchashProtocolChanges contains every protocol change (EIPs) introduced
-	// and accepted by the HappyUC core developers into the Huchash consensus.
+	// AllIrchashProtocolChanges contains every protocol change (EIPs) introduced
+	// and accepted by the IrChain core developers into the Irchash consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllHuchashProtocolChanges = &ChainConfig{
+	AllIrchashProtocolChanges = &ChainConfig{
 		ChainID:             big.NewInt(1337),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
-		Huchash:             new(HuchashConfig),
+		Irchash:             new(IrchashConfig),
 		Clique:              nil,
 	}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
-	// and accepted by the HappyUC core developers into the Clique consensus.
+	// and accepted by the IrChain core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
@@ -79,7 +79,7 @@ var (
 		ChainID:             big.NewInt(1337),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
-		Huchash:             nil,
+		Irchash:             nil,
 		Clique: &CliqueConfig{
 			Period: 0,
 			Epoch:  30000,
@@ -90,7 +90,7 @@ var (
 		ChainID:             big.NewInt(1),
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
-		Huchash:             new(HuchashConfig),
+		Irchash:             new(IrchashConfig),
 		Clique:              nil,
 	}
 	// TestRules       = TestChainConfig.Rules(new(big.Int))
@@ -107,16 +107,16 @@ type ChainConfig struct {
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated )
 
 	// Various consensus engines
-	Huchash *HuchashConfig `json:"huchash,omitempty"`
+	Irchash *IrchashConfig `json:"irchash,omitempty"`
 	Clique  *CliqueConfig  `json:"clique,omitempty"`
 }
 
-// HuchashConfig is the consensus engine configs for proof-of-work based sealing.
-type HuchashConfig struct{}
+// IrchashConfig is the consensus engine configs for proof-of-work based sealing.
+type IrchashConfig struct{}
 
 // String implements the stringer interface, returning the consensus engine details.
-func (c *HuchashConfig) String() string {
-	return "huchash"
+func (c *IrchashConfig) String() string {
+	return "irchash"
 }
 
 // CliqueConfig is the consensus engine configs for proof-of-authority based sealing.
@@ -134,8 +134,8 @@ func (c *CliqueConfig) String() string {
 func (c *ChainConfig) String() string {
 	var engine interface{}
 	switch {
-	case c.Huchash != nil:
-		engine = c.Huchash
+	case c.Irchash != nil:
+		engine = c.Irchash
 	case c.Clique != nil:
 		engine = c.Clique
 	default:

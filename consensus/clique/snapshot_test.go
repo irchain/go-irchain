@@ -22,13 +22,13 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/params"
 )
 
 type testerVote struct {
@@ -72,7 +72,7 @@ func (ap *testerAccountPool) address(account string) common.Address {
 // testerChainReader implements consensus.ChainReader to access the genesis
 // block. All other methods and requests will panic.
 type testerChainReader struct {
-	db hucdb.Database
+	db ircdb.Database
 }
 
 func (r *testerChainReader) Config() *params.ChainConfig                 { return params.AllCliqueProtocolChanges }
@@ -352,7 +352,7 @@ func TestVoting(t *testing.T) {
 			copy(genesis.ExtraData[extraVanity+j*common.AddressLength:], signer[:])
 		}
 		// Create a pristine blockchain with the genesis injected
-		db := hucdb.NewMemDatabase()
+		db := ircdb.NewMemDatabase()
 		genesis.Commit(db)
 
 		// Assemble a chain of headers from the cast votes

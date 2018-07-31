@@ -22,15 +22,15 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/common/math"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/common/math"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/params"
 )
 
 // VMTest checks EVM execution without block or transaction context.
@@ -79,7 +79,7 @@ type vmExecMarshaling struct {
 }
 
 func (t *VMTest) Run(vmconfig vm.Config) error {
-	statedb := MakePreState(hucdb.NewMemDatabase(), t.json.Pre)
+	statedb := MakePreState(ircdb.NewMemDatabase(), t.json.Pre)
 	ret, gasRemaining, err := t.exec(statedb, vmconfig)
 
 	if t.json.GasRemaining == nil {

@@ -30,16 +30,16 @@ import (
 
 	check "gopkg.in/check.v1"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 // Tests that updating a state trie does not leak any database writes prior to
 // actually committing the state.
 func TestUpdateLeaks(t *testing.T) {
 	// Create an empty state database
-	db := hucdb.NewMemDatabase()
+	db := ircdb.NewMemDatabase()
 	state, _ := New(common.Hash{}, NewDatabase(db))
 
 	// Update it with some accounts
@@ -66,8 +66,8 @@ func TestUpdateLeaks(t *testing.T) {
 // only the one right before the commit.
 func TestIntermediateLeaks(t *testing.T) {
 	// Create two state databases, one transitioning to the final state, the other final from the beginning
-	transDb := hucdb.NewMemDatabase()
-	finalDb := hucdb.NewMemDatabase()
+	transDb := ircdb.NewMemDatabase()
+	finalDb := ircdb.NewMemDatabase()
 	transState, _ := New(common.Hash{}, NewDatabase(transDb))
 	finalState, _ := New(common.Hash{}, NewDatabase(finalDb))
 
@@ -119,10 +119,10 @@ func TestIntermediateLeaks(t *testing.T) {
 
 // TestCopy tests that copying a statedb object indeed makes the original and
 // the copy independent of each other. This test is a regression test against
-// https://github.com/happyuc-project/happyuc-go/pull/15549.
+// https://github.com/irchain/go-irchain/pull/15549.
 func TestCopy(t *testing.T) {
 	// Create a random state test to copy and modify "independently"
-	orig, _ := New(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()))
+	orig, _ := New(common.Hash{}, NewDatabase(ircdb.NewMemDatabase()))
 
 	for i := byte(0); i < 255; i++ {
 		obj := orig.GetOrNewStateObject(common.BytesToAddress([]byte{i}))
@@ -333,7 +333,7 @@ func (test *snapshotTest) String() string {
 func (test *snapshotTest) run() bool {
 	// Run all actions and create snapshots.
 	var (
-		state, _     = New(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()))
+		state, _     = New(common.Hash{}, NewDatabase(ircdb.NewMemDatabase()))
 		snapshotRevs = make([]int, len(test.snapshots))
 		sindex       = 0
 	)
@@ -422,9 +422,9 @@ func (s *StateSuite) TestTouchDelete(c *check.C) {
 }
 
 // TestCopyOfCopy tests that modified objects are carried over to the copy, and the copy of the copy.
-// See https://github.com/happyuc-project/happyuc-go/pull/15225#issuecomment-380191512
+// See https://github.com/irchain/go-irchain/pull/15225#issuecomment-380191512
 func TestCopyOfCopy(t *testing.T) {
-	sdb, _ := New(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()))
+	sdb, _ := New(common.Hash{}, NewDatabase(ircdb.NewMemDatabase()))
 	addr := common.HexToAddress("aaaa")
 	sdb.SetBalance(addr, big.NewInt(42))
 

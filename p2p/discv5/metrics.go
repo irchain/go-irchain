@@ -1,6 +1,6 @@
 package discv5
 
-import "github.com/happyuc-project/happyuc-go/metrics"
+import "github.com/irchain/go-irchain/metrics"
 
 var (
 	ingressTrafficMeter = metrics.NewRegisteredMeter("discv5/InboundTraffic", nil)

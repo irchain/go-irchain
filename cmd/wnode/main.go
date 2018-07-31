@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2017 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
 // This is a simple Whisper node. It could be used as a stand-alone bootstrap node.
 // Also, could be used for different test and diagnostics purposes.
@@ -35,16 +35,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/console"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/nat"
-	"github.com/happyuc-project/happyuc-go/whisper/mailserver"
-	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv6"
+	"github.com/irchain/go-irchain/cmd/utils"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/console"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/nat"
+	"github.com/irchain/go-irchain/whisper/mailserver"
+	whisper "github.com/irchain/go-irchain/whisper/whisperv6"
 	"golang.org/x/crypto/pbkdf2"
 )
 

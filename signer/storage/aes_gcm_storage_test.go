@@ -22,8 +22,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/log"
 	"github.com/mattn/go-colorable"
 )
 

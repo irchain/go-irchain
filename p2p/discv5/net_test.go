@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 func TestNetwork_Lookup(t *testing.T) {

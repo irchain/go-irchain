@@ -19,7 +19,7 @@ package event_test
 import (
 	"fmt"
 
-	"github.com/happyuc-project/happyuc-go/common/event"
+	"github.com/irchain/go-irchain/common/event"
 )
 
 func ExampleNewSubscription() {

@@ -1,18 +1,18 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2015 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package miner
 
@@ -23,16 +23,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/params"
 	"gopkg.in/fatih/set.v0"
 )
 
@@ -106,10 +106,10 @@ type worker struct {
 	agents map[Agent]struct{}
 	recv   chan *Result
 
-	huc     Backend
+	irc     Backend
 	chain   *core.BlockChain
 	proc    core.Validator
-	chainDb hucdb.Database
+	chainDb ircdb.Database
 
 	coinbase common.Address
 	extra    []byte
@@ -131,29 +131,29 @@ type worker struct {
 	atWork int32
 }
 
-func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase common.Address, huc Backend, mux *event.TypeMux) *worker {
+func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase common.Address, irc Backend, mux *event.TypeMux) *worker {
 	worker := &worker{
 		config:         config,
 		engine:         engine,
-		huc:            huc,
+		irc:            irc,
 		mux:            mux,
 		txsCh:          make(chan core.NewTxsEvent, txChanSize),
 		chainHeadCh:    make(chan core.ChainHeadEvent, chainHeadChanSize),
 		chainSideCh:    make(chan core.ChainSideEvent, chainSideChanSize),
-		chainDb:        huc.ChainDb(),
+		chainDb:        irc.ChainDb(),
 		recv:           make(chan *Result, resultQueueSize),
-		chain:          huc.BlockChain(),
-		proc:           huc.BlockChain().Validator(),
+		chain:          irc.BlockChain(),
+		proc:           irc.BlockChain().Validator(),
 		possibleUncles: make(map[common.Hash]*types.Block),
 		coinbase:       coinbase,
 		agents:         make(map[Agent]struct{}),
-		unconfirmed:    newUnconfirmedBlocks(huc.BlockChain(), miningLogAtDepth),
+		unconfirmed:    newUnconfirmedBlocks(irc.BlockChain(), miningLogAtDepth),
 	}
 	// Subscribe NewTxsEvent for tx pool
-	worker.txsSub = huc.TxPool().SubscribeNewTxsEvent(worker.txsCh)
+	worker.txsSub = irc.TxPool().SubscribeNewTxsEvent(worker.txsCh)
 	// Subscribe events for blockchain
-	worker.chainHeadSub = huc.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
-	worker.chainSideSub = huc.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
+	worker.chainHeadSub = irc.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
+	worker.chainSideSub = irc.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
 	go worker.update()
 	go worker.wait()
 	worker.commitNewWork()
@@ -439,7 +439,7 @@ func (self *worker) commitNewWork() {
 	}
 
 	// Commit pending txs
-	if pending, err := self.huc.TxPool().Pending(); err != nil {
+	if pending, err := self.irc.TxPool().Pending(); err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	} else {

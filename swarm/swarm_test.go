@@ -19,7 +19,7 @@ package swarm
 import (
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 func TestParseEnsAPIAddress(t *testing.T) {
@@ -32,8 +32,8 @@ func TestParseEnsAPIAddress(t *testing.T) {
 	}{
 		{
 			description: "IPC endpoint",
-			value:       "/data/testnet/ghuc.ipc",
-			endpoint:    "/data/testnet/ghuc.ipc",
+			value:       "/data/testnet/girc.ipc",
+			endpoint:    "/data/testnet/girc.ipc",
 		},
 		{
 			description: "HTTP endpoint",
@@ -47,8 +47,8 @@ func TestParseEnsAPIAddress(t *testing.T) {
 		},
 		{
 			description: "IPC Endpoint and TLD",
-			value:       "test:/data/testnet/ghuc.ipc",
-			endpoint:    "/data/testnet/ghuc.ipc",
+			value:       "test:/data/testnet/girc.ipc",
+			endpoint:    "/data/testnet/girc.ipc",
 			tld:         "test",
 		},
 		{
@@ -65,8 +65,8 @@ func TestParseEnsAPIAddress(t *testing.T) {
 		},
 		{
 			description: "IPC Endpoint and contract address",
-			value:       "314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/ghuc.ipc",
-			endpoint:    "/data/testnet/ghuc.ipc",
+			value:       "314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/girc.ipc",
+			endpoint:    "/data/testnet/girc.ipc",
 			addr:        common.HexToAddress("314159265dD8dbb310642f98f50C066173C1259b"),
 		},
 		{
@@ -83,24 +83,24 @@ func TestParseEnsAPIAddress(t *testing.T) {
 		},
 		{
 			description: "IPC Endpoint, TLD and contract address",
-			value:       "test:314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/ghuc.ipc",
-			endpoint:    "/data/testnet/ghuc.ipc",
+			value:       "test:314159265dD8dbb310642f98f50C066173C1259b@/data/testnet/girc.ipc",
+			endpoint:    "/data/testnet/girc.ipc",
 			addr:        common.HexToAddress("314159265dD8dbb310642f98f50C066173C1259b"),
 			tld:         "test",
 		},
 		{
 			description: "HTTP endpoint, TLD and contract address",
-			value:       "huc:314159265dD8dbb310642f98f50C066173C1259b@http://127.0.0.1:1234",
+			value:       "irc:314159265dD8dbb310642f98f50C066173C1259b@http://127.0.0.1:1234",
 			endpoint:    "http://127.0.0.1:1234",
 			addr:        common.HexToAddress("314159265dD8dbb310642f98f50C066173C1259b"),
-			tld:         "huc",
+			tld:         "irc",
 		},
 		{
 			description: "WS endpoint, TLD and contract address",
-			value:       "huc:314159265dD8dbb310642f98f50C066173C1259b@ws://127.0.0.1:1234",
+			value:       "irc:314159265dD8dbb310642f98f50C066173C1259b@ws://127.0.0.1:1234",
 			endpoint:    "ws://127.0.0.1:1234",
 			addr:        common.HexToAddress("314159265dD8dbb310642f98f50C066173C1259b"),
-			tld:         "huc",
+			tld:         "irc",
 		},
 	} {
 		t.Run(x.description, func(t *testing.T) {

@@ -1,18 +1,18 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2017 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package bloombits
 
@@ -26,8 +26,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common/bitutil"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/common/bitutil"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 // bloomIndexes represents the bit indexes inside the bloom filter that belong
@@ -256,7 +256,7 @@ func (m *Matcher) run(begin, end uint64, buffer int, session *MatcherSession) ch
 // subMatch creates a sub-matcher that filters for a set of addresses or topics, binary OR-s those matches, then
 // binary AND-s the result to the daisy-chain input (source) and forwards it to the daisy-chain output.
 // The matches of each address/topic are calculated by fetching the given sections of the three bloom bit indexes belonging to
-// that address/topic, and binary AND-ing those vectors toghucer.
+// that address/topic, and binary AND-ing those vectors togircer.
 func (m *Matcher) subMatch(source chan *partialMatches, dist chan *request, bloom []bloomIndexes, session *MatcherSession) chan *partialMatches {
 	// Start the concurrent schedulers for each bit required by the bloom filter
 	sectionSources := make([][3]chan uint64, len(bloom))
@@ -333,7 +333,7 @@ func (m *Matcher) subMatch(source chan *partialMatches, dist chan *request, bloo
 				if !ok {
 					return
 				}
-				// Gather all the sub-results and merge them toghucer
+				// Gather all the sub-results and merge them togircer
 				var orVector []byte
 				for _, bloomSinks := range sectionSinks {
 					var andVector []byte
@@ -600,7 +600,7 @@ func (s *MatcherSession) DeliverSections(bit uint, sections []uint64, bitsets []
 }
 
 // Multiplex polls the matcher session for rerieval tasks and multiplexes it into
-// the reuested retrieval queue to be serviced toghucer with other sessions.
+// the reuested retrieval queue to be serviced togircer with other sessions.
 //
 // This method will block for the lifetime of the session. Even after termination
 // of the session, any request in-flight need to be responded to! Empty responses

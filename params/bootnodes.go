@@ -1,23 +1,23 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2015 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package params
 
 // MainnetBootnodes are the hnode URLs of the P2P bootstrap nodes running on
-// the main HappyUC network.
+// the main IrChain network.
 var MainnetBootnodes = []string{
 	"hnode://07fcc60a717613f1502e1925d0e1c74d8532917b1b26159e2aa294dd1f12b9863bcbbf6e6ae64681f8f6d228223b87a14ed1032411b6fa6214828a332aaadf31@72.11.140.162:50505",
 	"hnode://149e66442d2d9bb1f07479513778dd6e9a9cd90f89e0297863aff3ad1c9a8c91ce4f45476b38c428712bdd7c891c7515650073baf47d99041676f655af0293d1@47.94.56.101:50505",

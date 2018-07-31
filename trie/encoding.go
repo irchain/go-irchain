@@ -1,18 +1,18 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package trie
 
@@ -26,7 +26,7 @@ package trie
 // contains a value. Hex key encoding is used for nodes loaded in memory because it's
 // convenient to access.
 //
-// COMPACT encoding is defined by the HappyUC Yellow Paper (it's called "hex prefix
+// COMPACT encoding is defined by the IrChain Yellow Paper (it's called "hex prefix
 // encoding" there) and contains the bytes of the key and a flag. The high nibble of the
 // first byte contains the flag; the lowest bit encoding the oddness of the length and
 // the second-lowest encoding whether the node at the key is a value node. The low nibble

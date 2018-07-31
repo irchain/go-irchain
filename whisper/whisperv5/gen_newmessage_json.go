@@ -5,7 +5,7 @@ package whisperv5
 import (
 	"encoding/json"
 
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/irchain/go-irchain/common/hexutil"
 )
 
 var _ = (*newMessageOverride)(nil)

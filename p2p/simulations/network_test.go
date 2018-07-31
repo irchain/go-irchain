@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/simulations/adapters"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/simulations/adapters"
 )
 
 // TestNetworkSimulation creates a multi-node simulation network with each node

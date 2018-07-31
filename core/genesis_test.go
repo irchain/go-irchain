@@ -22,12 +22,12 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/params"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -55,22 +55,22 @@ func TestSetupGenesis(t *testing.T) {
 	oldcustomg.Config = &params.ChainConfig{HomesteadBlock: big.NewInt(2)}
 	tests := []struct {
 		name       string
-		fn         func(hucdb.Database) (*params.ChainConfig, common.Hash, error)
+		fn         func(ircdb.Database) (*params.ChainConfig, common.Hash, error)
 		wantConfig *params.ChainConfig
 		wantHash   common.Hash
 		wantErr    error
 	}{
 		{
 			name: "genesis without ChainConfig",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
-			wantConfig: params.AllHuchashProtocolChanges,
+			wantConfig: params.AllIrchashProtocolChanges,
 		},
 		{
 			name: "no block in DB, genesis == nil",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -78,7 +78,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "mainnet block in DB, genesis == nil",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -87,7 +87,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "custom block in DB, genesis == nil",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -96,7 +96,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "custom block in DB, genesis == testnet",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
 				return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 			},
@@ -106,7 +106,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "compatible config in DB",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				oldcustomg.MustCommit(db)
 				return SetupGenesisBlock(db, &customg)
 			},
@@ -115,15 +115,15 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "incompatible config in DB",
-			fn: func(db hucdb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db ircdb.Database) (*params.ChainConfig, common.Hash, error) {
 				// Commit the 'old' genesis block with Homestead transition at #2.
 				// Advance to block #4, past the homestead transition block of customg.
 				genesis := oldcustomg.MustCommit(db)
 
-				bc, _ := NewBlockChain(db, nil, oldcustomg.Config, huchash.NewFullFaker(), vm.Config{})
+				bc, _ := NewBlockChain(db, nil, oldcustomg.Config, irchash.NewFullFaker(), vm.Config{})
 				defer bc.Stop()
 
-				blocks, _ := GenerateChain(oldcustomg.Config, genesis, huchash.NewFaker(), db, 4, nil)
+				blocks, _ := GenerateChain(oldcustomg.Config, genesis, irchash.NewFaker(), db, 4, nil)
 				bc.InsertChain(blocks)
 				bc.CurrentBlock()
 				// This should return a compatibility error.
@@ -141,7 +141,7 @@ func TestSetupGenesis(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		db := hucdb.NewMemDatabase()
+		db := ircdb.NewMemDatabase()
 		config, hash, err := test.fn(db)
 		// Check the return values.
 		if !reflect.DeepEqual(err, test.wantErr) {

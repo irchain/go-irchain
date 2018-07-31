@@ -36,7 +36,7 @@ import (
 	"math/big"
 	"unsafe"
 
-	"github.com/happyuc-project/happyuc-go/common/math"
+	"github.com/irchain/go-irchain/common/math"
 )
 
 /*

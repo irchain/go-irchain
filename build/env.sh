@@ -10,11 +10,11 @@ fi
 # Create fake Go workspace if it doesn't exist yet.
 root="$PWD"
 workspace="$PWD/build/_workspace"
-hucdir="$workspace/src/github.com/happyuc-project"
-if [ ! -L "$hucdir/happyuc-go" ]; then
-    mkdir -p "$hucdir"
-    cd "$hucdir"
-    ln -s "$root" happyuc-go
+ircdir="$workspace/src/github.com/irchain"
+if [ ! -L "$ircdir/go-irchain" ]; then
+    mkdir -p "$ircdir"
+    cd "$ircdir"
+    ln -s "$root" go-irchain
     cd "$root"
 fi
 
@@ -22,7 +22,7 @@ fi
 export GOPATH="$workspace"
 
 # Run the command inside the workspace.
-cd "$hucdir/happyuc-go"
+cd "$ircdir/go-irchain"
 
 # Launch the arguments with the configured environment.
 exec "$@"

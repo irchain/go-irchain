@@ -25,10 +25,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/crypto/sha3"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/p2p/discover"
 )
 
 func init() {

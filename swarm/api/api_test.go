@@ -24,9 +24,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 func testApi(t *testing.T, f func(*Api)) {

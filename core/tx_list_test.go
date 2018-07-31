@@ -20,8 +20,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/crypto"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/crypto"
 )
 
 // Tests that transactions can be added to strict lists and list contents and

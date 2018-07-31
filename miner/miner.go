@@ -1,37 +1,37 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package miner implements HappyUC block creation and mining.
+// Package miner implements IrChain block creation and mining.
 package miner
 
 import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/huc/downloader"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/irc/downloader"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/params"
 )
 
 // Backend wraps all methods required for mining.
@@ -39,7 +39,7 @@ type Backend interface {
 	AccountManager() *accounts.Manager
 	BlockChain() *core.BlockChain
 	TxPool() *core.TxPool
-	ChainDb() hucdb.Database
+	ChainDb() ircdb.Database
 }
 
 // Miner creates blocks and searches for proof-of-work values.
@@ -50,22 +50,22 @@ type Miner struct {
 
 	coinbase common.Address
 	mining   int32
-	huc      Backend
+	irc      Backend
 	engine   consensus.Engine
 
 	canStart    int32 // can start indicates whether we can start the mining operation
 	shouldStart int32 // should start indicates whether we should start after sync
 }
 
-func New(huc Backend, config *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine) *Miner {
+func New(irc Backend, config *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine) *Miner {
 	miner := &Miner{
-		huc:      huc,
+		irc:      irc,
 		mux:      mux,
 		engine:   engine,
-		worker:   newWorker(config, engine, common.Address{}, huc, mux),
+		worker:   newWorker(config, engine, common.Address{}, irc, mux),
 		canStart: 1,
 	}
-	miner.Register(NewCpuAgent(huc.BlockChain(), engine))
+	miner.Register(NewCpuAgent(irc.BlockChain(), engine))
 	go miner.update()
 
 	return miner

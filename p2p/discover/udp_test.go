@@ -34,9 +34,9 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 func init() {

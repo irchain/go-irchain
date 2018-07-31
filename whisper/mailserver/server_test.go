@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv6"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	whisper "github.com/irchain/go-irchain/whisper/whisperv6"
 )
 
 const powRequirement = 0.00001

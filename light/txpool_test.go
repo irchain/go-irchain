@@ -23,13 +23,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/params"
 )
 
 type testTxRelay struct {
@@ -81,15 +81,15 @@ func TestTxPool(t *testing.T) {
 	}
 
 	var (
-		sdb     = hucdb.NewMemDatabase()
-		ldb     = hucdb.NewMemDatabase()
+		sdb     = ircdb.NewMemDatabase()
+		ldb     = ircdb.NewMemDatabase()
 		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
 		genesis = gspec.MustCommit(sdb)
 	)
 	gspec.MustCommit(ldb)
 	// Assemble the test environment
-	blockchain, _ := core.NewBlockChain(sdb, nil, params.TestChainConfig, huchash.NewFullFaker(), vm.Config{})
-	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, huchash.NewFaker(), sdb, poolTestBlocks, txPoolTestChainGen)
+	blockchain, _ := core.NewBlockChain(sdb, nil, params.TestChainConfig, irchash.NewFullFaker(), vm.Config{})
+	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, irchash.NewFaker(), sdb, poolTestBlocks, txPoolTestChainGen)
 	if _, err := blockchain.InsertChain(gchain); err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func TestTxPool(t *testing.T) {
 		discard: make(chan int, 1),
 		mined:   make(chan int, 1),
 	}
-	lightchain, _ := NewLightChain(odr, params.TestChainConfig, huchash.NewFullFaker())
+	lightchain, _ := NewLightChain(odr, params.TestChainConfig, irchash.NewFullFaker())
 	txPermanent = 50
 	pool := NewTxPool(params.TestChainConfig, lightchain, relay)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

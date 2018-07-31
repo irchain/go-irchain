@@ -24,7 +24,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/log"
 )
 
 type brokenLimitedReader struct {

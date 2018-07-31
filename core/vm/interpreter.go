@@ -1,18 +1,18 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package vm
 
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/happyuc-project/happyuc-go/common/math"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common/math"
+	"github.com/irchain/go-irchain/params"
 )
 
 // Config are the configuration options for the Interpreter
@@ -41,7 +41,7 @@ type Config struct {
 	JumpTable [256]operation
 }
 
-// Interpreter is used to run HappyUC based contracts and will utilise the
+// Interpreter is used to run IrChain based contracts and will utilise the
 // passed environment to query external sources for state information.
 // The Interpreter will run the byte code VM based on the passed
 // configuration.
@@ -173,7 +173,10 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		// consume the gas and return an error if not enough gas is available.
 		// cost is explicitly set so that the capture state defer method can get the proper cost
 		cost, err = operation.gasCost(in.gasTable, in.evm, contract, stack, mem, memorySize)
-		if err != nil || !contract.UseGas(cost) {
+		if err != nil {
+			return nil, err
+		}
+		if !contract.UseGas(cost) {
 			return nil, ErrOutOfGas
 		}
 		if memorySize > 0 {

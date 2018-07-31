@@ -1,63 +1,63 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package les
 
 import (
-	"github.com/happyuc-project/happyuc-go/metrics"
-	"github.com/happyuc-project/happyuc-go/p2p"
+	"github.com/irchain/go-irchain/metrics"
+	"github.com/irchain/go-irchain/p2p"
 )
 
 var (
-	/*	propTxnInPacketsMeter     = metrics.NewMeter("huc/prop/txns/in/packets")
-		propTxnInTrafficMeter     = metrics.NewMeter("huc/prop/txns/in/traffic")
-		propTxnOutPacketsMeter    = metrics.NewMeter("huc/prop/txns/out/packets")
-		propTxnOutTrafficMeter    = metrics.NewMeter("huc/prop/txns/out/traffic")
-		propHashInPacketsMeter    = metrics.NewMeter("huc/prop/hashes/in/packets")
-		propHashInTrafficMeter    = metrics.NewMeter("huc/prop/hashes/in/traffic")
-		propHashOutPacketsMeter   = metrics.NewMeter("huc/prop/hashes/out/packets")
-		propHashOutTrafficMeter   = metrics.NewMeter("huc/prop/hashes/out/traffic")
-		propBlockInPacketsMeter   = metrics.NewMeter("huc/prop/blocks/in/packets")
-		propBlockInTrafficMeter   = metrics.NewMeter("huc/prop/blocks/in/traffic")
-		propBlockOutPacketsMeter  = metrics.NewMeter("huc/prop/blocks/out/packets")
-		propBlockOutTrafficMeter  = metrics.NewMeter("huc/prop/blocks/out/traffic")
-		reqHashInPacketsMeter     = metrics.NewMeter("huc/req/hashes/in/packets")
-		reqHashInTrafficMeter     = metrics.NewMeter("huc/req/hashes/in/traffic")
-		reqHashOutPacketsMeter    = metrics.NewMeter("huc/req/hashes/out/packets")
-		reqHashOutTrafficMeter    = metrics.NewMeter("huc/req/hashes/out/traffic")
-		reqBlockInPacketsMeter    = metrics.NewMeter("huc/req/blocks/in/packets")
-		reqBlockInTrafficMeter    = metrics.NewMeter("huc/req/blocks/in/traffic")
-		reqBlockOutPacketsMeter   = metrics.NewMeter("huc/req/blocks/out/packets")
-		reqBlockOutTrafficMeter   = metrics.NewMeter("huc/req/blocks/out/traffic")
-		reqHeaderInPacketsMeter   = metrics.NewMeter("huc/req/headers/in/packets")
-		reqHeaderInTrafficMeter   = metrics.NewMeter("huc/req/headers/in/traffic")
-		reqHeaderOutPacketsMeter  = metrics.NewMeter("huc/req/headers/out/packets")
-		reqHeaderOutTrafficMeter  = metrics.NewMeter("huc/req/headers/out/traffic")
-		reqBodyInPacketsMeter     = metrics.NewMeter("huc/req/bodies/in/packets")
-		reqBodyInTrafficMeter     = metrics.NewMeter("huc/req/bodies/in/traffic")
-		reqBodyOutPacketsMeter    = metrics.NewMeter("huc/req/bodies/out/packets")
-		reqBodyOutTrafficMeter    = metrics.NewMeter("huc/req/bodies/out/traffic")
-		reqStateInPacketsMeter    = metrics.NewMeter("huc/req/states/in/packets")
-		reqStateInTrafficMeter    = metrics.NewMeter("huc/req/states/in/traffic")
-		reqStateOutPacketsMeter   = metrics.NewMeter("huc/req/states/out/packets")
-		reqStateOutTrafficMeter   = metrics.NewMeter("huc/req/states/out/traffic")
-		reqReceiptInPacketsMeter  = metrics.NewMeter("huc/req/receipts/in/packets")
-		reqReceiptInTrafficMeter  = metrics.NewMeter("huc/req/receipts/in/traffic")
-		reqReceiptOutPacketsMeter = metrics.NewMeter("huc/req/receipts/out/packets")
-		reqReceiptOutTrafficMeter = metrics.NewMeter("huc/req/receipts/out/traffic")*/
+	/*	propTxnInPacketsMeter     = metrics.NewMeter("irc/prop/txns/in/packets")
+		propTxnInTrafficMeter     = metrics.NewMeter("irc/prop/txns/in/traffic")
+		propTxnOutPacketsMeter    = metrics.NewMeter("irc/prop/txns/out/packets")
+		propTxnOutTrafficMeter    = metrics.NewMeter("irc/prop/txns/out/traffic")
+		propHashInPacketsMeter    = metrics.NewMeter("irc/prop/hashes/in/packets")
+		propHashInTrafficMeter    = metrics.NewMeter("irc/prop/hashes/in/traffic")
+		propHashOutPacketsMeter   = metrics.NewMeter("irc/prop/hashes/out/packets")
+		propHashOutTrafficMeter   = metrics.NewMeter("irc/prop/hashes/out/traffic")
+		propBlockInPacketsMeter   = metrics.NewMeter("irc/prop/blocks/in/packets")
+		propBlockInTrafficMeter   = metrics.NewMeter("irc/prop/blocks/in/traffic")
+		propBlockOutPacketsMeter  = metrics.NewMeter("irc/prop/blocks/out/packets")
+		propBlockOutTrafficMeter  = metrics.NewMeter("irc/prop/blocks/out/traffic")
+		reqHashInPacketsMeter     = metrics.NewMeter("irc/req/hashes/in/packets")
+		reqHashInTrafficMeter     = metrics.NewMeter("irc/req/hashes/in/traffic")
+		reqHashOutPacketsMeter    = metrics.NewMeter("irc/req/hashes/out/packets")
+		reqHashOutTrafficMeter    = metrics.NewMeter("irc/req/hashes/out/traffic")
+		reqBlockInPacketsMeter    = metrics.NewMeter("irc/req/blocks/in/packets")
+		reqBlockInTrafficMeter    = metrics.NewMeter("irc/req/blocks/in/traffic")
+		reqBlockOutPacketsMeter   = metrics.NewMeter("irc/req/blocks/out/packets")
+		reqBlockOutTrafficMeter   = metrics.NewMeter("irc/req/blocks/out/traffic")
+		reqHeaderInPacketsMeter   = metrics.NewMeter("irc/req/headers/in/packets")
+		reqHeaderInTrafficMeter   = metrics.NewMeter("irc/req/headers/in/traffic")
+		reqHeaderOutPacketsMeter  = metrics.NewMeter("irc/req/headers/out/packets")
+		reqHeaderOutTrafficMeter  = metrics.NewMeter("irc/req/headers/out/traffic")
+		reqBodyInPacketsMeter     = metrics.NewMeter("irc/req/bodies/in/packets")
+		reqBodyInTrafficMeter     = metrics.NewMeter("irc/req/bodies/in/traffic")
+		reqBodyOutPacketsMeter    = metrics.NewMeter("irc/req/bodies/out/packets")
+		reqBodyOutTrafficMeter    = metrics.NewMeter("irc/req/bodies/out/traffic")
+		reqStateInPacketsMeter    = metrics.NewMeter("irc/req/states/in/packets")
+		reqStateInTrafficMeter    = metrics.NewMeter("irc/req/states/in/traffic")
+		reqStateOutPacketsMeter   = metrics.NewMeter("irc/req/states/out/packets")
+		reqStateOutTrafficMeter   = metrics.NewMeter("irc/req/states/out/traffic")
+		reqReceiptInPacketsMeter  = metrics.NewMeter("irc/req/receipts/in/packets")
+		reqReceiptInTrafficMeter  = metrics.NewMeter("irc/req/receipts/in/traffic")
+		reqReceiptOutPacketsMeter = metrics.NewMeter("irc/req/receipts/out/packets")
+		reqReceiptOutTrafficMeter = metrics.NewMeter("irc/req/receipts/out/traffic")*/
 	miscInPacketsMeter  = metrics.NewRegisteredMeter("les/misc/in/packets", nil)
 	miscInTrafficMeter  = metrics.NewRegisteredMeter("les/misc/in/traffic", nil)
 	miscOutPacketsMeter = metrics.NewRegisteredMeter("les/misc/out/packets", nil)

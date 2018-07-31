@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/core/types"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/core/types"
 )
 
 // Tests that the account management snippets work correctly.

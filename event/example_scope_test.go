@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/happyuc-project/happyuc-go/event"
+	"github.com/irchain/go-irchain/event"
 )
 
 // This example demonstrates how SubscriptionScope can be used to control the lifetime of

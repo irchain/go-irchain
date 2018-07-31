@@ -20,8 +20,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/params"
 )
 
 type dummyContractRef struct {

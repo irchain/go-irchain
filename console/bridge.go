@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package console
 
@@ -23,16 +23,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts/usbwallet"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/accounts/usbwallet"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/rpc"
 	"github.com/robertkrimen/otto"
 )
 
 // bridge is a collection of JavaScript utility methods to bride the .js runtime
 // environment and the Go RPC connection backing the remote method calls.
 type bridge struct {
-	client   *rpc.Client  // RPC client to execute HappyUC requests through
+	client   *rpc.Client  // RPC client to execute IrChain requests through
 	prompter UserPrompter // Input prompter to allow interactive user feedback
 	printer  io.Writer    // Output writer to serialize any display strings to
 }
@@ -48,7 +48,7 @@ func newBridge(client *rpc.Client, prompter UserPrompter, printer io.Writer) *br
 
 // NewAccount is a wrapper around the personal.newAccount RPC method that uses a
 // non-echoing password prompt to acquire the passphrase and executes the original
-// RPC method (saved in jhuc.newAccount) with it to actually execute the RPC call.
+// RPC method (saved in jirc.newAccount) with it to actually execute the RPC call.
 func (b *bridge) NewAccount(call otto.FunctionCall) (response otto.Value) {
 	var (
 		password string
@@ -77,7 +77,7 @@ func (b *bridge) NewAccount(call otto.FunctionCall) (response otto.Value) {
 		throwJSException("expected 0 or 1 string argument")
 	}
 	// Password acquired, execute the call and return
-	ret, err := call.Otto.Call("jhuc.newAccount", nil, password)
+	ret, err := call.Otto.Call("jirc.newAccount", nil, password)
 	if err != nil {
 		throwJSException(err.Error())
 	}
@@ -100,7 +100,7 @@ func (b *bridge) OpenWallet(call otto.FunctionCall) (response otto.Value) {
 		passwd = call.Argument(1)
 	}
 	// Open the wallet and return if successful in itself
-	val, err := call.Otto.Call("jhuc.openWallet", nil, wallet, passwd)
+	val, err := call.Otto.Call("jirc.openWallet", nil, wallet, passwd)
 	if err == nil {
 		return val
 	}
@@ -121,7 +121,7 @@ func (b *bridge) OpenWallet(call otto.FunctionCall) (response otto.Value) {
 	} else {
 		passwd, _ = otto.ToValue(input)
 	}
-	if val, err = call.Otto.Call("jhuc.openWallet", nil, wallet, passwd); err != nil {
+	if val, err = call.Otto.Call("jirc.openWallet", nil, wallet, passwd); err != nil {
 		throwJSException(err.Error())
 	}
 	return val
@@ -129,7 +129,7 @@ func (b *bridge) OpenWallet(call otto.FunctionCall) (response otto.Value) {
 
 // UnlockAccount is a wrapper around the personal.unlockAccount RPC method that
 // uses a non-echoing password prompt to acquire the passphrase and executes the
-// original RPC method (saved in jhuc.unlockAccount) with it to actually execute
+// original RPC method (saved in jirc.unlockAccount) with it to actually execute
 // the RPC call.
 func (b *bridge) UnlockAccount(call otto.FunctionCall) (response otto.Value) {
 	// Make sure we have an account specified to unlock
@@ -163,7 +163,7 @@ func (b *bridge) UnlockAccount(call otto.FunctionCall) (response otto.Value) {
 		duration = call.Argument(2)
 	}
 	// Send the request to the backend and return
-	val, err := call.Otto.Call("jhuc.unlockAccount", nil, account, passwd, duration)
+	val, err := call.Otto.Call("jirc.unlockAccount", nil, account, passwd, duration)
 	if err != nil {
 		throwJSException(err.Error())
 	}
@@ -172,7 +172,7 @@ func (b *bridge) UnlockAccount(call otto.FunctionCall) (response otto.Value) {
 
 // Sign is a wrapper around the personal.sign RPC method that uses a non-echoing password
 // prompt to acquire the passphrase and executes the original RPC method (saved in
-// jhuc.sign) with it to actually execute the RPC call.
+// jirc.sign) with it to actually execute the RPC call.
 func (b *bridge) Sign(call otto.FunctionCall) (response otto.Value) {
 	var (
 		message = call.Argument(0)
@@ -201,7 +201,7 @@ func (b *bridge) Sign(call otto.FunctionCall) (response otto.Value) {
 	}
 
 	// Send the request to the backend and return
-	val, err := call.Otto.Call("jhuc.sign", nil, message, account, passwd)
+	val, err := call.Otto.Call("jirc.sign", nil, message, account, passwd)
 	if err != nil {
 		throwJSException(err.Error())
 	}
@@ -247,7 +247,7 @@ func (b *bridge) SleepBlocks(call otto.FunctionCall) (response otto.Value) {
 	// go through the console, this will allow webu to call the appropriate
 	// callbacks if a delayed response or notification is received.
 	blockNumber := func() int64 {
-		result, err := call.Otto.Run("huc.blockNumber")
+		result, err := call.Otto.Run("irc.blockNumber")
 		if err != nil {
 			throwJSException(err.Error())
 		}

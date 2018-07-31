@@ -23,25 +23,25 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/trie"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/trie"
 )
 
 func TestNodeIterator(t *testing.T) {
 	var (
-		fulldb  = hucdb.NewMemDatabase()
-		lightdb = hucdb.NewMemDatabase()
+		fulldb  = ircdb.NewMemDatabase()
+		lightdb = ircdb.NewMemDatabase()
 		gspec   = core.Genesis{Alloc: core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}}}
 		genesis = gspec.MustCommit(fulldb)
 	)
 	gspec.MustCommit(lightdb)
-	blockchain, _ := core.NewBlockChain(fulldb, nil, params.TestChainConfig, huchash.NewFullFaker(), vm.Config{})
-	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, huchash.NewFaker(), fulldb, 4, testChainGen)
+	blockchain, _ := core.NewBlockChain(fulldb, nil, params.TestChainConfig, irchash.NewFullFaker(), vm.Config{})
+	gchain, _ := core.GenerateChain(params.TestChainConfig, genesis, irchash.NewFaker(), fulldb, 4, testChainGen)
 	if _, err := blockchain.InsertChain(gchain); err != nil {
 		panic(err)
 	}

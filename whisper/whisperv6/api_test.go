@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 	set "gopkg.in/fatih/set.v0"
 )
 

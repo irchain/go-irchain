@@ -25,7 +25,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 func manifest(paths ...string) (manifestReader storage.LazySectionReader) {

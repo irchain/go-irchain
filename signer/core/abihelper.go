@@ -22,8 +22,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi"
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/accounts/abi"
+	"github.com/irchain/go-irchain/common"
 
 	"bytes"
 	"os"

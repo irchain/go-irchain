@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
+	"github.com/irchain/go-irchain/common"
 )
 
 func TestPack(t *testing.T) {

@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2016 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -28,22 +28,22 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/console"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucclient"
-	"github.com/happyuc-project/happyuc-go/internal/debug"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/swarm"
-	bzzapi "github.com/happyuc-project/happyuc-go/swarm/api"
-	swarmmetrics "github.com/happyuc-project/happyuc-go/swarm/metrics"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/cmd/utils"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/console"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/irclient"
+	"github.com/irchain/go-irchain/internal/debug"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/swarm"
+	bzzapi "github.com/irchain/go-irchain/swarm/api"
+	swarmmetrics "github.com/irchain/go-irchain/swarm/metrics"
 
 	"gopkg.in/urfave/cli.v1"
 )
@@ -98,7 +98,7 @@ var (
 	}
 	SwarmSwapAPIFlag = cli.StringFlag{
 		Name:   "swap-api",
-		Usage:  "URL of the HappyUC API provider to use to settle SWAP payments",
+		Usage:  "URL of the IrChain API provider to use to settle SWAP payments",
 		EnvVar: SWARM_ENV_SWAP_API,
 	}
 	SwarmSyncEnabledFlag = cli.BoolTFlag{
@@ -143,8 +143,8 @@ var (
 	}
 
 	// the following flags are deprecated and should be removed in the future
-	DeprecatedHucAPIFlag = cli.StringFlag{
-		Name:  "hucapi",
+	DeprecatedIrcAPIFlag = cli.StringFlag{
+		Name:  "ircapi",
 		Usage: "DEPRECATED: please use --ens-api and --swap-api",
 	}
 	DeprecatedEnsAddrFlag = cli.StringFlag{
@@ -161,7 +161,7 @@ var (
 
 var defaultNodeConfig = node.DefaultConfig
 
-// This init function sets defaults so cmd/swarm can run alongside ghuc.
+// This init function sets defaults so cmd/swarm can run alongside girc.
 func init() {
 	defaultNodeConfig.Name = clientIdentifier
 	defaultNodeConfig.Version = params.VersionWithCommit(gitCommit)
@@ -171,13 +171,13 @@ func init() {
 	utils.ListenPortFlag.Value = 30399
 }
 
-var app = utils.NewApp(gitCommit, "HappyUC Swarm")
+var app = utils.NewApp(gitCommit, "IrChain Swarm")
 
 // This init function creates the cli.App.
 func init() {
 	app.Action = bzzd
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2013-2016 The happyuc-go Authors"
+	app.Copyright = "Copyright 2013-2016 The go-irchain Authors"
 	app.Commands = []cli.Command{
 		{
 			Action:    version,
@@ -268,12 +268,12 @@ Manage the local chunk database.
 					Description: `
 Export a local chunk database as a tar archive (use - to send to stdout).
 
-    swarm db export ~/.happyuc/swarm/bzz-KEY/chunks chunks.tar
+    swarm db export ~/.irchain/swarm/bzz-KEY/chunks chunks.tar
 
 The export may be quite large, consider piping the output through the Unix
 pv(1) tool to get a progress bar:
 
-    swarm db export ~/.happyuc/swarm/bzz-KEY/chunks - | pv > chunks.tar
+    swarm db export ~/.irchain/swarm/bzz-KEY/chunks - | pv > chunks.tar
 `,
 				},
 				{
@@ -284,12 +284,12 @@ pv(1) tool to get a progress bar:
 					Description: `
 Import chunks from a tar archive into a local chunk database (use - to read from stdin).
 
-    swarm db import ~/.happyuc/swarm/bzz-KEY/chunks chunks.tar
+    swarm db import ~/.irchain/swarm/bzz-KEY/chunks chunks.tar
 
 The import may be quite large, consider piping the input through the Unix
 pv(1) tool to get a progress bar:
 
-    pv chunks.tar | swarm db import ~/.happyuc/swarm/bzz-KEY/chunks -
+    pv chunks.tar | swarm db import ~/.irchain/swarm/bzz-KEY/chunks -
 `,
 				},
 				{
@@ -356,7 +356,7 @@ DEPRECATED: use 'swarm db clean'.
 		SwarmUpFromStdinFlag,
 		SwarmUploadMimeType,
 		// deprecated flags
-		DeprecatedHucAPIFlag,
+		DeprecatedIrcAPIFlag,
 		DeprecatedEnsAddrFlag,
 	}
 	app.Flags = append(app.Flags, debug.Flags...)
@@ -405,13 +405,13 @@ func bzzd(ctx *cli.Context) error {
 	}
 
 	cfg := defaultNodeConfig
-	// ghuc only supports --datadir via command line
+	// girc only supports --datadir via command line
 	// in order to be consistent within swarm, if we pass --datadir via environment variable
-	// or via config file, we get the same directory for ghuc and swarm
+	// or via config file, we get the same directory for girc and swarm
 	if _, err := os.Stat(bzzconfig.Path); err == nil {
 		cfg.DataDir = bzzconfig.Path
 	}
-	// setup the happyuc node
+	// setup the irchain node
 	utils.SetNodeConfig(ctx, &cfg)
 	stack, err := node.New(&cfg)
 	if err != nil {
@@ -420,7 +420,7 @@ func bzzd(ctx *cli.Context) error {
 	// a few steps need to be done after the config phase is completed,
 	// due to overriding behavior
 	initSwarmNode(bzzconfig, stack, ctx)
-	// register BZZ as node.Service in the happyuc node
+	// register BZZ as node.Service in the irchain node
 	registerBzzService(bzzconfig, ctx, stack)
 	// start the node
 	utils.StartNode(stack)
@@ -452,11 +452,11 @@ func registerBzzService(bzzconfig *bzzapi.Config, ctx *cli.Context, stack *node.
 
 	// define the swarm service boot function
 	boot := func(ctx *node.ServiceContext) (node.Service, error) {
-		var swapClient *hucclient.Client
+		var swapClient *irclient.Client
 		var err error
 		if bzzconfig.SwapApi != "" {
 			log.Info("connecting to SWAP API", "url", bzzconfig.SwapApi)
-			swapClient, err = hucclient.Dial(bzzconfig.SwapApi)
+			swapClient, err = irclient.Dial(bzzconfig.SwapApi)
 			if err != nil {
 				return nil, fmt.Errorf("error connecting to SWAP API %s: %s", bzzconfig.SwapApi, err)
 			}
@@ -464,7 +464,7 @@ func registerBzzService(bzzconfig *bzzapi.Config, ctx *cli.Context, stack *node.
 
 		return swarm.NewSwarm(ctx, swapClient, bzzconfig)
 	}
-	// register within the happyuc node
+	// register within the irchain node
 	if err := stack.Register(boot); err != nil {
 		utils.Fatalf("Failed to register the Swarm service: %v", err)
 	}

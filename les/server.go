@@ -1,20 +1,20 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light HappyUC Subprotocol.
+// Package les implements the Light IrChain Subprotocol.
 package les
 
 import (
@@ -23,22 +23,22 @@ import (
 	"math"
 	"sync"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/huc"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/les/flowcontrol"
-	"github.com/happyuc-project/happyuc-go/light"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discv5"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/irc"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/les/flowcontrol"
+	"github.com/irchain/go-irchain/light"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discv5"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 type LesServer struct {
-	config          *huc.Config
+	config          *irc.Config
 	protocolManager *ProtocolManager
 	fcManager       *flowcontrol.ClientManager // nil if our node is client only
 	fcCostStats     *requestCostStats
@@ -50,16 +50,16 @@ type LesServer struct {
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 }
 
-func NewLesServer(huc *huc.HappyUC, config *huc.Config) (*LesServer, error) {
+func NewLesServer(irc *irc.IrChain, config *irc.Config) (*LesServer, error) {
 	quitSync := make(chan struct{})
-	pm, err := NewProtocolManager(huc.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, huc.EventMux(), huc.Engine(), newPeerSet(), huc.BlockChain(), huc.TxPool(), huc.ChainDb(), nil, nil, quitSync, new(sync.WaitGroup))
+	pm, err := NewProtocolManager(irc.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, irc.EventMux(), irc.Engine(), newPeerSet(), irc.BlockChain(), irc.TxPool(), irc.ChainDb(), nil, nil, quitSync, new(sync.WaitGroup))
 	if err != nil {
 		return nil, err
 	}
 
 	lesTopics := make([]discv5.Topic, len(AdvertiseProtocolVersions))
 	for i, pv := range AdvertiseProtocolVersions {
-		lesTopics[i] = lesTopic(huc.BlockChain().Genesis().Hash(), pv)
+		lesTopics[i] = lesTopic(irc.BlockChain().Genesis().Hash(), pv)
 	}
 
 	srv := &LesServer{
@@ -67,8 +67,8 @@ func NewLesServer(huc *huc.HappyUC, config *huc.Config) (*LesServer, error) {
 		protocolManager:  pm,
 		quitSync:         quitSync,
 		lesTopics:        lesTopics,
-		chtIndexer:       light.NewChtIndexer(huc.ChainDb(), false),
-		bloomTrieIndexer: light.NewBloomTrieIndexer(huc.ChainDb(), false),
+		chtIndexer:       light.NewChtIndexer(irc.ChainDb(), false),
+		bloomTrieIndexer: light.NewBloomTrieIndexer(irc.ChainDb(), false),
 	}
 	logger := log.New()
 
@@ -91,7 +91,7 @@ func NewLesServer(huc *huc.HappyUC, config *huc.Config) (*LesServer, error) {
 		logger.Info("Loaded bloom trie", "section", bloomTrieLastSection, "head", bloomTrieSectionHead, "root", bloomTrieRoot)
 	}
 
-	srv.chtIndexer.Start(huc.BlockChain())
+	srv.chtIndexer.Start(irc.BlockChain())
 	pm.server = srv
 
 	srv.defParams = &flowcontrol.ServerParams{
@@ -99,7 +99,7 @@ func NewLesServer(huc *huc.HappyUC, config *huc.Config) (*LesServer, error) {
 		MinRecharge: 50000,
 	}
 	srv.fcManager = flowcontrol.NewClientManager(uint64(config.LightServ), 10, 1000000000)
-	srv.fcCostStats = newCostStats(huc.ChainDb())
+	srv.fcCostStats = newCostStats(irc.ChainDb())
 	return srv, nil
 }
 
@@ -225,7 +225,7 @@ func linRegFromBytes(data []byte) *linReg {
 
 type requestCostStats struct {
 	lock  sync.RWMutex
-	db    hucdb.Database
+	db    ircdb.Database
 	stats map[uint64]*linReg
 }
 
@@ -236,7 +236,7 @@ type requestCostStatsRlp []struct {
 
 var rcStatsKey = []byte("_requestCostStats")
 
-func newCostStats(db hucdb.Database) *requestCostStats {
+func newCostStats(db ircdb.Database) *requestCostStats {
 	stats := make(map[uint64]*linReg)
 	for _, code := range reqList {
 		stats[code] = &linReg{cnt: 100}

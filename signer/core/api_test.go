@@ -27,13 +27,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/cmd/utils"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/cmd/utils"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 //Used for testing
@@ -44,7 +44,7 @@ type HeadlessUI struct {
 func (ui *HeadlessUI) OnSignerStartup(info StartupInfo) {
 }
 
-func (ui *HeadlessUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (ui *HeadlessUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	fmt.Printf("OnApproved called")
 }
 
@@ -276,7 +276,7 @@ func TestSignTx(t *testing.T) {
 
 	var (
 		list      Accounts
-		res, res2 *hucapi.SignTransactionResult
+		res, res2 *ircapi.SignTransactionResult
 		err       error
 	)
 

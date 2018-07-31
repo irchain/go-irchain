@@ -24,8 +24,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/swarm/storage"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/swarm/storage"
 )
 
 var testDownloadDir, _ = ioutil.TempDir(os.TempDir(), "bzz-test")

@@ -1,20 +1,20 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of happyuc-go.
+// Copyright 2015 The go-irchain Authors
+// This file is part of go-irchain.
 //
-// happyuc-go is free software: you can redistribute it and/or modify
+// go-irchain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// happyuc-go is distributed in the hope that it will be useful,
+// go-irchain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with happyuc-go. If not, see <http://www.gnu.org/licenses/>.
+// along with go-irchain. If not, see <http://www.gnu.org/licenses/>.
 
-// Package utils contains internal helper functions for happyuc-go commands.
+// Package utils contains internal helper functions for go-irchain commands.
 package utils
 
 import (
@@ -28,34 +28,34 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/fdlimit"
-	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/consensus/clique"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/dashboard"
-	"github.com/happyuc-project/happyuc-go/huc"
-	"github.com/happyuc-project/happyuc-go/huc/downloader"
-	"github.com/happyuc-project/happyuc-go/huc/gasprice"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/hucstats"
-	"github.com/happyuc-project/happyuc-go/les"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/metrics"
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/p2p/discv5"
-	"github.com/happyuc-project/happyuc-go/p2p/nat"
-	"github.com/happyuc-project/happyuc-go/p2p/netutil"
-	"github.com/happyuc-project/happyuc-go/params"
-	whisper "github.com/happyuc-project/happyuc-go/whisper/whisperv6"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/fdlimit"
+	"github.com/irchain/go-irchain/consensus"
+	"github.com/irchain/go-irchain/consensus/clique"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/dashboard"
+	"github.com/irchain/go-irchain/irc"
+	"github.com/irchain/go-irchain/irc/downloader"
+	"github.com/irchain/go-irchain/irc/gasprice"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/ircstats"
+	"github.com/irchain/go-irchain/les"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/metrics"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/p2p/discv5"
+	"github.com/irchain/go-irchain/p2p/nat"
+	"github.com/irchain/go-irchain/p2p/netutil"
+	"github.com/irchain/go-irchain/params"
+	whisper "github.com/irchain/go-irchain/whisper/whisperv6"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -129,7 +129,7 @@ var (
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
 		Usage: "Network identifier (integer, 1=Frontier, 2=Morden (disused), 3=Ropsten, 4=Rinkeby)",
-		Value: huc.DefaultConfig.NetworkId,
+		Value: irc.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{
 		Name:  "testnet",
@@ -164,7 +164,7 @@ var (
 		Name:  "light",
 		Usage: "Enable light client mode (replaced by --syncmode)",
 	}
-	defaultSyncMode = huc.DefaultConfig.SyncMode
+	defaultSyncMode = irc.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("fast", "full", or "light")`,
@@ -183,7 +183,7 @@ var (
 	LightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
 		Usage: "Maximum number of LES client peers",
-		Value: huc.DefaultConfig.LightPeers,
+		Value: irc.DefaultConfig.LightPeers,
 	}
 	LightKDFFlag = cli.BoolFlag{
 		Name:  "lightkdf",
@@ -209,35 +209,35 @@ var (
 		Usage: "Dashboard metrics collection refresh rate",
 		Value: dashboard.DefaultConfig.Refresh,
 	}
-	// Huchash settings
-	HuchashCacheDirFlag = DirectoryFlag{
-		Name:  "huchash.cachedir",
-		Usage: "Directory to store the huchash verification caches (default = inside the datadir)",
+	// Irchash settings
+	IrchashCacheDirFlag = DirectoryFlag{
+		Name:  "irchash.cachedir",
+		Usage: "Directory to store the irchash verification caches (default = inside the datadir)",
 	}
-	HuchashCachesInMemoryFlag = cli.IntFlag{
-		Name:  "huchash.cachesinmem",
-		Usage: "Number of recent huchash caches to keep in memory (16MB each)",
-		Value: huc.DefaultConfig.Huchash.CachesInMem,
+	IrchashCachesInMemoryFlag = cli.IntFlag{
+		Name:  "irchash.cachesinmem",
+		Usage: "Number of recent irchash caches to keep in memory (16MB each)",
+		Value: irc.DefaultConfig.Irchash.CachesInMem,
 	}
-	HuchashCachesOnDiskFlag = cli.IntFlag{
-		Name:  "huchash.cachesondisk",
-		Usage: "Number of recent huchash caches to keep on disk (16MB each)",
-		Value: huc.DefaultConfig.Huchash.CachesOnDisk,
+	IrchashCachesOnDiskFlag = cli.IntFlag{
+		Name:  "irchash.cachesondisk",
+		Usage: "Number of recent irchash caches to keep on disk (16MB each)",
+		Value: irc.DefaultConfig.Irchash.CachesOnDisk,
 	}
-	HuchashDatasetDirFlag = DirectoryFlag{
-		Name:  "huchash.dagdir",
-		Usage: "Directory to store the huchash mining DAGs (default = inside home folder)",
-		Value: DirectoryString{huc.DefaultConfig.Huchash.DatasetDir},
+	IrchashDatasetDirFlag = DirectoryFlag{
+		Name:  "irchash.dagdir",
+		Usage: "Directory to store the irchash mining DAGs (default = inside home folder)",
+		Value: DirectoryString{irc.DefaultConfig.Irchash.DatasetDir},
 	}
-	HuchashDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "huchash.dagsinmem",
-		Usage: "Number of recent huchash mining DAGs to keep in memory (1+GB each)",
-		Value: huc.DefaultConfig.Huchash.DatasetsInMem,
+	IrchashDatasetsInMemoryFlag = cli.IntFlag{
+		Name:  "irchash.dagsinmem",
+		Usage: "Number of recent irchash mining DAGs to keep in memory (1+GB each)",
+		Value: irc.DefaultConfig.Irchash.DatasetsInMem,
 	}
-	HuchashDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "huchash.dagsondisk",
-		Usage: "Number of recent huchash mining DAGs to keep on disk (1+GB each)",
-		Value: huc.DefaultConfig.Huchash.DatasetsOnDisk,
+	IrchashDatasetsOnDiskFlag = cli.IntFlag{
+		Name:  "irchash.dagsondisk",
+		Usage: "Number of recent irchash mining DAGs to keep on disk (1+GB each)",
+		Value: irc.DefaultConfig.Irchash.DatasetsOnDisk,
 	}
 	// Transaction pool settings
 	TxPoolNoLocalsFlag = cli.BoolFlag{
@@ -257,37 +257,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum gas price limit to enforce for acceptance into the pool",
-		Value: huc.DefaultConfig.TxPool.PriceLimit,
+		Value: irc.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: huc.DefaultConfig.TxPool.PriceBump,
+		Value: irc.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: huc.DefaultConfig.TxPool.AccountSlots,
+		Value: irc.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: huc.DefaultConfig.TxPool.GlobalSlots,
+		Value: irc.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: huc.DefaultConfig.TxPool.AccountQueue,
+		Value: irc.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: huc.DefaultConfig.TxPool.GlobalQueue,
+		Value: irc.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: huc.DefaultConfig.TxPool.Lifetime,
+		Value: irc.DefaultConfig.TxPool.Lifetime,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -333,7 +333,7 @@ var (
 	GasPriceFlag = BigFlag{
 		Name:  "gasprice",
 		Usage: "Minimal gas price to accept for mining a transactions",
-		Value: huc.DefaultConfig.GasPrice,
+		Value: irc.DefaultConfig.GasPrice,
 	}
 	ExtraDataFlag = cli.StringFlag{
 		Name:  "extradata",
@@ -356,9 +356,9 @@ var (
 		Usage: "Record information useful for VM and contract debugging",
 	}
 	// Logging and debug settings
-	HucStatsURLFlag = cli.StringFlag{
-		Name:  "hucstats",
-		Usage: "Reporting URL of a hucstats service (nodename:secret@host:port)",
+	IrcStatsURLFlag = cli.StringFlag{
+		Name:  "ircstats",
+		Usage: "Reporting URL of a ircstats service (nodename:secret@host:port)",
 	}
 	MetricsEnabledFlag = cli.BoolFlag{
 		Name:  metrics.MetricsEnabledFlag,
@@ -511,12 +511,12 @@ var (
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpoblocks",
 		Usage: "Number of recent blocks to check for gas prices",
-		Value: huc.DefaultConfig.GPO.Blocks,
+		Value: irc.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpopercentile",
 		Usage: "Suggested gas price is the given percentile of a set of recent transaction gas prices",
-		Value: huc.DefaultConfig.GPO.Percentile,
+		Value: irc.DefaultConfig.GPO.Percentile,
 	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
@@ -729,7 +729,7 @@ func setIPC(ctx *cli.Context, cfg *node.Config) {
 }
 
 // makeDatabaseHandles raises out the number of allowed file handles per process
-// for Ghuc and returns half of the allowance to assign to the database.
+// for Girc and returns half of the allowance to assign to the database.
 func makeDatabaseHandles() int {
 	limit, err := fdlimit.Current()
 	if err != nil {
@@ -761,7 +761,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 	log.Warn("-------------------------------------------------------------------")
 	log.Warn("Referring to accounts by order in the keystore folder is dangerous!")
 	log.Warn("This functionality is deprecated and will be removed in the future!")
-	log.Warn("Please use explicit addresses! (can search via `ghuc account list`)")
+	log.Warn("Please use explicit addresses! (can search via `girc account list`)")
 	log.Warn("-------------------------------------------------------------------")
 
 	accs := ks.Accounts()
@@ -773,7 +773,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setCoinbase retrieves the coinbase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setCoinbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *huc.Config) {
+func setCoinbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *irc.Config) {
 	if ctx.GlobalIsSet(CoinbaseFlag.Name) {
 		account, err := MakeAddress(ks, ctx.GlobalString(CoinbaseFlag.Name))
 		if err != nil {
@@ -825,11 +825,11 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	hucPeers := cfg.MaxPeers - lightPeers
+	ircPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		hucPeers = 0
+		ircPeers = 0
 	}
-	log.Info("Maximum peer count", "HUC", hucPeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "IRC", ircPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -937,24 +937,24 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setHuchash(ctx *cli.Context, cfg *huc.Config) {
-	if ctx.GlobalIsSet(HuchashCacheDirFlag.Name) {
-		cfg.Huchash.CacheDir = ctx.GlobalString(HuchashCacheDirFlag.Name)
+func setIrchash(ctx *cli.Context, cfg *irc.Config) {
+	if ctx.GlobalIsSet(IrchashCacheDirFlag.Name) {
+		cfg.Irchash.CacheDir = ctx.GlobalString(IrchashCacheDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(HuchashDatasetDirFlag.Name) {
-		cfg.Huchash.DatasetDir = ctx.GlobalString(HuchashDatasetDirFlag.Name)
+	if ctx.GlobalIsSet(IrchashDatasetDirFlag.Name) {
+		cfg.Irchash.DatasetDir = ctx.GlobalString(IrchashDatasetDirFlag.Name)
 	}
-	if ctx.GlobalIsSet(HuchashCachesInMemoryFlag.Name) {
-		cfg.Huchash.CachesInMem = ctx.GlobalInt(HuchashCachesInMemoryFlag.Name)
+	if ctx.GlobalIsSet(IrchashCachesInMemoryFlag.Name) {
+		cfg.Irchash.CachesInMem = ctx.GlobalInt(IrchashCachesInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(HuchashCachesOnDiskFlag.Name) {
-		cfg.Huchash.CachesOnDisk = ctx.GlobalInt(HuchashCachesOnDiskFlag.Name)
+	if ctx.GlobalIsSet(IrchashCachesOnDiskFlag.Name) {
+		cfg.Irchash.CachesOnDisk = ctx.GlobalInt(IrchashCachesOnDiskFlag.Name)
 	}
-	if ctx.GlobalIsSet(HuchashDatasetsInMemoryFlag.Name) {
-		cfg.Huchash.DatasetsInMem = ctx.GlobalInt(HuchashDatasetsInMemoryFlag.Name)
+	if ctx.GlobalIsSet(IrchashDatasetsInMemoryFlag.Name) {
+		cfg.Irchash.DatasetsInMem = ctx.GlobalInt(IrchashDatasetsInMemoryFlag.Name)
 	}
-	if ctx.GlobalIsSet(HuchashDatasetsOnDiskFlag.Name) {
-		cfg.Huchash.DatasetsOnDisk = ctx.GlobalInt(HuchashDatasetsOnDiskFlag.Name)
+	if ctx.GlobalIsSet(IrchashDatasetsOnDiskFlag.Name) {
+		cfg.Irchash.DatasetsOnDisk = ctx.GlobalInt(IrchashDatasetsOnDiskFlag.Name)
 	}
 }
 
@@ -1006,8 +1006,8 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// SetHucConfig applies huc-related command line flags to the config.
-func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
+// SetIrcConfig applies irc-related command line flags to the config.
+func SetIrcConfig(ctx *cli.Context, stack *node.Node, cfg *irc.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, DeveloperFlag, TestnetFlag, RinkebyFlag)
 	checkExclusive(ctx, FastSyncFlag, LightModeFlag, SyncModeFlag)
@@ -1018,7 +1018,7 @@ func SetHucConfig(ctx *cli.Context, stack *node.Node, cfg *huc.Config) {
 	setCoinbase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
-	setHuchash(ctx, cfg)
+	setIrchash(ctx, cfg)
 
 	switch {
 	case ctx.GlobalIsSet(SyncModeFlag.Name):
@@ -1117,8 +1117,8 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 	cfg.Refresh = ctx.GlobalDuration(DashboardRefreshFlag.Name)
 }
 
-// RegisterHucService adds an HappyUC client to the stack.
-func RegisterHucService(stack *node.Node, cfg *huc.Config) {
+// RegisterIrcService adds an IrChain client to the stack.
+func RegisterIrcService(stack *node.Node, cfg *irc.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1126,7 +1126,7 @@ func RegisterHucService(stack *node.Node, cfg *huc.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := huc.New(ctx, cfg)
+			fullNode, err := irc.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1135,7 +1135,7 @@ func RegisterHucService(stack *node.Node, cfg *huc.Config) {
 		})
 	}
 	if err != nil {
-		Fatalf("Failed to register the HappyUC service: %v", err)
+		Fatalf("Failed to register the IrChain service: %v", err)
 	}
 }
 
@@ -1155,20 +1155,20 @@ func RegisterShhService(stack *node.Node, cfg *whisper.Config) {
 	}
 }
 
-// RegisterHucStatsService configures the HappyUC Stats daemon and adds it to
+// RegisterIrcStatsService configures the IrChain Stats daemon and adds it to
 // th egiven node.
-func RegisterHucStatsService(stack *node.Node, url string) {
+func RegisterIrcStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both huc and les services
-		var hucServ *huc.HappyUC
-		ctx.Service(&hucServ)
+		// Retrieve both irc and les services
+		var ircServ *irc.IrChain
+		ctx.Service(&ircServ)
 
-		var lesServ *les.LightHappyUC
+		var lesServ *les.LightIrChain
 		ctx.Service(&lesServ)
 
-		return hucstats.New(url, hucServ, lesServ)
+		return ircstats.New(url, ircServ, lesServ)
 	}); err != nil {
-		Fatalf("Failed to register the HappyUC Stats service: %v", err)
+		Fatalf("Failed to register the IrChain Stats service: %v", err)
 	}
 }
 
@@ -1179,7 +1179,7 @@ func SetupNetwork(ctx *cli.Context) {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) hucdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ircdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1209,7 +1209,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb hucdb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chainDb ircdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
@@ -1221,15 +1221,15 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	if config.Clique != nil {
 		engine = clique.New(config.Clique, chainDb)
 	} else {
-		engine = huchash.NewFaker()
+		engine = irchash.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = huchash.New(huchash.Config{
-				CacheDir:       stack.ResolvePath(huc.DefaultConfig.Huchash.CacheDir),
-				CachesInMem:    huc.DefaultConfig.Huchash.CachesInMem,
-				CachesOnDisk:   huc.DefaultConfig.Huchash.CachesOnDisk,
-				DatasetDir:     stack.ResolvePath(huc.DefaultConfig.Huchash.DatasetDir),
-				DatasetsInMem:  huc.DefaultConfig.Huchash.DatasetsInMem,
-				DatasetsOnDisk: huc.DefaultConfig.Huchash.DatasetsOnDisk,
+			engine = irchash.New(irchash.Config{
+				CacheDir:       stack.ResolvePath(irc.DefaultConfig.Irchash.CacheDir),
+				CachesInMem:    irc.DefaultConfig.Irchash.CachesInMem,
+				CachesOnDisk:   irc.DefaultConfig.Irchash.CachesOnDisk,
+				DatasetDir:     stack.ResolvePath(irc.DefaultConfig.Irchash.DatasetDir),
+				DatasetsInMem:  irc.DefaultConfig.Irchash.DatasetsInMem,
+				DatasetsOnDisk: irc.DefaultConfig.Irchash.DatasetsOnDisk,
 			})
 		}
 	}
@@ -1238,8 +1238,8 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	}
 	cache := &core.CacheConfig{
 		Disabled:      ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieNodeLimit: huc.DefaultConfig.TrieCache,
-		TrieTimeLimit: huc.DefaultConfig.TrieTimeout,
+		TrieNodeLimit: irc.DefaultConfig.TrieCache,
+		TrieTimeLimit: irc.DefaultConfig.TrieTimeout,
 	}
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {
 		cache.TrieNodeLimit = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheGCFlag.Name) / 100
@@ -1273,11 +1273,11 @@ func MakeConsolePreloads(ctx *cli.Context) []string {
 // This is a temporary function used for migrating old command/flags to the
 // new format.
 //
-// e.g. ghuc account new --keystore /tmp/mykeystore --lightkdf
+// e.g. girc account new --keystore /tmp/mykeystore --lightkdf
 //
 // is equivalent after calling this method with:
 //
-// ghuc --keystore /tmp/mykeystore --lightkdf account new
+// girc --keystore /tmp/mykeystore --lightkdf account new
 //
 // This allows the use of the existing configuration functionality.
 // When all flags are migrated this function can be removed and the existing

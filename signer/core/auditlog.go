@@ -21,11 +21,11 @@ import (
 
 	"encoding/json"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/log"
 )
 
 type AuditLogger struct {
@@ -46,7 +46,7 @@ func (l *AuditLogger) New(ctx context.Context) (accounts.Account, error) {
 	return l.api.New(ctx)
 }
 
-func (l *AuditLogger) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*hucapi.SignTransactionResult, error) {
+func (l *AuditLogger) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*ircapi.SignTransactionResult, error) {
 	sel := "<nil>"
 	if methodSelector != nil {
 		sel = *methodSelector

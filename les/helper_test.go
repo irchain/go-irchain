@@ -25,20 +25,20 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/huc"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/les/flowcontrol"
-	"github.com/happyuc-project/happyuc-go/light"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
-	"github.com/happyuc-project/happyuc-go/params"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/irc"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/les/flowcontrol"
+	"github.com/irchain/go-irchain/light"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
+	"github.com/irchain/go-irchain/params"
 )
 
 var (
@@ -136,10 +136,10 @@ func testRCL() RequestCostList {
 // newTestProtocolManager creates a new protocol manager for testing purposes,
 // with the given number of blocks already known, and potential notification
 // channels for different events.
-func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *core.BlockGen), peers *peerSet, odr *LesOdr, db hucdb.Database) (*ProtocolManager, error) {
+func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *core.BlockGen), peers *peerSet, odr *LesOdr, db ircdb.Database) (*ProtocolManager, error) {
 	var (
 		evmux  = new(event.TypeMux)
-		engine = huchash.NewFaker()
+		engine = irchash.NewFaker()
 		gspec  = core.Genesis{
 			Config: params.TestChainConfig,
 			Alloc:  core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}},
@@ -161,11 +161,11 @@ func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *cor
 
 		bbtIndexer := light.NewBloomTrieIndexer(db, false)
 
-		bloomIndexer := huc.NewBloomIndexer(db, params.BloomBitsBlocks)
+		bloomIndexer := irc.NewBloomIndexer(db, params.BloomBitsBlocks)
 		bloomIndexer.AddChildIndexer(bbtIndexer)
 		bloomIndexer.Start(blockchain)
 
-		gchain, _ := core.GenerateChain(gspec.Config, genesis, huchash.NewFaker(), db, blocks, generator)
+		gchain, _ := core.GenerateChain(gspec.Config, genesis, irchash.NewFaker(), db, blocks, generator)
 		if _, err := blockchain.InsertChain(gchain); err != nil {
 			panic(err)
 		}
@@ -202,7 +202,7 @@ func newTestProtocolManager(lightSync bool, blocks int, generator func(int, *cor
 // with the given number of blocks already known, and potential notification
 // channels for different events. In case of an error, the constructor force-
 // fails the test.
-func newTestProtocolManagerMust(t *testing.T, lightSync bool, blocks int, generator func(int, *core.BlockGen), peers *peerSet, odr *LesOdr, db hucdb.Database) *ProtocolManager {
+func newTestProtocolManagerMust(t *testing.T, lightSync bool, blocks int, generator func(int, *core.BlockGen), peers *peerSet, odr *LesOdr, db ircdb.Database) *ProtocolManager {
 	pm, err := newTestProtocolManager(lightSync, blocks, generator, peers, odr, db)
 	if err != nil {
 		t.Fatalf("Failed to create protocol manager: %v", err)

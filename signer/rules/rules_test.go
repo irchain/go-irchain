@@ -22,13 +22,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/internal/hucapi"
-	"github.com/happyuc-project/happyuc-go/signer/core"
-	"github.com/happyuc-project/happyuc-go/signer/storage"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/internal/ircapi"
+	"github.com/irchain/go-irchain/signer/core"
+	"github.com/irchain/go-irchain/signer/storage"
 )
 
 const JS = `
@@ -109,7 +109,7 @@ func (alwaysDenyUI) ShowInfo(message string) {
 	panic("implement me")
 }
 
-func (alwaysDenyUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (alwaysDenyUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	panic("implement me")
 }
 
@@ -238,7 +238,7 @@ func (d *dummyUI) ShowInfo(message string) {
 	d.calls = append(d.calls, "ShowInfo")
 }
 
-func (d *dummyUI) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (d *dummyUI) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	d.calls = append(d.calls, "OnApprovedTx")
 }
 func (d *dummyUI) OnSignerStartup(info core.StartupInfo) {
@@ -268,7 +268,7 @@ func TestForwarding(t *testing.T) {
 	r.ShowInfo("test")
 
 	//This one is not forwarded
-	r.OnApprovedTx(hucapi.SignTransactionResult{})
+	r.OnApprovedTx(ircapi.SignTransactionResult{})
 
 	expCalls := 8
 	if len(ui.calls) != expCalls {
@@ -490,7 +490,7 @@ func TestLimitWindow(t *testing.T) {
 		}
 		// Create a dummy signed transaction
 
-		response := hucapi.SignTransactionResult{
+		response := ircapi.SignTransactionResult{
 			Tx:  dummySigned(v),
 			Raw: common.Hex2Bytes("deadbeef"),
 		}
@@ -550,7 +550,7 @@ func (d *dontCallMe) ShowInfo(message string) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
-func (d *dontCallMe) OnApprovedTx(tx hucapi.SignTransactionResult) {
+func (d *dontCallMe) OnApprovedTx(tx ircapi.SignTransactionResult) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 

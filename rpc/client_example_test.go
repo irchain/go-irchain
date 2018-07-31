@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 // In this example, our client whishes to track the latest 'block number'
@@ -66,7 +66,7 @@ func subscribeBlocks(client *rpc.Client, subch chan Block) {
 	defer cancel()
 
 	// Subscribe to new blocks.
-	sub, err := client.HucSubscribe(ctx, subch, "newBlocks")
+	sub, err := client.IrcSubscribe(ctx, subch, "newBlocks")
 	if err != nil {
 		fmt.Println("subscribe error:", err)
 		return

@@ -1,30 +1,30 @@
-// Copyright 2017 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2017 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package les
 
 import (
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common/bitutil"
-	"github.com/happyuc-project/happyuc-go/light"
+	"github.com/irchain/go-irchain/common/bitutil"
+	"github.com/irchain/go-irchain/light"
 )
 
 const (
-	// bloomServiceThreads is the number of goroutines used globally by an HappyUC
+	// bloomServiceThreads is the number of goroutines used globally by an IrChain
 	// instance to service bloombits lookups for all running filters.
 	bloomServiceThreads = 16
 
@@ -43,18 +43,18 @@ const (
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (huc *LightHappyUC) startBloomHandlers() {
+func (irc *LightIrChain) startBloomHandlers() {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
 			for {
 				select {
-				case <-huc.shutdownChan:
+				case <-irc.shutdownChan:
 					return
 
-				case request := <-huc.bloomRequests:
+				case request := <-irc.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
-					compVectors, err := light.GetBloomBits(task.Context, huc.odr, task.Bit, task.Sections)
+					compVectors, err := light.GetBloomBits(task.Context, irc.odr, task.Bit, task.Sections)
 					if err == nil {
 						for i := range task.Sections {
 							if blob, err := bitutil.DecompressBytes(compVectors[i], int(light.BloomTrieFrequency/8)); err == nil {

@@ -27,21 +27,21 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/mclock"
-	"github.com/happyuc-project/happyuc-go/consensus"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/metrics"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/rlp"
-	"github.com/happyuc-project/happyuc-go/trie"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/mclock"
+	"github.com/irchain/go-irchain/consensus"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/metrics"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/rlp"
+	"github.com/irchain/go-irchain/trie"
 	"github.com/hashicorp/golang-lru"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
@@ -90,7 +90,7 @@ type BlockChain struct {
 	chainConfig *params.ChainConfig // Chain & network configuration
 	cacheConfig *CacheConfig        // Cache configuration for pruning
 
-	db     hucdb.Database // Low level persistent database to store final content in
+	db     ircdb.Database // Low level persistent database to store final content in
 	triegc *prque.Prque   // Priority queue mapping block numbers to tries to gc
 	gcproc time.Duration  // Accumulates canonical block processing for trie dumping
 
@@ -132,9 +132,9 @@ type BlockChain struct {
 }
 
 // NewBlockChain returns a fully initialised block chain using information
-// available in the database. It initialises the default HappyUC Validator and
+// available in the database. It initialises the default IrChain Validator and
 // Processor.
-func NewBlockChain(db hucdb.Database, cacheConfig *CacheConfig, chainConfig *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config) (*BlockChain, error) {
+func NewBlockChain(db ircdb.Database, cacheConfig *CacheConfig, chainConfig *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config) (*BlockChain, error) {
 	if cacheConfig == nil {
 		cacheConfig = &CacheConfig{
 			TrieNodeLimit: 256 * 1024 * 1024,
@@ -819,7 +819,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 
 		stats.processed++
 
-		if batch.ValueSize() >= hucdb.IdealBatchSize {
+		if batch.ValueSize() >= ircdb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
 				return 0, err
 			}
@@ -923,7 +923,7 @@ func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.
 				limit       = common.StorageSize(bc.cacheConfig.TrieNodeLimit) * 1024 * 1024
 			)
 			if nodes > limit || imgs > 4*1024*1024 {
-				triedb.Cap(limit - hucdb.IdealBatchSize)
+				triedb.Cap(limit - ircdb.IdealBatchSize)
 			}
 			// Find the next state trie we need to commit
 			header := bc.GetHeaderByNumber(current - triesInMemory)

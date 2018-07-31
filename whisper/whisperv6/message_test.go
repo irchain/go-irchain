@@ -23,9 +23,9 @@ import (
 	mrand "math/rand"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common/hexutil"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 func generateMessageParams() (*MessageParams, error) {

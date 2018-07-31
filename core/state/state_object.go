@@ -1,18 +1,18 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package state
 
@@ -22,9 +22,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 var emptyCodeHash = crypto.Keccak256(nil)
@@ -54,7 +54,7 @@ func (self Storage) Copy() Storage {
 	return cpy
 }
 
-// stateObject represents an HappyUC account which is being modified.
+// stateObject represents an IrChain account which is being modified.
 //
 // The usage pattern is as follows:
 // First you need to obtain a state object.
@@ -62,7 +62,7 @@ func (self Storage) Copy() Storage {
 // Finally, call CommitTrie to write the modified storage trie into a database.
 type stateObject struct {
 	address  common.Address
-	addrHash common.Hash // hash of happyuc address of the account
+	addrHash common.Hash // hash of irchain address of the account
 	data     Account
 	db       *StateDB
 
@@ -93,7 +93,7 @@ func (s *stateObject) empty() bool {
 	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
 }
 
-// Account is the HappyUC consensus representation of accounts.
+// Account is the IrChain consensus representation of accounts.
 // These objects are stored in the main account trie.
 type Account struct {
 	Nonce    uint64

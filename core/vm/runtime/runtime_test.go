@@ -21,11 +21,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/accounts/abi"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/vm"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/accounts/abi"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/vm"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 func TestDefaults(t *testing.T) {
@@ -94,7 +94,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestCall(t *testing.T) {
-	state, _ := state.New(common.Hash{}, state.NewDatabase(hucdb.NewMemDatabase()))
+	state, _ := state.New(common.Hash{}, state.NewDatabase(ircdb.NewMemDatabase()))
 	address := common.HexToAddress("0x0a")
 	state.SetCode(address, []byte{
 		byte(vm.PUSH1), 10,

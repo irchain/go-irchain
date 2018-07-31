@@ -22,20 +22,20 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 func newEmptySecure() *SecureTrie {
-	trie, _ := NewSecure(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()), 0)
+	trie, _ := NewSecure(common.Hash{}, NewDatabase(ircdb.NewMemDatabase()), 0)
 	return trie
 }
 
 // makeTestSecureTrie creates a large enough secure trie for testing.
 func makeTestSecureTrie() (*Database, *SecureTrie, map[string][]byte) {
 	// Create an empty trie
-	triedb := NewDatabase(hucdb.NewMemDatabase())
+	triedb := NewDatabase(ircdb.NewMemDatabase())
 
 	trie, _ := NewSecure(common.Hash{}, triedb, 0)
 

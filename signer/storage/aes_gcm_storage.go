@@ -26,7 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/happyuc-project/happyuc-go/log"
+	"github.com/irchain/go-irchain/log"
 )
 
 type storedCredential struct {

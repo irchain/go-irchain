@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/happyuc-project/happyuc-go/common/math"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common/math"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/crypto/sha3"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 // Registry of known identity schemes.

@@ -1,18 +1,18 @@
-// Copyright 2016 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2016 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package light
 
@@ -22,16 +22,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/state"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/event"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/params"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/state"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/event"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/params"
+	"github.com/irchain/go-irchain/rlp"
 	"math/big"
 )
 
@@ -60,7 +60,7 @@ type TxPool struct {
 	mu           sync.RWMutex
 	chain        *LightChain
 	odr          OdrBackend
-	chainDb      hucdb.Database
+	chainDb      ircdb.Database
 	relay        TxRelayBackend
 	head         common.Hash
 	nonce        map[common.Address]uint64            // "pending" nonce
@@ -70,7 +70,7 @@ type TxPool struct {
 }
 
 // TxRelayBackend provides an interface to the mechanism that forwards transacions
-// to the HUC network. The implementations of the functions should be non-blocking.
+// to the IRC network. The implementations of the functions should be non-blocking.
 //
 // Send instructs backend to forward new transactions
 // NewHead notifies backend about a new head after processed by the tx pool,
@@ -382,7 +382,7 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInsufficientValues
 	}
 
-	// // Creating contract need to store a certain amount of hucer
+	// // Creating contract need to store a certain amount of ircer
 	// if contractCreation && val.Cmp(core.TxContractCreationDeposit) < 0 {
 	// 	return core.ErrContractCreation
 	// }

@@ -1,32 +1,32 @@
-// Copyright 2015 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2015 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package light implements on-demand retrieval capable state and chain objects
-// for the HappyUC Light Client.
+// for the IrChain Light Client.
 package light
 
 import (
 	"context"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR
@@ -35,7 +35,7 @@ var NoOdr = context.Background()
 
 // OdrBackend is an interface to a backend service that handles ODR retrievals type
 type OdrBackend interface {
-	Database() hucdb.Database
+	Database() ircdb.Database
 	ChtIndexer() *core.ChainIndexer
 	BloomTrieIndexer() *core.ChainIndexer
 	BloomIndexer() *core.ChainIndexer
@@ -44,7 +44,7 @@ type OdrBackend interface {
 
 // OdrRequest is an interface for retrieval requests
 type OdrRequest interface {
-	StoreResult(db hucdb.Database)
+	StoreResult(db ircdb.Database)
 }
 
 // TrieID identifies a state or account storage trie
@@ -86,7 +86,7 @@ type TrieRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TrieRequest) StoreResult(db hucdb.Database) {
+func (req *TrieRequest) StoreResult(db ircdb.Database) {
 	req.Proof.Store(db)
 }
 
@@ -99,7 +99,7 @@ type CodeRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *CodeRequest) StoreResult(db hucdb.Database) {
+func (req *CodeRequest) StoreResult(db ircdb.Database) {
 	db.Put(req.Hash[:], req.Data)
 }
 
@@ -112,7 +112,7 @@ type BlockRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BlockRequest) StoreResult(db hucdb.Database) {
+func (req *BlockRequest) StoreResult(db ircdb.Database) {
 	rawdb.WriteBodyRLP(db, req.Hash, req.Number, req.Rlp)
 }
 
@@ -125,7 +125,7 @@ type ReceiptsRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ReceiptsRequest) StoreResult(db hucdb.Database) {
+func (req *ReceiptsRequest) StoreResult(db ircdb.Database) {
 	rawdb.WriteReceipts(db, req.Hash, req.Number, req.Receipts)
 }
 
@@ -140,7 +140,7 @@ type ChtRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ChtRequest) StoreResult(db hucdb.Database) {
+func (req *ChtRequest) StoreResult(db ircdb.Database) {
 	hash, num := req.Header.Hash(), req.Header.Number.Uint64()
 
 	rawdb.WriteHeader(db, req.Header)
@@ -160,7 +160,7 @@ type BloomRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BloomRequest) StoreResult(db hucdb.Database) {
+func (req *BloomRequest) StoreResult(db ircdb.Database) {
 	for i, sectionIdx := range req.SectionIdxList {
 		sectionHead := rawdb.ReadCanonicalHash(db, (sectionIdx+1)*BloomTrieFrequency-1)
 		// if we don't have the canonical hash stored for this section head number, we'll still store it under

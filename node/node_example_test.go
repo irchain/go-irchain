@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/happyuc-project/happyuc-go/node"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/rpc"
+	"github.com/irchain/go-irchain/node"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/rpc"
 )
 
 // SampleService is a trivial network service that can be attached to a node for

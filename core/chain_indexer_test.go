@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/core/rawdb"
-	"github.com/happyuc-project/happyuc-go/core/types"
-	"github.com/happyuc-project/happyuc-go/hucdb"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/core/rawdb"
+	"github.com/irchain/go-irchain/core/types"
+	"github.com/irchain/go-irchain/ircdb"
 )
 
 // Runs multiple tests with randomized parameters.
@@ -48,7 +48,7 @@ func TestChainIndexerWithChildren(t *testing.T) {
 // multiple backends. The section size and required confirmation count parameters
 // are randomized.
 func testChainIndexer(t *testing.T, count int) {
-	db := hucdb.NewMemDatabase()
+	db := ircdb.NewMemDatabase()
 	defer db.Close()
 
 	// Create a chain of indexers and ensure they all report empty
@@ -59,7 +59,7 @@ func testChainIndexer(t *testing.T, count int) {
 			confirmsReq = uint64(rand.Intn(10))
 		)
 		backends[i] = &testChainIndexBackend{t: t, processCh: make(chan uint64)}
-		backends[i].indexer = NewChainIndexer(db, hucdb.NewTable(db, string([]byte{byte(i)})), backends[i], sectionSize, confirmsReq, 0, fmt.Sprintf("indexer-%d", i))
+		backends[i].indexer = NewChainIndexer(db, ircdb.NewTable(db, string([]byte{byte(i)})), backends[i], sectionSize, confirmsReq, 0, fmt.Sprintf("indexer-%d", i))
 
 		if sections, _, _ := backends[i].indexer.Sections(); sections != 0 {
 			t.Fatalf("Canonical section count mismatch: have %v, want %v", sections, 0)

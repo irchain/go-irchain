@@ -1,18 +1,18 @@
-// Copyright 2014 The happyuc-go Authors
-// This file is part of the happyuc-go library.
+// Copyright 2014 The go-irchain Authors
+// This file is part of the go-irchain library.
 //
-// The happyuc-go library is free software: you can redistribute it and/or modify
+// The go-irchain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The happyuc-go library is distributed in the hope that it will be useful,
+// The go-irchain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the happyuc-go library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-irchain library. If not, see <http://www.gnu.org/licenses/>.
 
 package node
 
@@ -25,14 +25,14 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/happyuc-project/happyuc-go/accounts"
-	"github.com/happyuc-project/happyuc-go/accounts/keystore"
-	"github.com/happyuc-project/happyuc-go/accounts/usbwallet"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/log"
-	"github.com/happyuc-project/happyuc-go/p2p"
-	"github.com/happyuc-project/happyuc-go/p2p/discover"
+	"github.com/irchain/go-irchain/accounts"
+	"github.com/irchain/go-irchain/accounts/keystore"
+	"github.com/irchain/go-irchain/accounts/usbwallet"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/log"
+	"github.com/irchain/go-irchain/p2p"
+	"github.com/irchain/go-irchain/p2p/discover"
 )
 
 const (
@@ -48,7 +48,7 @@ const (
 // all registered services.
 type Config struct {
 	// Name sets the instance name of the node. It must not contain the / character and is
-	// used in the devp2p node identifier. The instance name of ghuc is "ghuc". If no
+	// used in the devp2p node identifier. The instance name of girc is "girc". If no
 	// value is specified, the basename of the current executable is used.
 	Name string `toml:"-"`
 
@@ -227,9 +227,9 @@ func DefaultWSEndpoint() string {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Ghuc", keep that.
-	if name == "ghuc" || name == "ghuc-testnet" {
-		name = "Ghuc"
+	// Backwards compatibility: previous versions used title-cased "Girc", keep that.
+	if name == "girc" || name == "girc-testnet" {
+		name = "Girc"
 	}
 	if c.UserIdent != "" {
 		name += "/" + c.UserIdent
@@ -253,8 +253,8 @@ func (c *Config) name() string {
 	return c.Name
 }
 
-// These resources are resolved differently for "ghuc" instances.
-var isOldGhucResource = map[string]bool{
+// These resources are resolved differently for "girc" instances.
+var isOldGircResource = map[string]bool{
 	"chaindata":          true,
 	"nodes":              true,
 	"nodekey":            true,
@@ -271,10 +271,10 @@ func (c *Config) resolvePath(path string) string {
 		return ""
 	}
 	// Backwards-compatibility: ensure that data directory files created
-	// by ghuc 1.4 are used if they exist.
-	if c.name() == "ghuc" && isOldGhucResource[path] {
+	// by girc 1.4 are used if they exist.
+	if c.name() == "girc" && isOldGircResource[path] {
 		oldpath := ""
-		if c.Name == "ghuc" {
+		if c.Name == "girc" {
 			oldpath = filepath.Join(c.DataDir, path)
 		}
 		if oldpath != "" && common.FileExist(oldpath) {
@@ -405,7 +405,7 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	var ephemeral string
 	if keydir == "" {
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "happyuc-go-keystore")
+		keydir, err = ioutil.TempDir("", "go-irchain-keystore")
 		ephemeral = keydir
 	}
 

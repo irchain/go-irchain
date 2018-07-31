@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/metrics"
+	"github.com/irchain/go-irchain/metrics"
 )
 
 // a regexp for extracting the unit from time.Duration.String

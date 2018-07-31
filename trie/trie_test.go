@@ -30,10 +30,10 @@ import (
 	"testing/quick"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/crypto"
-	"github.com/happyuc-project/happyuc-go/hucdb"
-	"github.com/happyuc-project/happyuc-go/rlp"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/crypto"
+	"github.com/irchain/go-irchain/ircdb"
+	"github.com/irchain/go-irchain/rlp"
 )
 
 func init() {
@@ -42,7 +42,7 @@ func init() {
 
 // Used for testing
 func newEmpty() *Trie {
-	trie, _ := New(common.Hash{}, NewDatabase(hucdb.NewMemDatabase()))
+	trie, _ := New(common.Hash{}, NewDatabase(ircdb.NewMemDatabase()))
 	return trie
 }
 
@@ -66,7 +66,7 @@ func TestNull(t *testing.T) {
 }
 
 func TestMissingRoot(t *testing.T) {
-	trie, err := New(common.HexToHash("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"), NewDatabase(hucdb.NewMemDatabase()))
+	trie, err := New(common.HexToHash("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"), NewDatabase(ircdb.NewMemDatabase()))
 	if trie != nil {
 		t.Error("New returned non-nil trie for invalid root")
 	}
@@ -79,7 +79,7 @@ func TestMissingNodeDisk(t *testing.T)    { testMissingNode(t, false) }
 func TestMissingNodeMemonly(t *testing.T) { testMissingNode(t, true) }
 
 func testMissingNode(t *testing.T, memonly bool) {
-	diskdb := hucdb.NewMemDatabase()
+	diskdb := ircdb.NewMemDatabase()
 	triedb := NewDatabase(diskdb)
 
 	trie, _ := New(common.Hash{}, triedb)
@@ -316,7 +316,7 @@ func TestLargeValue(t *testing.T) {
 }
 
 type countingDB struct {
-	hucdb.Database
+	ircdb.Database
 	gets map[string]int
 }
 
@@ -410,7 +410,7 @@ func (randTest) Generate(r *rand.Rand, size int) reflect.Value {
 }
 
 func runRandTest(rt randTest) bool {
-	triedb := NewDatabase(hucdb.NewMemDatabase())
+	triedb := NewDatabase(ircdb.NewMemDatabase())
 
 	tr, _ := New(common.Hash{}, triedb)
 	values := make(map[string]string) // tracks content of the trie
@@ -538,7 +538,7 @@ func benchGet(b *testing.B, commit bool) {
 	b.StopTimer()
 
 	if commit {
-		ldb := trie.db.diskdb.(*hucdb.LDBDatabase)
+		ldb := trie.db.diskdb.(*ircdb.LDBDatabase)
 		ldb.Close()
 		os.RemoveAll(ldb.Path())
 	}
@@ -594,7 +594,7 @@ func tempDB() (string, *Database) {
 	if err != nil {
 		panic(fmt.Sprintf("can't create temporary directory: %v", err))
 	}
-	diskdb, err := hucdb.NewLDBDatabase(dir, 256, 0)
+	diskdb, err := ircdb.NewLDBDatabase(dir, 256, 0)
 	if err != nil {
 		panic(fmt.Sprintf("can't create temporary database: %v", err))
 	}

@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/irchain/go-irchain/common/hexutil"
 )
 
 type MyType [5]byte

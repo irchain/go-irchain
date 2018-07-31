@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/common/hexutil"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/common/hexutil"
 )
 
 var _ = (*headerMarshaling)(nil)

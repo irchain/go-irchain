@@ -26,12 +26,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/common"
-	"github.com/happyuc-project/happyuc-go/consensus/huchash"
-	"github.com/happyuc-project/happyuc-go/core"
-	"github.com/happyuc-project/happyuc-go/huc"
-	"github.com/happyuc-project/happyuc-go/internal/jsre"
-	"github.com/happyuc-project/happyuc-go/node"
+	"github.com/irchain/go-irchain/common"
+	"github.com/irchain/go-irchain/consensus/irchash"
+	"github.com/irchain/go-irchain/core"
+	"github.com/irchain/go-irchain/irc"
+	"github.com/irchain/go-irchain/internal/jsre"
+	"github.com/irchain/go-irchain/node"
 )
 
 const (
@@ -75,7 +75,7 @@ func (p *hookedPrompter) SetWordCompleter(completer WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	happyuc   *huc.HappyUC
+	happyuc   *irc.IrChain
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -83,30 +83,30 @@ type tester struct {
 
 // newTester creates a test environment based on which the console can operate.
 // Please ensure you call Close() on the returned tester to avoid leaks.
-func newTester(t *testing.T, confOverride func(*huc.Config)) *tester {
+func newTester(t *testing.T, confOverride func(*irc.Config)) *tester {
 	// Create a temporary storage for the node keys and initialize it
 	workspace, err := ioutil.TempDir("", "console-tester-")
 	if err != nil {
 		t.Fatalf("failed to create temporary keystore: %v", err)
 	}
 
-	// Create a networkless protocol stack and start an HappyUC service within
+	// Create a networkless protocol stack and start an IrChain service within
 	stack, err := node.New(&node.Config{DataDir: workspace, UseLightweightKDF: true, Name: testInstance})
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	hucConf := &huc.Config{
+	hucConf := &irc.Config{
 		Genesis:  core.DeveloperGenesisBlock(15, common.Address{}),
 		Coinbase: common.HexToAddress(testAddress),
-		Huchash: huchash.Config{
-			PowMode: huchash.ModeTest,
+		Irchash: irchash.Config{
+			PowMode: irchash.ModeTest,
 		},
 	}
 	if confOverride != nil {
 		confOverride(hucConf)
 	}
-	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return huc.New(ctx, hucConf) }); err != nil {
-		t.Fatalf("failed to register HappyUC protocol: %v", err)
+	if err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) { return irc.New(ctx, hucConf) }); err != nil {
+		t.Fatalf("failed to register IrChain protocol: %v", err)
 	}
 	// Start the node and assemble the JavaScript console around it
 	if err = stack.Start(); err != nil {
@@ -131,7 +131,7 @@ func newTester(t *testing.T, confOverride func(*huc.Config)) *tester {
 		t.Fatalf("failed to create JavaScript console: %v", err)
 	}
 	// Create the final tester and return
-	var happyuc *huc.HappyUC
+	var happyuc *irc.IrChain
 	stack.Service(&happyuc)
 
 	return &tester{

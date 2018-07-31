@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/happyuc-project/happyuc-go/crypto/sha3"
+	"github.com/irchain/go-irchain/crypto/sha3"
 )
 
 /*
